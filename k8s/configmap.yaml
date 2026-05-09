@@ -25,3 +25,4 @@ data:
   SUPPORTED_LOCALES: "cs,en,ru,uk"
   PUBLIC_REPORT_CACHE_TTL_SECONDS: "300"
   AI_SERVICE_BASE_URL: "http://ai-microservice.statex-apps.svc.cluster.local:3380"
+  LEADS_SERVICE_URL: "http://leads-microservice.statex-apps.svc.cluster.local:4400"
