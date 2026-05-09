@@ -1,0 +1,22 @@
+{
+  "stage": "landing-page",
+  "health": "ok",
+  "last_updated": "2026-05-08",
+  "active_task": null,
+  "completed_tasks": [
+    "001-repository-scaffold",
+    "002-auth-integration",
+    "003-db-service-client",
+    "004-vault-config",
+    "005-kubernetes-manifests",
+    "006-qr-payment-generator",
+    "007-onboarding-flow",
+    "008-task-module",
+    "009-feedback-module",
+    "010-admin-panel",
+    "011-landing-page-lead-capture",
+    "012-volunteer-task-showcase",
+    "013-lead-confirmation-ux"
+  ],
+  "notes": "Landing page live at /. Bilingual cs/en. Lead capture via leads-microservice (BFF proxy at /api/leads/submit). Time-or-money section with 6 volunteer task examples. Login button in nav. Authenticated users bypass to /dashboard via middleware. Channel-specific confirmation UX (email/WhatsApp/Telegram). Task 014 (confirmation sending) is planned for notifications-microservice — not implemented here. 187/187 tests pass."
+}

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: school-committee-config
+  namespace: statex-apps
+  labels:
+    app: school-committee
+    managed-by: k8s-migration
+data:
+  NODE_ENV: "production"
+  SERVICE_NAME: "school-committee"
+  DOMAIN: "school-committee.alfares.cz"
+  PORT: "4800"
+  APP_BASE_URL: "https://school-committee.alfares.cz"
+  AUTH_SERVICE_BASE_URL: "http://auth-microservice.statex-apps.svc.cluster.local:3370"
+  AUTH_SERVICE_AUDIENCE: "school-committee"
+  DB_HOST: "192.168.88.53"
+  DB_PORT: "5432"
+  DB_USER: "dbadmin"
+  DB_NAME: "school_committee_platform"
+  LOGGING_SERVICE_URL: "http://logging-microservice.statex-apps.svc.cluster.local:3367"
+  LOGGING_SERVICE_API_PATH: "/api/logs"
+  NOTIFICATION_SERVICE_BASE_URL: "http://notifications-microservice.statex-apps.svc.cluster.local:3368"
+  DEFAULT_LOCALE: "cs"
+  SUPPORTED_LOCALES: "cs,en,ru,uk"
+  PUBLIC_REPORT_CACHE_TTL_SECONDS: "300"
+  AI_SERVICE_BASE_URL: "http://ai-microservice.statex-apps.svc.cluster.local:3380"
