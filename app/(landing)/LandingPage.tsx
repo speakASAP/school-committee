@@ -151,6 +151,7 @@ export default function LandingPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
+  const [liveTranscript, setLiveTranscript] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -170,15 +171,20 @@ export default function LandingPage() {
 
   const toggleRecording = async () => {
     if (isRecording) {
-      const blob = await voiceRecordingService.stopRecording();
+      const { blob, transcript } = await voiceRecordingService.stopRecording();
       setIsRecording(false);
       if (intervalRef.current) clearInterval(intervalRef.current);
       setVoiceBlob(blob);
+      setLiveTranscript("");
+      if (transcript) {
+        setMessage((prev) => (prev.trim() ? `${prev.trim()}\n\n${transcript}` : transcript));
+      }
     } else {
       try {
-        await voiceRecordingService.startRecording();
+        await voiceRecordingService.startRecording((text) => setLiveTranscript(text));
         setIsRecording(true);
         setRecordingTime(0);
+        setLiveTranscript("");
         intervalRef.current = setInterval(() => setRecordingTime((p) => p + 1), 1000);
       } catch (e) {
         alert(e instanceof Error ? e.message : "Nelze spustit nahrávání.");
@@ -195,8 +201,7 @@ export default function LandingPage() {
     setError(null);
     setSubmitting(true);
 
-    let fullMessage = message.trim();
-    if (voiceBlob) fullMessage += `\n\n[Hlasová zpráva: ${recordingTime}s]`;
+    const fullMessage = message.trim() || "Zájem o zapojení";
 
     try {
       const res = await fetch("/api/leads/submit", {
@@ -206,7 +211,7 @@ export default function LandingPage() {
           sourceService: "school-committee",
           sourceUrl: typeof window !== "undefined" ? window.location.href : "",
           sourceLabel: "landing-page",
-          message: fullMessage || "Zájem o zapojení",
+          message: fullMessage,
           contactMethods: [{ type: contactType, value: contactValue.trim() }],
           metadata: {
             name,
@@ -374,35 +379,40 @@ export default function LandingPage() {
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
 
-              <div className="flex items-center gap-3">
-                {voiceBlob ? (
-                  <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-2 flex-1">
-                    <span>{t.voiceRecorded}</span>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  {voiceBlob ? (
+                    <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-2 flex-1">
+                      <span>{t.voiceRecorded}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVoiceBlob(null);
+                          setRecordingTime(0);
+                        }}
+                        className="ml-auto text-xs text-red-500 hover:text-red-700"
+                      >
+                        {t.voiceRemove}
+                      </button>
+                    </div>
+                  ) : (
                     <button
                       type="button"
-                      onClick={() => {
-                        setVoiceBlob(null);
-                        setRecordingTime(0);
-                      }}
-                      className="ml-auto text-xs text-red-500 hover:text-red-700"
+                      onClick={toggleRecording}
+                      className={`flex-1 text-sm rounded-xl px-4 py-2 border transition-colors ${
+                        isRecording
+                          ? "bg-red-50 border-red-300 text-red-700"
+                          : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                      }`}
                     >
-                      {t.voiceRemove}
+                      {isRecording
+                        ? `${t.voiceStop} (${formatTime(recordingTime)})`
+                        : t.voiceStart}
                     </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={toggleRecording}
-                    className={`flex-1 text-sm rounded-xl px-4 py-2 border transition-colors ${
-                      isRecording
-                        ? "bg-red-50 border-red-300 text-red-700"
-                        : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {isRecording
-                      ? `${t.voiceStop} (${formatTime(recordingTime)})`
-                      : t.voiceStart}
-                  </button>
+                  )}
+                </div>
+                {isRecording && liveTranscript && (
+                  <p className="text-xs text-gray-500 italic px-1">{liveTranscript}</p>
                 )}
               </div>
 
