@@ -54,6 +54,6 @@ echo -e "${YELLOW}→ Waiting for rollout...${NC}"
 kubectl rollout status deployment/"$SERVICE_NAME" -n "${NAMESPACE}" --timeout=120s
 
 echo -e "${GREEN}╔══════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║  ✅ Deploy complete                  ║${NC}"
+echo -e "${GREEN}║  ✅ School Committee Deploy complete ║${NC}"
 echo -e "${GREEN}║  https://school-committee.alfares.cz ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════╝${NC}"
