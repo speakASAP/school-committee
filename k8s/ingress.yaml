@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: school-committee
+  namespace: statex-apps
+  labels:
+    app: school-committee
+    managed-by: k8s-migration
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - school-committee.alfares.cz
+      secretName: school-committee-tls
+  rules:
+    - host: school-committee.alfares.cz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: school-committee
+                port:
+                  number: 4800

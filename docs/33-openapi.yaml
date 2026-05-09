@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: School Committee Platform API
+  version: 0.1.0
+  description: Frontend-facing BFF API contracts for MVP implementation.
+
+servers:
+  - url: https://platform.example.com/api
+
+security:
+  - bearerAuth: []
+
+paths:
+  /me:
+    get:
+      summary: Get current user context
+      responses:
+        "200":
+          description: Current user context
+
+  /onboarding/complete:
+    post:
+      summary: Complete parent onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteOnboardingRequest"
+      responses:
+        "200":
+          description: Onboarding completed
+
+  /classes:
+    get:
+      summary: List school classes
+      responses:
+        "200":
+          description: Class list
+
+  /tasks:
+    get:
+      summary: List tasks
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: classId
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task list
+    post:
+      summary: Create task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskRequest"
+      responses:
+        "201":
+          description: Task created
+
+  /tasks/{taskId}/claim:
+    post:
+      summary: Claim task
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task claimed
+        "409":
+          description: Task already claimed
+
+  /tasks/{taskId}/complete:
+    post:
+      summary: Mark task as completed by assignee
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task completion submitted
+
+  /tasks/{taskId}/verify:
+    post:
+      summary: Verify completed task
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task verified
+
+  /contributions/plans:
+    get:
+      summary: List contribution plans
+      responses:
+        "200":
+          description: Plans
+
+  /payments/qr:
+    post:
+      summary: Generate QR bank payment intent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQrPaymentRequest"
+      responses:
+        "200":
+          description: QR payment generated
+
+  /payments/my:
+    get:
+      summary: List my payment history
+      responses:
+        "200":
+          description: Payment history
+
+  /feedback:
+    post:
+      summary: Submit feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitFeedbackRequest"
+      responses:
+        "201":
+          description: Feedback submitted
+
+  /reports/public/finance:
+    get:
+      security: []
+      summary: Public finance report
+      responses:
+        "200":
+          description: Aggregated public finance report
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CompleteOnboardingRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - language
+        - classId
+        - childrenCount
+        - participationType
+        - gdprConsent
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        language:
+          type: string
+          enum: [cs, en, ru, uk]
+        classId:
+          type: string
+        childrenCount:
+          type: integer
+          minimum: 1
+        participationType:
+          type: string
+          enum: [financial, labor, mixed]
+        gdprConsent:
+          type: boolean
+
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+        - description
+        - priority
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        classId:
+          type: string
+          nullable: true
+        deadline:
+          type: string
+          format: date
+        priority:
+          type: string
+          enum: [low, normal, high, urgent]
+        photoFileId:
+          type: string
+
+    CreateQrPaymentRequest:
+      type: object
+      required:
+        - amountCzk
+      properties:
+        planId:
+          type: string
+        amountCzk:
+          type: integer
+          minimum: 1
+
+    SubmitFeedbackRequest:
+      type: object
+      required:
+        - category
+        - type
+        - text
+      properties:
+        category:
+          type: string
+        type:
+          type: string
+          enum: [idea, complaint, suggestion, thanks]
+        classId:
+          type: string
+        isAnonymous:
+          type: boolean
+        text:
+          type: string
