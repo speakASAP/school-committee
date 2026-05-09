@@ -51,6 +51,7 @@ const T = {
       email: "vas@email.cz",
       whatsapp: "+420 777 123 456",
       telegram: "@vase_jmeno",
+      phone: "+420 777 123 456",
     },
     voiceStart: "🎤 Nahrát hlasovou zprávu",
     voiceStop: "⏹️ Zastavit nahrávání",
@@ -65,6 +66,8 @@ const T = {
       "Pošleme vám zprávu na WhatsApp. Odpovězte na ni pro dokončení registrace.",
     successTelegram:
       "Pošleme vám zprávu na Telegram. Odpovězte na ni pro dokončení registrace.",
+    successPhone:
+      "Zavolám vám co nejdříve. Děkujeme za zájem!",
     gdpr: "🔒 Vaše data jsou chráněna dle GDPR. Informace nepředáváme třetím stranám.",
     footerCopy: (year: number) => `© ${year} Školní výbor · school-committee.alfares.cz`,
     errorRequired: "Vyplňte prosím jméno a kontakt.",
@@ -116,6 +119,7 @@ const T = {
       email: "you@email.com",
       whatsapp: "+420 777 123 456",
       telegram: "@your_handle",
+      phone: "+420 777 123 456",
     },
     voiceStart: "🎤 Record voice message",
     voiceStop: "⏹️ Stop recording",
@@ -130,6 +134,8 @@ const T = {
       "We'll send you a WhatsApp message. Reply to it to complete registration.",
     successTelegram:
       "We'll send you a Telegram message. Reply to it to complete registration.",
+    successPhone:
+      "We'll call you as soon as possible. Thank you for your interest!",
     gdpr: "🔒 Your data is protected under GDPR. We do not share it with third parties.",
     footerCopy: (year: number) => `© ${year} School Committee · school-committee.alfares.cz`,
     errorRequired: "Please fill in your name and contact.",
@@ -137,7 +143,7 @@ const T = {
   },
 } as const;
 
-type ContactType = "email" | "whatsapp" | "telegram";
+type ContactType = "email" | "whatsapp" | "telegram" | "phone";
 
 export default function LandingPage() {
   const [lang, setLang] = useState<Lang>("cs");
@@ -169,6 +175,8 @@ export default function LandingPage() {
   const formatTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+  const preRecordMessageRef = useRef("");
+
   const toggleRecording = async () => {
     if (isRecording) {
       const { blob, transcript } = await voiceRecordingService.stopRecording();
@@ -176,12 +184,20 @@ export default function LandingPage() {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setVoiceBlob(blob);
       setLiveTranscript("");
+      const base = preRecordMessageRef.current;
       if (transcript) {
-        setMessage((prev) => (prev.trim() ? `${prev.trim()}\n\n${transcript}` : transcript));
+        setMessage(base.trim() ? `${base.trim()}\n\n${transcript}` : transcript);
+      } else {
+        setMessage(base);
       }
     } else {
       try {
-        await voiceRecordingService.startRecording((text) => setLiveTranscript(text));
+        preRecordMessageRef.current = message;
+        await voiceRecordingService.startRecording((text) => {
+          setLiveTranscript(text);
+          const base = preRecordMessageRef.current;
+          setMessage(base.trim() ? `${base.trim()}\n\n${text}` : text);
+        });
         setIsRecording(true);
         setRecordingTime(0);
         setLiveTranscript("");
@@ -240,7 +256,9 @@ export default function LandingPage() {
       ? t.successEmail
       : contactType === "whatsapp"
         ? t.successWhatsapp
-        : t.successTelegram;
+        : contactType === "telegram"
+          ? t.successTelegram
+          : t.successPhone;
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
@@ -375,8 +393,13 @@ export default function LandingPage() {
                 rows={4}
                 placeholder={t.messagePlaceholder}
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                onChange={(e) => !isRecording && setMessage(e.target.value)}
+                readOnly={isRecording}
+                className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 resize-none transition-colors ${
+                  isRecording
+                    ? "border-red-300 bg-red-50 focus:ring-red-400 text-gray-700"
+                    : "border-gray-200 focus:ring-blue-500"
+                }`}
               />
 
               <div className="flex flex-col gap-2">
@@ -411,15 +434,12 @@ export default function LandingPage() {
                     </button>
                   )}
                 </div>
-                {isRecording && liveTranscript && (
-                  <p className="text-xs text-gray-500 italic px-1">{liveTranscript}</p>
-                )}
               </div>
 
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">{t.contactTypeLabel}</label>
-                <div className="grid grid-cols-3 gap-2 mb-2">
-                  {(["email", "whatsapp", "telegram"] as ContactType[]).map((ct) => (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+                  {(["email", "whatsapp", "telegram", "phone"] as ContactType[]).map((ct) => (
                     <button
                       key={ct}
                       type="button"
@@ -427,7 +447,7 @@ export default function LandingPage() {
                         setContactType(ct);
                         setContactValue("");
                       }}
-                      className={`text-sm rounded-xl px-3 py-2 border transition-colors capitalize ${
+                      className={`text-sm rounded-xl px-3 py-2 border transition-colors ${
                         contactType === ct
                           ? "bg-blue-600 text-white border-blue-600"
                           : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
@@ -437,7 +457,9 @@ export default function LandingPage() {
                         ? "📧 Email"
                         : ct === "whatsapp"
                           ? "📱 WhatsApp"
-                          : "✈️ Telegram"}
+                          : ct === "telegram"
+                            ? "✈️ Telegram"
+                            : "📞 Telefon"}
                     </button>
                   ))}
                 </div>
