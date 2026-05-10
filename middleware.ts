@@ -5,7 +5,11 @@ const ONBOARDING_PATHS = ["/onboarding/profile", "/onboarding/consent", "/onboar
 
 const PUBLIC_PREFIXES = [
   "/login",
+  "/confirm",
+  "/auth/callback",
   "/api/auth/login",
+  "/api/auth/magic-link",
+  "/api/auth/session",
   "/api/auth/refresh",
   "/api/health",
   "/api/public",
