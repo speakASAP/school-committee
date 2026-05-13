@@ -26,6 +26,7 @@ const PUBLIC_PREFIXES = [
   "/gdpr",
   "/_next",
   "/favicon",
+  "/logo.webp",
 ];
 
 function isPublic(pathname: string): boolean {
