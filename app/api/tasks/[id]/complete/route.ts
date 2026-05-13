@@ -14,7 +14,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const { id: taskId } = await params;
     const body = await req.json().catch(() => ({})) as { tenantId?: string; schoolId?: string; note?: string };
 
-    if (!body.tenantId || !body.schoolId) {
+    const tenantId = body.tenantId || process.env.DEFAULT_TENANT_ID || "";
+    const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID || "";
+
+    if (!tenantId || !schoolId) {
       throw new AppError("VALIDATION_ERROR", "tenantId and schoolId are required", 400);
     }
 
@@ -44,8 +47,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
 
     await writeAuditEvent({
-      tenantId: body.tenantId,
-      schoolId: body.schoolId,
+      tenantId,
+      schoolId,
       actorUserId: user.id,
       action: "task.completion_submitted",
       entityType: "task",

@@ -22,42 +22,69 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h1 className="text-2xl font-extrabold text-gray-900">Vítejte zpět</h1>
         {user && <p className="text-sm text-gray-500 mt-1">{user.email}</p>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Link href="/tasks" className="block bg-white rounded-xl border p-5 hover:shadow-md transition-shadow">
-          <h2 className="font-semibold text-gray-900">Volunteer Tasks</h2>
-          <p className="text-sm text-gray-500 mt-1">Browse and claim open tasks</p>
+        <Link
+          href="/tasks"
+          className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg mb-3">
+            ✅
+          </div>
+          <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Dobrovolnické úkoly</h2>
+          <p className="text-sm text-gray-500 mt-1">Prohlédněte a přijměte otevřené úkoly</p>
         </Link>
-        <Link href="/payments" className="block bg-white rounded-xl border p-5 hover:shadow-md transition-shadow">
-          <h2 className="font-semibold text-gray-900">Payments</h2>
-          <p className="text-sm text-gray-500 mt-1">Generate QR payment for school contributions</p>
+
+        <Link
+          href="/payments"
+          className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg mb-3">
+            💳
+          </div>
+          <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Platby</h2>
+          <p className="text-sm text-gray-500 mt-1">Vygenerujte QR platbu pro příspěvky škole</p>
         </Link>
-        <Link href="/feedback" className="block bg-white rounded-xl border p-5 hover:shadow-md transition-shadow">
-          <h2 className="font-semibold text-gray-900">Feedback</h2>
-          <p className="text-sm text-gray-500 mt-1">Submit suggestions, questions or praise</p>
+
+        <Link
+          href="/feedback"
+          className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg mb-3">
+            💬
+          </div>
+          <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Zpětná vazba</h2>
+          <p className="text-sm text-gray-500 mt-1">Podejte návrhy, dotazy nebo pochvaly</p>
         </Link>
-        <Link href="/report" className="block bg-white rounded-xl border p-5 hover:shadow-md transition-shadow">
-          <h2 className="font-semibold text-gray-900">Transparency Report</h2>
-          <p className="text-sm text-gray-500 mt-1">See how collected funds are used</p>
+
+        <Link
+          href="/report"
+          className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg mb-3">
+            📊
+          </div>
+          <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Zpráva o transparentnosti</h2>
+          <p className="text-sm text-gray-500 mt-1">Podívejte se, jak jsou využívány vybrané prostředky</p>
         </Link>
       </div>
 
       {isAdmin && (
-        <div className="border-t pt-4">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Admin</p>
-          <Link href="/admin/users" className="text-sm text-blue-600 hover:underline">
-            Go to admin panel →
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-3">Administrátor</p>
+          <Link href="/admin/users" className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline">
+            Přejít do administrace →
           </Link>
         </div>
       )}
 
-      <div className="border-t pt-4">
-        <Link href="/account/delete" className="text-xs text-gray-400 hover:text-gray-600">
-          Request account deletion
+      <div className="text-center">
+        <Link href="/account/delete" className="text-xs text-gray-400 hover:text-gray-600 hover:underline">
+          Žádost o smazání účtu
         </Link>
       </div>
     </div>

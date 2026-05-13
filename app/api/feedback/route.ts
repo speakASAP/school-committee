@@ -25,6 +25,9 @@ export async function POST(req: NextRequest) {
     };
 
     if (!body.schoolId) {
+      body.schoolId = process.env.DEFAULT_SCHOOL_ID ?? "";
+    }
+    if (!body.schoolId) {
       throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
     }
     if (!body.category || !ALLOWED_CATEGORIES.includes(body.category)) {
@@ -65,7 +68,7 @@ export async function POST(req: NextRequest) {
     });
 
     await writeAuditEvent({
-      tenantId: body.schoolId,
+      tenantId: process.env.DEFAULT_TENANT_ID ?? body.schoolId,
       schoolId: body.schoolId,
       // Omit actorUserId for anonymous submissions
       actorUserId: isAnonymous ? undefined : user?.id,
@@ -97,7 +100,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const schoolId = searchParams.get("schoolId");
+    const schoolId = searchParams.get("schoolId") || process.env.DEFAULT_SCHOOL_ID;
     if (!schoolId) {
       throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
     }

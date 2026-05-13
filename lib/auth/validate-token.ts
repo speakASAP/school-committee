@@ -33,7 +33,9 @@ export async function validateToken(
       throw new UnauthenticatedError("Token validation failed");
     }
 
-    const data = (await res.json()) as AuthValidateResponse;
+    const raw = (await res.json()) as { user?: AuthValidateResponse } | AuthValidateResponse;
+    // Auth controller returns { valid: true, user: {...} }
+    const data: AuthValidateResponse = "user" in raw && raw.user ? raw.user : raw as AuthValidateResponse;
 
     if (!data.isActive) {
       throw new UnauthenticatedError("Account is inactive");

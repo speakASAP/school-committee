@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { upsertProfile } from "@/lib/db/profiles";
 
 const LEADS_SERVICE_URL =
   process.env.LEADS_SERVICE_URL ?? "https://leads.alfares.cz";
@@ -8,6 +9,10 @@ const APP_BASE_URL =
   process.env.APP_BASE_URL ?? "https://school-committee.alfares.cz";
 const AUTH_INTERNAL_SERVICE_TOKEN =
   process.env.AUTH_INTERNAL_SERVICE_TOKEN ?? "";
+const DEFAULT_TENANT_ID =
+  process.env.DEFAULT_TENANT_ID ?? "";
+const DEFAULT_SCHOOL_ID =
+  process.env.DEFAULT_SCHOOL_ID ?? "";
 
 async function confirmLead(token: string): Promise<{ email: string | null } | null | "error"> {
   try {
@@ -26,7 +31,7 @@ async function confirmLead(token: string): Promise<{ email: string | null } | nu
   }
 }
 
-async function getMagicLinkVerifyUrl(email: string): Promise<string | null> {
+async function getMagicLinkResult(email: string): Promise<{ verifyUrl: string; userId: string } | null> {
   if (!AUTH_SERVICE_BASE_URL || !AUTH_INTERNAL_SERVICE_TOKEN) return null;
   try {
     const res = await fetch(`${AUTH_SERVICE_BASE_URL}/auth/internal/magic-link/token`, {
@@ -43,10 +48,28 @@ async function getMagicLinkVerifyUrl(email: string): Promise<string | null> {
       cache: "no-store",
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { verifyUrl?: string };
-    return data.verifyUrl ?? null;
+    const data = (await res.json()) as { verifyUrl?: string; userId?: string };
+    if (!data.verifyUrl || !data.userId) return null;
+    return { verifyUrl: data.verifyUrl, userId: data.userId };
   } catch {
     return null;
+  }
+}
+
+async function ensureProfile(userId: string, email: string): Promise<void> {
+  if (!DEFAULT_TENANT_ID || !DEFAULT_SCHOOL_ID) return;
+  try {
+    const emailPrefix = email.split("@")[0] ?? "";
+    await upsertProfile(userId, {
+      tenantId: DEFAULT_TENANT_ID,
+      schoolId: DEFAULT_SCHOOL_ID,
+      firstName: emailPrefix,
+      lastName: "",
+      participationType: "parent",
+      onboardingStatus: "incomplete",
+    });
+  } catch {
+    // Non-fatal: user can complete profile during onboarding
   }
 }
 
@@ -96,9 +119,10 @@ export default async function ConfirmPage({
   }
 
   if (result.email) {
-    const verifyUrl = await getMagicLinkVerifyUrl(result.email);
-    if (verifyUrl) {
-      redirect(verifyUrl);
+    const magicLink = await getMagicLinkResult(result.email);
+    if (magicLink) {
+      await ensureProfile(magicLink.userId, result.email);
+      redirect(magicLink.verifyUrl);
     }
   }
 

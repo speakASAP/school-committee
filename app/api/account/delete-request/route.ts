@@ -9,10 +9,12 @@ export async function POST(req: NextRequest) {
   try {
     const actor = await getCurrentUser(requestId);
     const body = (await req.json()) as { tenantId?: string; schoolId?: string; reason?: string };
-    if (!body.tenantId) throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+    const tenantId = body.tenantId || process.env.DEFAULT_TENANT_ID || "";
+    const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID;
+    if (!tenantId) throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
     await writeAuditEvent({
-      tenantId: body.tenantId,
-      schoolId: body.schoolId,
+      tenantId,
+      schoolId,
       actorUserId: actor.id,
       action: "account.deletion_requested",
       entityType: "profile",
