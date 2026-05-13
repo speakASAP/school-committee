@@ -1,5 +1,6 @@
 import { getAccessToken } from "@/lib/auth/session";
 import { validateToken } from "@/lib/auth/validate-token";
+import { logger } from "@/lib/logger";
 import type { CurrentUser, Role } from "@/types/auth";
 import { UnauthenticatedError } from "@/types/errors";
 
@@ -39,7 +40,15 @@ export async function tryGetCurrentUser(
 ): Promise<CurrentUser | null> {
   try {
     return await getCurrentUser(requestId);
-  } catch {
+  } catch (err) {
+    if (!(err instanceof UnauthenticatedError)) {
+      logger.error("tryGetCurrentUser: unexpected error during auth check", {
+        request_id: requestId,
+        error_code: "AUTH_CHECK_ERROR",
+        error_message: err instanceof Error ? err.message : String(err),
+        error_name: err instanceof Error ? err.name : undefined,
+      });
+    }
     return null;
   }
 }

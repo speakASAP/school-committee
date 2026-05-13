@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
+import { logger } from "@/lib/logger";
 import { db } from "@/lib/db/client";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
+  const { id: paymentIntentId } = await params;
+  const ROUTE = `/api/admin/payments/${paymentIntentId}/confirm`;
 
   try {
     const actor = await getCurrentUser(requestId);
@@ -15,7 +18,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       throw new AppError("FORBIDDEN", "Payment confirmation requires committee or admin role", 403);
     }
 
-    const { id: paymentIntentId } = await params;
     const body = await req.json() as { reference?: string; tenantId?: string };
 
     if (!body.reference?.trim()) {
@@ -61,11 +63,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       requestId,
     });
 
+    logger.info("payments/confirm: payment confirmed", {
+      request_id: requestId,
+      route: ROUTE,
+      payment_intent_id: paymentIntentId,
+    });
+
     return NextResponse.json({ id: updated.id, status: updated.status }, { status: 200 });
   } catch (err) {
     if (err instanceof AppError) {
+      logger.error("payments/confirm: returning error response", {
+        request_id: requestId,
+        route: ROUTE,
+        error_code: err.code,
+        status_code: err.statusCode,
+        error_message: err.message,
+      });
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
+    logger.error("payments/confirm: unexpected error", {
+      request_id: requestId,
+      route: ROUTE,
+      error_code: "UNEXPECTED_ERROR",
+      error_message: err instanceof Error ? err.message : String(err),
+      error_name: err instanceof Error ? err.name : undefined,
+    });
     return NextResponse.json(
       toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
       { status: 500 },

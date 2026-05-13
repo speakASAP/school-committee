@@ -69,15 +69,27 @@ function LoginForm() {
         <div className="w-full max-w-sm bg-white rounded-xl shadow p-8 space-y-4 text-center">
           <div className="text-4xl">📧</div>
           <h1 className="text-xl font-bold text-gray-900">Odkaz odeslán</h1>
-          <p className="text-sm text-gray-500">
-            Pokud je e-mail registrován, obdržíte přihlašovací odkaz. Zkontrolujte prosím svou schránku.
+          <p className="text-sm text-gray-700">
+            Odkaz byl odeslán na adresu{" "}
+            <span className="font-semibold text-gray-900">{email}</span>.
           </p>
-          <button
-            onClick={() => { setMagicSent(false); setEmail(""); }}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            Zadat jiný e-mail
-          </button>
+          <p className="text-sm text-gray-500">
+            Zkontrolujte svou e-mailovou schránku. Pokud e-mail nedorazí do pár minut, zkontrolujte složku se spamem nebo zkuste zadat e-mail znovu.
+          </p>
+          <div className="flex flex-col gap-2 pt-2">
+            <button
+              onClick={() => { setMagicSent(false); }}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Zadat jiný e-mail
+            </button>
+            <button
+              onClick={() => { setMagicSent(false); setMode("password"); }}
+              className="text-sm text-gray-500 hover:underline"
+            >
+              ← Zpět na přihlášení
+            </button>
+          </div>
         </div>
       </div>
     );

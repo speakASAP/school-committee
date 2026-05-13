@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
+import { logger } from "@/lib/logger";
 import { upsertProfile, getProfile } from "@/lib/db/profiles";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError, ForbiddenError } from "@/types/errors";
 import type { OnboardingProfileRequest } from "@/types/onboarding";
+
+const ROUTE = "/api/onboarding/profile";
 
 export async function POST(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
@@ -64,11 +67,31 @@ export async function POST(req: NextRequest) {
       requestId,
     });
 
+    logger.info("onboarding/profile: profile created", {
+      request_id: requestId,
+      route: ROUTE,
+      user_id: user.id,
+    });
+
     return NextResponse.json({ profile }, { status: 201 });
   } catch (err) {
     if (err instanceof AppError) {
+      logger.error("onboarding/profile: returning error response", {
+        request_id: requestId,
+        route: ROUTE,
+        error_code: err.code,
+        status_code: err.statusCode,
+        error_message: err.message,
+      });
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
+    logger.error("onboarding/profile: unexpected error", {
+      request_id: requestId,
+      route: ROUTE,
+      error_code: "UNEXPECTED_ERROR",
+      error_message: err instanceof Error ? err.message : String(err),
+      error_name: err instanceof Error ? err.name : undefined,
+    });
     return NextResponse.json(
       toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
       { status: 500 },

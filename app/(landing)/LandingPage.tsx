@@ -66,6 +66,7 @@ const T = {
     voiceStart: "🎤 Nahrát hlasovou zprávu",
     voiceStop: "⏹️ Zastavit nahrávání",
     voiceRecorded: "✅ Hlasová zpráva připravena",
+    voiceNoTranscript: "⚠️ Váš prohlížeč nepodporuje převod řeči na text — zpráva nebyla zaznamenána. Napište ji prosím ručně.",
     voiceRemove: "Smazat",
     submit: "Odeslat zájem",
     submitting: "Odesílám…",
@@ -154,6 +155,7 @@ const T = {
     voiceStart: "🎤 Record voice message",
     voiceStop: "⏹️ Stop recording",
     voiceRecorded: "✅ Voice message ready",
+    voiceNoTranscript: "⚠️ Your browser doesn't support speech-to-text — the message was not captured. Please type it manually.",
     voiceRemove: "Remove",
     submit: "Send interest",
     submitting: "Sending…",
@@ -184,7 +186,7 @@ const T = {
   },
 } as const;
 
-type ContactType = "email" | "whatsapp" | "telegram" | "phone";
+type ContactType = "email";
 
 export default function LandingPage() {
   const [lang, setLang] = useState<Lang>("cs");
@@ -198,6 +200,8 @@ export default function LandingPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
+  const [transcriptFailed, setTranscriptFailed] = useState(false);
+  const [voiceHidden, setVoiceHidden] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -236,16 +240,20 @@ export default function LandingPage() {
       const { blob, transcript } = await voiceRecordingService.stopRecording();
       setIsRecording(false);
       if (intervalRef.current) clearInterval(intervalRef.current);
-      setVoiceBlob(blob);
       setLiveTranscript("");
       const base = preRecordMessageRef.current;
       if (transcript) {
+        setTranscriptFailed(false);
+        setVoiceBlob(blob);
         setMessage(base.trim() ? `${base.trim()}\n\n${transcript}` : transcript);
       } else {
+        setTranscriptFailed(true);
+        setVoiceBlob(null);
         setMessage(base);
       }
     } else {
       try {
+        setTranscriptFailed(false);
         preRecordMessageRef.current = message;
         await voiceRecordingService.startRecording((text) => {
           setLiveTranscript(text);
@@ -333,14 +341,7 @@ export default function LandingPage() {
     }
   };
 
-  const successMsg =
-    contactType === "email"
-      ? t.successEmail
-      : contactType === "whatsapp"
-        ? t.successWhatsapp
-        : contactType === "telegram"
-          ? t.successTelegram
-          : t.successPhone;
+  const successMsg = t.successEmail;
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
@@ -455,7 +456,7 @@ export default function LandingPage() {
                 placeholder={t.namePlaceholder}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border-2 border-gray-300 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
 
               <textarea
@@ -464,16 +465,27 @@ export default function LandingPage() {
                 value={message}
                 onChange={(e) => !isRecording && setMessage(e.target.value)}
                 readOnly={isRecording}
-                className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 resize-none transition-colors ${
+                className={`w-full border-2 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 resize-none transition-colors ${
                   isRecording
                     ? "border-red-300 bg-red-50 focus:ring-red-400 text-gray-700"
-                    : "border-gray-200 focus:ring-blue-500"
+                    : "border-gray-300 bg-white focus:ring-blue-500 focus:border-blue-500"
                 }`}
               />
 
-              <div className="flex flex-col gap-2">
+              {!voiceHidden && <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3">
-                  {voiceBlob ? (
+                  {transcriptFailed ? (
+                    <div className="flex items-start gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 flex-1">
+                      <span className="flex-1">{t.voiceNoTranscript}</span>
+                      <button
+                        type="button"
+                        onClick={() => { setTranscriptFailed(false); setVoiceHidden(true); }}
+                        className="ml-2 text-xs text-amber-700 hover:text-amber-900 shrink-0"
+                      >
+                        {t.voiceRemove}
+                      </button>
+                    </div>
+                  ) : voiceBlob ? (
                     <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-2 flex-1">
                       <span>{t.voiceRecorded}</span>
                       <button
@@ -494,7 +506,7 @@ export default function LandingPage() {
                       className={`flex-1 text-sm rounded-xl px-4 py-2 border transition-colors ${
                         isRecording
                           ? "bg-red-50 border-red-300 text-red-700"
-                          : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                          : "bg-white border-gray-300 border-2 text-gray-700 hover:bg-gray-50"
                       }`}
                     >
                       {isRecording
@@ -503,41 +515,13 @@ export default function LandingPage() {
                     </button>
                   )}
                 </div>
-              </div>
+              </div>}
 
               <div>
                 <label className="text-xs text-gray-500 mb-1 block">{t.contactTypeLabel}</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
-                  {(["email", "whatsapp", "telegram", "phone"] as ContactType[]).map((ct) => (
-                    <button
-                      key={ct}
-                      type="button"
-                      onClick={() => {
-                        setContactType(ct);
-                        setContactValue("");
-                        setEmailCheckStatus("idle");
-                        setMagicLinkSentStatus("idle");
-                        lastCheckedEmail.current = "";
-                      }}
-                      className={`text-sm rounded-xl px-3 py-2 border transition-colors ${
-                        contactType === ct
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      {ct === "email"
-                        ? "📧 Email"
-                        : ct === "whatsapp"
-                          ? "📱 WhatsApp"
-                          : ct === "telegram"
-                            ? "✈️ Telegram"
-                            : "📞 Telefon"}
-                    </button>
-                  ))}
-                </div>
                 <div className="relative">
                   <input
-                    type={contactType === "email" ? "email" : "tel"}
+                    type="email"
                     required
                     placeholder={t.contactValuePlaceholders[contactType]}
                     value={contactValue}
@@ -549,7 +533,7 @@ export default function LandingPage() {
                       }
                     }}
                     onBlur={handleEmailBlur}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-gray-300 bg-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   {emailCheckStatus === "checking" && (
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">⏳</span>

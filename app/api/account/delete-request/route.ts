@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
+import { logger } from "@/lib/logger";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
+
+const ROUTE = "/api/account/delete-request";
 
 export async function POST(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
@@ -22,23 +25,33 @@ export async function POST(req: NextRequest) {
       metadata: { reason: body.reason ?? null, email: actor.email },
       requestId,
     });
+    logger.info("delete-request: account deletion requested", {
+      request_id: requestId,
+      route: ROUTE,
+      user_id: actor.id,
+    });
     return NextResponse.json(
       { message: "Deletion request received. An admin will process it within 30 days." },
       { status: 200 },
     );
   } catch (err) {
     if (err instanceof AppError) {
+      logger.error("delete-request: returning error response", {
+        request_id: requestId,
+        route: ROUTE,
+        error_code: err.code,
+        status_code: err.statusCode,
+        error_message: err.message,
+      });
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
-    if (err && typeof err === "object" && "statusCode" in err && typeof (err as { statusCode: unknown }).statusCode === "number") {
-      const status = (err as { statusCode: number }).statusCode;
-      const code = "code" in err ? String((err as { code: unknown }).code) : "INTERNAL_ERROR";
-      const message = err instanceof Error ? err.message : "Unexpected error";
-      return NextResponse.json(
-        toErrorResponse(new AppError(code as never, message, status), requestId),
-        { status },
-      );
-    }
+    logger.error("delete-request: unexpected error", {
+      request_id: requestId,
+      route: ROUTE,
+      error_code: "UNEXPECTED_ERROR",
+      error_message: err instanceof Error ? err.message : String(err),
+      error_name: err instanceof Error ? err.name : undefined,
+    });
     return NextResponse.json(
       toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
       { status: 500 },

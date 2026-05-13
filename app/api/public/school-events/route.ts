@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getOrCreateRequestId } from "@/lib/request-id";
+import { logger } from "@/lib/logger";
 
 export interface SchoolEvent {
   title: string;
@@ -7,10 +9,13 @@ export interface SchoolEvent {
 }
 
 const SOURCE_URL = "https://www.zsstrilky.cz/zakladni-skola/nadchazejici-udalosti";
+const ROUTE = "/api/public/school-events";
 let cache: { events: SchoolEvent[]; fetchedAt: number } | null = null;
 const CACHE_TTL_MS = 10 * 60 * 1000;
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
+
   if (cache && Date.now() - cache.fetchedAt < CACHE_TTL_MS) {
     return NextResponse.json({ events: cache.events });
   }
@@ -22,6 +27,13 @@ export async function GET() {
     });
 
     if (!res.ok) {
+      logger.error("school-events: upstream returned non-OK", {
+        request_id: requestId,
+        route: ROUTE,
+        error_code: "UPSTREAM_ERROR",
+        status_code: res.status,
+        source_url: SOURCE_URL,
+      });
       return NextResponse.json({ events: [] });
     }
 
@@ -29,7 +41,15 @@ export async function GET() {
     const events = parseEvents(html);
     cache = { events, fetchedAt: Date.now() };
     return NextResponse.json({ events });
-  } catch {
+  } catch (err) {
+    logger.error("school-events: failed to fetch school events", {
+      request_id: requestId,
+      route: ROUTE,
+      error_code: "FETCH_ERROR",
+      error_message: err instanceof Error ? err.message : String(err),
+      error_name: err instanceof Error ? err.name : undefined,
+      source_url: SOURCE_URL,
+    });
     return NextResponse.json({ events: [] });
   }
 }
