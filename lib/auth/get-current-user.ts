@@ -12,7 +12,13 @@ const PLATFORM_ROLES = new Set<string>([
 ]);
 
 function filterPlatformRoles(roles: string[]): Role[] {
-  return roles.filter((r): r is Role => PLATFORM_ROLES.has(r));
+  return roles.flatMap((r) => {
+    // Accept bare names ("parent") or scoped names ("app:school-committee:parent")
+    if (PLATFORM_ROLES.has(r)) return [r as Role];
+    const last = r.split(":").at(-1) ?? "";
+    if (PLATFORM_ROLES.has(last)) return [last as Role];
+    return [];
+  });
 }
 
 export async function getCurrentUser(requestId?: string): Promise<CurrentUser> {

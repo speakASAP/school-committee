@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth/get-current-user";
+import { tryGetCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
-import { getTask } from "@/lib/db/tasks";
+import { getTaskDetail } from "@/lib/db/tasks";
 import { toErrorResponse, AppError } from "@/types/errors";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
 
   try {
-    await getCurrentUser(requestId);
+    const user = await tryGetCurrentUser(requestId);
+    const authed = user !== null;
     const { id } = await params;
-    const task = await getTask(id);
+    const task = await getTaskDetail(id);
 
-    // Never expose who claimed the task — only expose status
     const safeTask = {
       id: task.id,
       schoolId: task.schoolId,
@@ -25,6 +25,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
       isClaimed: task.assignedTo !== null,
+      // Only expose assignee details to authenticated users
+      assigneeName: authed ? task.assigneeName : null,
+      startedAt: authed ? task.startedAt : null,
+      finishedAt: authed ? task.finishedAt : null,
     };
 
     return NextResponse.json({ task: safeTask }, { status: 200 });

@@ -10,20 +10,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   try {
     const user = await getCurrentUser(requestId);
 
-    if (!user.roles.includes("parent") && !user.roles.includes("committee") && !user.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Insufficient permissions", 403);
-    }
-
     const { id: taskId } = await params;
     const body = await req.json().catch(() => ({})) as { tenantId?: string; schoolId?: string };
 
-    if (!body.tenantId || !body.schoolId) {
+    const tenantId = body.tenantId || process.env.DEFAULT_TENANT_ID || "";
+    const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID || "";
+
+    if (!tenantId || !schoolId) {
       throw new AppError("VALIDATION_ERROR", "tenantId and schoolId are required", 400);
     }
 
     const task = await claimTask(taskId, user.id, {
-      tenantId: body.tenantId,
-      schoolId: body.schoolId,
+      tenantId,
+      schoolId,
       requestId,
     });
 

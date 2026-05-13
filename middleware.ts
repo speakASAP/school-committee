@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const LOGIN_PATH = "/login";
-const ONBOARDING_PATHS = ["/onboarding/profile", "/onboarding/consent", "/onboarding/language"];
+const ONBOARDING_PATHS = ["/onboarding/profile", "/onboarding/consent", "/onboarding/language", "/onboarding/set-password"];
 
 const PUBLIC_PREFIXES = [
   "/login",
@@ -11,10 +11,19 @@ const PUBLIC_PREFIXES = [
   "/api/auth/magic-link",
   "/api/auth/session",
   "/api/auth/refresh",
+  "/api/auth/check-email",
   "/api/health",
   "/api/public",
   "/api/leads",
+  "/api/tasks",
   "/report",
+  "/tasks",
+  "/payments",
+  "/feedback",
+  "/prispevky",
+  "/ukoly",
+  "/transparentnost",
+  "/gdpr",
   "/_next",
   "/favicon",
 ];

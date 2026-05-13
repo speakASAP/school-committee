@@ -1,27 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
-import { db } from "@/lib/db/client";
+import { listUsers } from "@/lib/db/users";
 import { toErrorResponse, AppError } from "@/types/errors";
 
 export async function GET(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
 
   try {
-    const user = await getCurrentUser(requestId);
-    const profile = await db.profile.findUnique({
-      where: { userId: user.id },
-      select: { tenantId: true, schoolId: true },
-    });
-    return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        roles: user.roles,
-        tenantId: profile?.tenantId ?? null,
-        schoolId: profile?.schoolId ?? null,
-      },
-    });
+    const actor = await getCurrentUser(requestId);
+    if (!actor.roles.includes("admin")) {
+      throw new AppError("FORBIDDEN", "Admin role required", 403);
+    }
+
+    const { searchParams } = new URL(req.url);
+    const tenantId = searchParams.get("tenantId");
+    const schoolId = searchParams.get("schoolId") ?? undefined;
+
+    if (!tenantId) {
+      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+    }
+
+    const users = await listUsers(tenantId, schoolId);
+
+    return NextResponse.json({ users }, { status: 200 });
   } catch (err) {
     if (err instanceof AppError) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });

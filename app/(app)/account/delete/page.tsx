@@ -2,7 +2,6 @@
 import { useState } from "react";
 
 export default function DeleteAccountPage() {
-  const [tenantId, setTenantId] = useState("");
   const [reason, setReason] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,16 +14,16 @@ export default function DeleteAccountPage() {
       const res = await fetch("/api/account/delete-request", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tenantId, reason: reason || undefined }),
+        body: JSON.stringify({ reason: reason || undefined }),
       });
       if (!res.ok) {
         const body = await res.json();
-        setError(body.error?.message ?? "Request failed");
+        setError(body.error?.message ?? "Odeslání selhalo");
       } else {
         setSubmitted(true);
       }
     } catch {
-      setError("Network error. Please try again.");
+      setError("Chyba sítě. Zkuste to prosím znovu.");
     } finally {
       setLoading(false);
     }
@@ -33,10 +32,11 @@ export default function DeleteAccountPage() {
   if (submitted) {
     return (
       <div className="max-w-md mx-auto mt-16 text-center space-y-4">
-        <p className="text-2xl">Request received</p>
+        <div className="text-5xl mb-4">✅</div>
+        <p className="text-2xl font-bold text-gray-900">Žádost přijata</p>
         <p className="text-gray-600">
-          Your account deletion request has been submitted. An administrator will
-          process it within 30 days in accordance with GDPR Article 17.
+          Vaše žádost o smazání účtu byla odeslána. Administrátor ji zpracuje
+          do 30 dnů v souladu s článkem 17 GDPR.
         </p>
       </div>
     );
@@ -44,38 +44,31 @@ export default function DeleteAccountPage() {
 
   return (
     <div className="max-w-md mx-auto py-8 space-y-6">
-      <h1 className="text-2xl font-bold text-red-700">Request Account Deletion</h1>
-      <p className="text-sm text-gray-600">
-        Under GDPR Article 17, you have the right to request deletion of your personal data.
-        Your request will be reviewed and processed within 30 days.
-      </p>
-      <div className="space-y-4">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <h1 className="text-2xl font-extrabold text-red-700 mb-2">Žádost o smazání účtu</h1>
+        <p className="text-sm text-gray-600">
+          Podle článku 17 GDPR máte právo požádat o smazání svých osobních údajů.
+          Vaše žádost bude přezkoumána a zpracována do 30 dnů.
+        </p>
+      </div>
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">School / Tenant ID</label>
-          <input
-            className="w-full border rounded px-3 py-2 text-sm"
-            value={tenantId}
-            onChange={(e) => setTenantId(e.target.value)}
-            placeholder="uuid"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Reason (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Důvod (volitelně)</label>
           <textarea
-            className="w-full border rounded px-3 py-2 text-sm"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
             rows={3}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Why are you requesting deletion?"
+            placeholder="Proč žádáte o smazání účtu?"
           />
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <button
           onClick={submit}
-          disabled={loading || !tenantId}
-          className="w-full bg-red-600 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
+          disabled={loading}
+          className="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors"
         >
-          {loading ? "Submitting…" : "Request Account Deletion"}
+          {loading ? "Odesílám…" : "Požádat o smazání účtu"}
         </button>
       </div>
     </div>

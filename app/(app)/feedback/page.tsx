@@ -1,9 +1,25 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useVoiceRecorder } from "@/lib/hooks/use-voice-recorder";
 
-const CATEGORIES = ["general", "safety", "facilities", "teachers", "events", "other"];
-const TYPES = ["suggestion", "complaint", "praise", "question"];
+const CATEGORIES = ["general", "safety", "facilities", "teachers", "events", "other"] as const;
+const TYPES = ["suggestion", "complaint", "praise", "question"] as const;
+
+const CATEGORY_LABEL: Record<string, string> = {
+  general: "Obecné",
+  safety: "Bezpečnost",
+  facilities: "Vybavení",
+  teachers: "Učitelé",
+  events: "Akce",
+  other: "Ostatní",
+};
+
+const TYPE_LABEL: Record<string, string> = {
+  suggestion: "Návrh",
+  complaint: "Stížnost",
+  praise: "Pochvala",
+  question: "Dotaz",
+};
 
 interface SubmittedItem {
   id: string;
@@ -23,6 +39,13 @@ const STATUS_BADGE: Record<string, string> = {
   rejected: "bg-red-100 text-red-700",
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  new: "nové",
+  in_review: "v řešení",
+  resolved: "vyřešeno",
+  rejected: "zamítnuto",
+};
+
 function VoiceButton({ onFileKey }: { onFileKey: (key: string | null) => void }) {
   const { state, seconds, errorMsg, fileKey, start, stop, clear } = useVoiceRecorder();
 
@@ -33,32 +56,32 @@ function VoiceButton({ onFileKey }: { onFileKey: (key: string | null) => void })
   if (state === "idle") {
     return (
       <button type="button" onClick={start}
-        className="flex items-center gap-2 border rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-        <span className="text-red-500">●</span> Record voice message
+        className="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:border-blue-300 transition-colors">
+        <span className="text-red-500">●</span> Nahrát hlasovou zprávu
       </button>
     );
   }
   if (state === "recording") {
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm text-red-600 animate-pulse">● Recording {fmt(seconds)}</span>
+        <span className="text-sm text-red-600 animate-pulse">● Nahrávám {fmt(seconds)}</span>
         <button type="button" onClick={stop}
-          className="border rounded-lg px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">
-          Stop
+          className="border border-gray-200 rounded-lg px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">
+          Zastavit
         </button>
       </div>
     );
   }
   if (state === "uploading") {
-    return <p className="text-sm text-gray-400">Uploading…</p>;
+    return <p className="text-sm text-gray-400">Nahrávám…</p>;
   }
   if (state === "done") {
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm text-green-700">✓ Voice message ready ({fmt(seconds)})</span>
+        <span className="text-sm text-green-700">✓ Hlasová zpráva připravena ({fmt(seconds)})</span>
         <button type="button" onClick={() => { clear(); onFileKey(null); }}
           className="text-xs text-gray-400 hover:text-gray-700 underline">
-          Remove
+          Odebrat
         </button>
       </div>
     );
@@ -69,7 +92,7 @@ function VoiceButton({ onFileKey }: { onFileKey: (key: string | null) => void })
         <span className="text-sm text-red-600">{errorMsg}</span>
         <button type="button" onClick={() => { clear(); onFileKey(null); }}
           className="text-xs text-gray-400 hover:text-gray-700 underline">
-          Try again
+          Zkusit znovu
         </button>
       </div>
     );
@@ -77,12 +100,14 @@ function VoiceButton({ onFileKey }: { onFileKey: (key: string | null) => void })
   return null;
 }
 
-function SubmitForm({ schoolId, onSubmitted }: { schoolId: string; onSubmitted: () => void }) {
+function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
   const [form, setForm] = useState({
-    category: "general", type: "suggestion", text: "", isAnonymous: false,
+    category: "general" as typeof CATEGORIES[number],
+    type: "suggestion" as typeof TYPES[number],
+    text: "",
+    isAnonymous: false,
   });
   const [voiceFileKey, setVoiceFileKey] = useState<string | null>(null);
-  const [transcript, setTranscript] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,17 +120,22 @@ function SubmitForm({ schoolId, onSubmitted }: { schoolId: string; onSubmitted: 
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          schoolId,
-          ...form,
+          category: form.category,
+          type: form.type,
+          text: form.text,
+          isAnonymous: form.isAnonymous,
           voiceFileKey: voiceFileKey ?? undefined,
         }),
       });
       const body = await res.json();
-      if (!res.ok) { setError(body.error?.message ?? "Submission failed"); return; }
-      setTranscript(body.voiceTranscript ?? null);
+      if (res.status === 401) {
+        window.location.href = "/login?next=/feedback";
+        return;
+      }
+      if (!res.ok) { setError(body.error?.message ?? "Odeslání selhalo"); return; }
       onSubmitted();
     } catch {
-      setError("Network error. Please try again.");
+      setError("Chyba sítě. Zkuste to prosím znovu.");
     } finally {
       setSubmitting(false);
     }
@@ -113,93 +143,98 @@ function SubmitForm({ schoolId, onSubmitted }: { schoolId: string; onSubmitted: 
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-sm font-medium mb-1">Category</label>
-          <select className="w-full border rounded-lg px-3 py-2 text-sm"
-            value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Type</label>
-          <select className="w-full border rounded-lg px-3 py-2 text-sm"
-            value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-            {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
+        <select
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={form.category}
+          onChange={(e) => setForm({ ...form, category: e.target.value as typeof CATEGORIES[number] })}
+        >
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>
+          ))}
+        </select>
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Your message</label>
-        <textarea className="w-full border rounded-lg px-3 py-2 text-sm" rows={3}
-          value={form.text} onChange={(e) => setForm({ ...form, text: e.target.value })}
-          placeholder="Type your message here, or record a voice message below…" />
+        <label className="block text-sm font-medium text-gray-700 mb-1">Vaše zpráva</label>
+        <textarea
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          rows={4}
+          value={form.text}
+          onChange={(e) => setForm({ ...form, text: e.target.value })}
+          placeholder="Napište svou zprávu nebo nahrajte hlasovou zprávu níže…"
+        />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-2">Voice message (optional)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Hlasová zpráva (volitelně)</label>
         <VoiceButton onFileKey={setVoiceFileKey} />
         {voiceFileKey && (
-          <p className="text-xs text-gray-400 mt-1">
-            Voice will be transcribed automatically after submission.
-          </p>
+          <p className="text-xs text-gray-400 mt-1">Hlas bude po odeslání automaticky přepsán.</p>
         )}
       </div>
-      <label className="flex items-center gap-2 text-sm cursor-pointer">
+      <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-700">
         <input type="checkbox" checked={form.isAnonymous}
           onChange={(e) => setForm({ ...form, isAnonymous: e.target.checked })} />
-        Submit anonymously
+        Odeslat anonymně
       </label>
       {error && <p className="text-red-600 text-sm">{error}</p>}
-      <button type="submit"
+      <p className="text-xs text-gray-400">Pro odeslání zpětné vazby je nutné přihlášení.</p>
+      <button
+        type="submit"
         disabled={submitting || (!form.text.trim() && !voiceFileKey)}
-        className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50">
-        {submitting ? "Sending…" : "Submit feedback"}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors"
+      >
+        {submitting ? "Odesílám…" : "Odeslat zpětnou vazbu"}
       </button>
     </form>
   );
 }
 
-function HistoryList({ schoolId, refresh }: { schoolId: string; refresh: number }) {
+function HistoryList({ refresh }: { refresh: number }) {
   const [items, setItems] = useState<SubmittedItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!schoolId) return;
     setLoading(true);
-    fetch(`/api/feedback?schoolId=${encodeURIComponent(schoolId)}&limit=20`)
+    fetch("/api/feedback?limit=20")
       .then((r) => r.json())
       .then((d) => {
         if (d.error) setError(d.error.message);
         else setItems(d.items ?? []);
       })
-      .catch(() => setError("Network error"))
+      .catch(() => setError("Chyba sítě"))
       .finally(() => setLoading(false));
-  }, [schoolId, refresh]);
+  }, [refresh]);
 
-  if (!schoolId) return null;
-  if (loading) return <p className="text-sm text-gray-400">Loading…</p>;
+  if (loading) return <p className="text-sm text-gray-400">Načítám…</p>;
   if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (items.length === 0) return <p className="text-sm text-gray-400">No submissions yet.</p>;
+  if (items.length === 0) return <p className="text-sm text-gray-400">Zatím žádná podání.</p>;
 
   return (
     <ul className="space-y-3">
       {items.map((item) => (
-        <li key={item.id} className="bg-white rounded-xl border p-4 space-y-2">
+        <li key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex gap-2">
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{item.category}</span>
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{item.type}</span>
-              {item.isAnonymous && <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">anonymous</span>}
+            <div className="flex gap-2 flex-wrap">
+              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                {CATEGORY_LABEL[item.category] ?? item.category}
+              </span>
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                {TYPE_LABEL[item.type] ?? item.type}
+              </span>
+              {item.isAnonymous && (
+                <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">anonymní</span>
+              )}
             </div>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[item.status] ?? "bg-gray-100 text-gray-600"}`}>
-              {item.status}
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_BADGE[item.status] ?? "bg-gray-100 text-gray-600"}`}>
+              {STATUS_LABEL[item.status] ?? item.status}
             </span>
           </div>
           <p className="text-sm text-gray-700">{item.text}</p>
           {item.voiceTranscript && (
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-xs font-medium text-blue-600 mb-1">Voice transcript</p>
+            <div className="bg-blue-50 rounded-xl p-3">
+              <p className="text-xs font-semibold text-blue-600 mb-1">Přepis hlasu</p>
               <p className="text-sm text-blue-900">{item.voiceTranscript}</p>
             </div>
           )}
@@ -210,69 +245,108 @@ function HistoryList({ schoolId, refresh }: { schoolId: string; refresh: number 
   );
 }
 
-export default function FeedbackPage() {
-  const [schoolId, setSchoolId] = useState("");
-  const [schoolIdInput, setSchoolIdInput] = useState("");
+function FeedbackContent() {
   const [tab, setTab] = useState<"new" | "history">("new");
   const [refreshKey, setRefreshKey] = useState(0);
   const [justSubmitted, setJustSubmitted] = useState(false);
 
-  function handleSubmitted() {
+  const handleSubmitted = useCallback(() => {
     setJustSubmitted(true);
     setRefreshKey((k) => k + 1);
     setTimeout(() => setJustSubmitted(false), 3000);
-  }
+  }, []);
 
   return (
-    <div className="max-w-lg space-y-5">
-      <h1 className="text-2xl font-bold">Feedback</h1>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">School ID</label>
-        <div className="flex gap-2">
-          <input className="flex-1 border rounded-lg px-3 py-2 text-sm font-mono"
-            placeholder="uuid" value={schoolIdInput}
-            onChange={(e) => setSchoolIdInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && setSchoolId(schoolIdInput)} />
-          <button onClick={() => setSchoolId(schoolIdInput)}
-            className="bg-gray-800 text-white rounded-lg px-4 py-2 text-sm">
-            Set
-          </button>
+    <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
+      {/* HERO */}
+      <section className="bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-14 text-center">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-5xl mb-4">💬</div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4 leading-tight">
+            Zpětná vazba
+          </h1>
+          <p className="text-gray-600 text-lg max-w-xl mx-auto">
+            Podejte návrhy, dotazy, pochvaly nebo stížnosti. Váš hlas pomáhá škole být lepší.
+          </p>
         </div>
-      </div>
+      </section>
 
-      {schoolId && (
-        <>
-          <div className="flex border-b">
-            {(["new", "history"] as const).map((t) => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  tab === t ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-800"
-                }`}>
-                {t === "new" ? "New submission" : "My submissions"}
-              </button>
+      {/* INFO CARDS */}
+      <section className="px-4 py-12 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+            {[
+              { icon: "📝", title: "Návrhy a dotazy", desc: "Navrhněte zlepšení nebo se zeptejte na cokoliv." },
+              { icon: "🔒", title: "Anonymní podání", desc: "Zprávu lze odeslat anonymně — vaše identita zůstane skryta." },
+              { icon: "📣", title: "Rychlá odezva", desc: "Výbor odpovídá zpravidla do 5 pracovních dnů." },
+            ].map((c) => (
+              <div key={c.title} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-2">
+                <div className="text-3xl">{c.icon}</div>
+                <p className="font-semibold text-gray-900">{c.title}</p>
+                <p className="text-sm text-gray-500">{c.desc}</p>
+              </div>
             ))}
           </div>
 
-          {justSubmitted && (
-            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-700">
-              Thank you — your feedback has been submitted.
-              {tab === "new" && (
-                <button onClick={() => setTab("history")} className="ml-2 underline">
-                  View it →
-                </button>
-              )}
-            </div>
-          )}
+          {/* FORM */}
+          <div className="max-w-lg mx-auto">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="flex border-b border-gray-100">
+                {(["new", "history"] as const).map((t) => (
+                  <button key={t} onClick={() => setTab(t)}
+                    className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                      tab === t
+                        ? "border-blue-600 text-blue-600 bg-blue-50"
+                        : "border-transparent text-gray-500 hover:text-blue-700 hover:bg-blue-50"
+                    }`}>
+                    {t === "new" ? "Nové podání" : "Moje podání"}
+                  </button>
+                ))}
+              </div>
 
-          {tab === "new" && (
-            <SubmitForm schoolId={schoolId} onSubmitted={handleSubmitted} />
-          )}
-          {tab === "history" && (
-            <HistoryList schoolId={schoolId} refresh={refreshKey} />
-          )}
-        </>
-      )}
+              <div className="p-6 space-y-4">
+                {justSubmitted && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700">
+                    Děkujeme — vaše zpětná vazba byla odeslána.
+                    {tab === "new" && (
+                      <button onClick={() => setTab("history")} className="ml-2 underline font-medium">
+                        Zobrazit →
+                      </button>
+                    )}
+                  </div>
+                )}
+                {tab === "new" && <SubmitForm onSubmitted={handleSubmitted} />}
+                {tab === "history" && <HistoryList refresh={refreshKey} />}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-gray-100 px-4 py-8 bg-white mt-auto">
+        <div className="max-w-3xl mx-auto flex flex-col items-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
+            {[
+              { label: "QR příspěvky", href: "/payments" },
+              { label: "Dobrovolnictví", href: "/tasks" },
+              { label: "Transparentnost", href: "/report" },
+              { label: "GDPR", href: "/gdpr" },
+            ].map((l) => (
+              <a key={l.href} href={l.href} className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">{l.label}</a>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · school-committee.alfares.cz</p>
+        </div>
+      </footer>
     </div>
+  );
+}
+
+export default function FeedbackPage() {
+  return (
+    <Suspense>
+      <FeedbackContent />
+    </Suspense>
   );
 }

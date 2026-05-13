@@ -10,7 +10,11 @@ export interface ListTasksParams extends PageParams {
   status?: string;
 }
 
-export async function listTasks(params: ListTasksParams): Promise<PageResult<Task>> {
+export interface TaskWithAssignee extends Task {
+  assigneeName: string | null;
+}
+
+export async function listTasks(params: ListTasksParams): Promise<PageResult<TaskWithAssignee>> {
   const limit = resolveLimit(params.limit);
   const rows = await db.task.findMany({
     where: {
@@ -22,13 +26,66 @@ export async function listTasks(params: ListTasksParams): Promise<PageResult<Tas
     take: limit + 1,
     ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
   });
-  return buildPage(rows, limit);
+
+  const enriched: TaskWithAssignee[] = await Promise.all(
+    rows.map(async (task) => {
+      let assigneeName: string | null = null;
+      if (task.assignedTo) {
+        const profile = await db.profile.findUnique({
+          where: { userId: task.assignedTo },
+          select: { firstName: true },
+        });
+        if (profile) assigneeName = profile.firstName;
+      }
+      return { ...task, assigneeName };
+    })
+  );
+
+  return buildPage(enriched, limit);
 }
 
 export async function getTask(id: string): Promise<Task> {
   const task = await db.task.findUnique({ where: { id } });
   if (!task) throw new NotFoundError("Task not found");
   return task;
+}
+
+export interface TaskDetail extends Task {
+  assigneeName: string | null;
+  startedAt: Date | null;
+  finishedAt: Date | null;
+}
+
+export async function getTaskDetail(id: string): Promise<TaskDetail> {
+  const task = await db.task.findUnique({
+    where: { id },
+    include: { statusEvents: { orderBy: { createdAt: "asc" } } },
+  });
+  if (!task) throw new NotFoundError("Task not found");
+
+  let assigneeName: string | null = null;
+  if (task.assignedTo) {
+    const profile = await db.profile.findUnique({
+      where: { userId: task.assignedTo },
+      select: { firstName: true },
+    });
+    if (profile) assigneeName = profile.firstName;
+  }
+
+  const claimedEvent = task.statusEvents.find(
+    (e) => e.newStatus === "reserved" || e.newStatus === "claimed"
+  );
+  const completedEvent = task.statusEvents.find(
+    (e) => e.newStatus === "completed" || e.newStatus === "verified"
+  );
+
+  const { statusEvents: _se, ...taskBase } = task;
+  return {
+    ...taskBase,
+    assigneeName,
+    startedAt: claimedEvent?.createdAt ?? null,
+    finishedAt: completedEvent?.createdAt ?? null,
+  };
 }
 
 export interface ClaimTaskAuditContext {

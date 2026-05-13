@@ -39,7 +39,7 @@ function ConsentForm() {
       });
       const body = await res.json();
       if (!res.ok) { setError(body.error?.message ?? "Failed to record consent"); return; }
-      router.replace("/dashboard");
+      router.replace("/onboarding/set-password");
     } catch {
       setError("Network error. Please try again.");
     } finally {

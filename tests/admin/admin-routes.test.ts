@@ -13,6 +13,9 @@ const {
   mockCreateExpense,
   mockListExpenses,
   mockWriteAuditEvent,
+  mockListUsers,
+  mockSetUserActive,
+  mockDeleteUserFromApp,
 } = vi.hoisted(() => ({
   mockGetCurrentUser: vi.fn(),
   mockFindUnique: vi.fn(),
@@ -25,6 +28,9 @@ const {
   mockCreateExpense: vi.fn(),
   mockListExpenses: vi.fn(),
   mockWriteAuditEvent: vi.fn(),
+  mockListUsers: vi.fn(),
+  mockSetUserActive: vi.fn(),
+  mockDeleteUserFromApp: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/get-current-user", () => ({
@@ -54,11 +60,18 @@ vi.mock("@/lib/db/expenses", () => ({
   listExpenses: mockListExpenses,
 }));
 vi.mock("@/lib/db/audit", () => ({ writeAuditEvent: mockWriteAuditEvent }));
+vi.mock("@/lib/db/users", () => ({
+  listUsers: mockListUsers,
+  setUserActive: mockSetUserActive,
+  deleteUserFromApp: mockDeleteUserFromApp,
+}));
 
 import { PATCH as patchRole } from "@/app/api/admin/users/[id]/role/route";
 import { POST as confirmPayment } from "@/app/api/admin/payments/[id]/confirm/route";
 import { POST as createExpense, GET as getExpenses } from "@/app/api/admin/expenses/route";
 import { GET as exportCsv } from "@/app/api/admin/exports/[type]/route";
+import { GET as listUsersRoute } from "@/app/api/admin/users/route";
+import { PATCH as patchUser, DELETE as deleteUser } from "@/app/api/admin/users/[id]/route";
 
 const parentUser = { id: "u-parent", email: "parent@test.com", roles: ["parent"] };
 const committeeUser = { id: "u-committee", email: "committee@test.com", roles: ["committee"] };
@@ -142,6 +155,161 @@ describe("PATCH /api/admin/users/[id]/role — role assignment", () => {
     });
     const res = await patchRole(req, { params: Promise.resolve({ id: "u-2" }) });
     expect(res.status).toBe(400);
+  });
+});
+
+// ── GET /api/admin/users ─────────────────────────────────────────────────────
+
+describe("GET /api/admin/users — list users", () => {
+  const profile1: import("@/lib/db/users").UserRow = {
+    userId: "u-1",
+    tenantId: "t-1",
+    schoolId: "s-1",
+    firstName: "Jana",
+    lastName: "Novák",
+    phone: null,
+    language: "cs",
+    participationType: "financial",
+    onboardingStatus: "complete",
+    isActive: true,
+    createdAt: new Date("2026-01-01"),
+    updatedAt: new Date("2026-01-01"),
+    roles: ["parent"],
+  };
+
+  beforeEach(() => {
+    mockListUsers.mockResolvedValue([profile1]);
+  });
+
+  it("returns 403 for non-admin", async () => {
+    mockGetCurrentUser.mockResolvedValue(parentUser);
+    const req = new NextRequest("http://localhost/api/admin/users?tenantId=t-1");
+    const res = await listUsersRoute(req);
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 400 when tenantId missing", async () => {
+    const req = new NextRequest("http://localhost/api/admin/users");
+    const res = await listUsersRoute(req);
+    expect(res.status).toBe(400);
+  });
+
+  it("returns user list for admin", async () => {
+    const req = new NextRequest("http://localhost/api/admin/users?tenantId=t-1");
+    const res = await listUsersRoute(req);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.users).toHaveLength(1);
+    expect(body.users[0].userId).toBe("u-1");
+    expect(body.users[0].firstName).toBe("Jana");
+    expect(body.users[0].roles).toEqual(["parent"]);
+    expect(mockListUsers).toHaveBeenCalledWith("t-1", undefined);
+  });
+
+  it("passes schoolId filter when provided", async () => {
+    const req = new NextRequest("http://localhost/api/admin/users?tenantId=t-1&schoolId=s-1");
+    await listUsersRoute(req);
+    expect(mockListUsers).toHaveBeenCalledWith("t-1", "s-1");
+  });
+});
+
+// ── PATCH /api/admin/users/[id] — deactivate/reactivate ─────────────────────
+
+describe("PATCH /api/admin/users/[id] — activate/deactivate", () => {
+  beforeEach(() => {
+    mockSetUserActive.mockResolvedValue(undefined);
+  });
+
+  it("returns 403 for non-admin", async () => {
+    mockGetCurrentUser.mockResolvedValue(parentUser);
+    const req = new NextRequest("http://localhost/api/admin/users/u-1", {
+      method: "PATCH",
+      body: JSON.stringify({ action: "deactivate", tenantId: "t-1" }),
+    });
+    const res = await patchUser(req, { params: Promise.resolve({ id: "u-1" }) });
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 400 for missing action", async () => {
+    const req = new NextRequest("http://localhost/api/admin/users/u-1", {
+      method: "PATCH",
+      body: JSON.stringify({ tenantId: "t-1" }),
+    });
+    const res = await patchUser(req, { params: Promise.resolve({ id: "u-1" }) });
+    expect(res.status).toBe(400);
+  });
+
+  it("deactivates user and writes audit", async () => {
+    const req = new NextRequest("http://localhost/api/admin/users/u-1", {
+      method: "PATCH",
+      body: JSON.stringify({ action: "deactivate", tenantId: "t-1" }),
+    });
+    const res = await patchUser(req, { params: Promise.resolve({ id: "u-1" }) });
+    expect(res.status).toBe(200);
+    expect(mockSetUserActive).toHaveBeenCalledWith("u-1", "t-1", false);
+    expect(mockWriteAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "user.deactivated", entityId: "u-1" }),
+    );
+  });
+
+  it("reactivates user and writes audit", async () => {
+    const req = new NextRequest("http://localhost/api/admin/users/u-1", {
+      method: "PATCH",
+      body: JSON.stringify({ action: "activate", tenantId: "t-1" }),
+    });
+    const res = await patchUser(req, { params: Promise.resolve({ id: "u-1" }) });
+    expect(res.status).toBe(200);
+    expect(mockSetUserActive).toHaveBeenCalledWith("u-1", "t-1", true);
+    expect(mockWriteAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "user.activated", entityId: "u-1" }),
+    );
+  });
+});
+
+// ── DELETE /api/admin/users/[id] — remove from app ──────────────────────────
+
+describe("DELETE /api/admin/users/[id] — remove from school-committee", () => {
+  beforeEach(() => {
+    mockDeleteUserFromApp.mockResolvedValue(undefined);
+  });
+
+  it("returns 403 for non-admin", async () => {
+    mockGetCurrentUser.mockResolvedValue(committeeUser);
+    const req = new NextRequest("http://localhost/api/admin/users/u-1", {
+      method: "DELETE",
+      body: JSON.stringify({ tenantId: "t-1" }),
+    });
+    const res = await deleteUser(req, { params: Promise.resolve({ id: "u-1" }) });
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 400 for missing tenantId", async () => {
+    const req = new NextRequest("http://localhost/api/admin/users/u-1", {
+      method: "DELETE",
+      body: JSON.stringify({}),
+    });
+    const res = await deleteUser(req, { params: Promise.resolve({ id: "u-1" }) });
+    expect(res.status).toBe(400);
+  });
+
+  it("deletes profile + revokes roles and writes audit", async () => {
+    const req = new NextRequest("http://localhost/api/admin/users/u-1", {
+      method: "DELETE",
+      body: JSON.stringify({ tenantId: "t-1", schoolId: "s-1" }),
+    });
+    const res = await deleteUser(req, { params: Promise.resolve({ id: "u-1" }) });
+    expect(res.status).toBe(200);
+    expect(mockDeleteUserFromApp).toHaveBeenCalledWith("u-1", "t-1");
+    expect(mockWriteAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "user.removed_from_app",
+        entityId: "u-1",
+        tenantId: "t-1",
+        schoolId: "s-1",
+      }),
+    );
+    const body = await res.json();
+    expect(body.success).toBe(true);
   });
 });
 
