@@ -189,25 +189,29 @@ model Expense {
 }
 
 model Task {
-  id          String    @id @default(uuid()) @db.Uuid
-  schoolId    String    @map("school_id") @db.Uuid
-  classId     String?   @map("class_id") @db.Uuid
-  title       String
-  description String
-  photoFileId String?   @map("photo_file_id") @db.Uuid
-  deadline    DateTime? @db.Date
-  priority    String    @default("normal")
-  status      String    @default("open")
-  createdBy   String    @map("created_by") @db.Uuid
-  assignedTo  String?   @map("assigned_to") @db.Uuid
-  verifiedBy  String?   @map("verified_by") @db.Uuid
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  id            String    @id @default(uuid()) @db.Uuid
+  schoolId      String    @map("school_id") @db.Uuid
+  classId       String?   @map("class_id") @db.Uuid
+  title         String
+  description   String
+  deadline      DateTime? @db.Date
+  priority      String    @default("normal")
+  status        String    @default("open")
+  createdBy     String    @map("created_by") @db.Uuid
+  audioFileId   String?   @map("audio_file_id") @db.Uuid
+  rawTranscript String?   @map("raw_transcript")
+  aiDraftMeta   Json?     @map("ai_draft_meta")
+  assignedTo    String?   @map("assigned_to") @db.Uuid
+  verifiedBy    String?   @map("verified_by") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at")
 
   school        School             @relation(fields: [schoolId], references: [id])
   class         Class?             @relation(fields: [classId], references: [id])
   comments      TaskComment[]
   statusEvents  TaskStatusEvent[]
+  photos        TaskPhoto[]
+  videos        TaskVideo[]
 
   @@map("tasks")
 }
@@ -236,6 +240,30 @@ model TaskStatusEvent {
   task Task @relation(fields: [taskId], references: [id])
 
   @@map("task_status_events")
+}
+
+model TaskPhoto {
+  id        String   @id @default(uuid()) @db.Uuid
+  taskId    String   @map("task_id") @db.Uuid
+  fileId    String   @map("file_id") @db.Uuid
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@map("task_photos")
+}
+
+model TaskVideo {
+  id        String   @id @default(uuid()) @db.Uuid
+  taskId    String   @map("task_id") @db.Uuid
+  fileId    String   @map("file_id") @db.Uuid
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@map("task_videos")
 }
 
 model FeedbackItem {
