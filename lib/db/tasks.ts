@@ -8,19 +8,25 @@ export interface ListTasksParams extends PageParams {
   schoolId: string;
   classId?: string;
   status?: string;
+  callerRoles?: string[];
 }
 
 export interface TaskWithAssignee extends Task {
   assigneeName: string | null;
 }
 
+const STAFF_ROLES = new Set(['committee', 'teacher', 'school_staff', 'admin']);
+
 export async function listTasks(params: ListTasksParams): Promise<PageResult<TaskWithAssignee>> {
   const limit = resolveLimit(params.limit);
+  const isStaff = params.callerRoles?.some(r => STAFF_ROLES.has(r)) ?? false;
   const rows = await db.task.findMany({
     where: {
       schoolId: params.schoolId,
       ...(params.classId ? { classId: params.classId } : {}),
-      ...(params.status ? { status: params.status } : {}),
+      ...(!isStaff
+        ? { status: { not: 'draft' } }
+        : params.status ? { status: params.status } : {}),
     },
     orderBy: { createdAt: "desc" },
     take: limit + 1,

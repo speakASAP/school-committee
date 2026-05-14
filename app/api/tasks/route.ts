@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
       status: searchParams.get("status") ?? undefined,
       limit: searchParams.get("limit") ? Number(searchParams.get("limit")) : undefined,
       cursor: searchParams.get("cursor") ?? undefined,
+      callerRoles: user?.roles ?? [],
     });
 
     const safeItems = result.items.map((task) => ({

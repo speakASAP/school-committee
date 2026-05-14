@@ -71,6 +71,22 @@ export default function DashboardPage() {
           <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Zpráva o transparentnosti</h2>
           <p className="text-sm text-gray-500 mt-1">Podívejte se, jak jsou využívány vybrané prostředky</p>
         </Link>
+
+        {(user?.roles.includes("teacher") ||
+          user?.roles.includes("committee") ||
+          user?.roles.includes("school_staff") ||
+          user?.roles.includes("admin")) && (
+          <Link
+            href="/dashboard/tasks/new"
+            className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-green-200 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center text-lg mb-3">
+              +
+            </div>
+            <h2 className="font-bold text-gray-900 group-hover:text-green-700 transition-colors">Vytvořit úkol</h2>
+            <p className="text-sm text-gray-500 mt-1">Nahrajte hlas nebo fotky a AI vytvoří úkol za vás</p>
+          </Link>
+        )}
       </div>
 
       {isAdmin && (
