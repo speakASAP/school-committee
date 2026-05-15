@@ -47,6 +47,7 @@ function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [authed, setAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -61,6 +62,13 @@ function TaskList() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setAuthed(!!d?.user))
+      .catch(() => setAuthed(false));
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
       <SiteHeader />
@@ -73,7 +81,7 @@ function TaskList() {
             Dobrovolnické úkoly
           </h1>
           <p className="text-gray-600 text-lg mb-6 max-w-xl mx-auto">
-            Přehled všech úkolů školy — otevřených, probíhajících i dokončených. Přihlaste se a přihlaste se k úkolu.
+            Přehled všech úkolů školy — otevřených, probíhajících i dokončených.
           </p>
           <div className="flex flex-wrap justify-center gap-2 text-sm">
             <span className="bg-white border border-gray-200 rounded-full px-3 py-1 text-gray-600">🔵 otevřený — volný k přijetí</span>
@@ -133,22 +141,27 @@ function TaskList() {
       </section>
 
       {/* CTA */}
-      <section className="px-4 py-12 bg-gray-50 text-center">
-        <div className="max-w-xl mx-auto">
-          <h2 className="text-xl font-bold mb-3">Chcete se zapojit?</h2>
-          <p className="text-gray-500 text-sm mb-6">
-            Přihlaste se a vyberte si úkol, který vám vyhovuje. Nebo přispějte finančně.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <a href="/login" className="bg-blue-600 text-white font-semibold rounded-xl px-6 py-2.5 text-sm hover:bg-blue-700 transition-colors">
-              Přihlásit se →
-            </a>
-            <a href="/payments" className="bg-white border border-blue-200 text-blue-700 font-semibold rounded-xl px-6 py-2.5 text-sm hover:bg-blue-50 transition-colors">
-              💳 Finanční příspěvek
-            </a>
+      {!authed && (
+        <section className="px-4 py-12 bg-gray-50 text-center">
+          <div className="max-w-xl mx-auto">
+            <h2 className="text-xl font-bold mb-3">Chcete se zapojit?</h2>
+            <p className="text-gray-500 text-sm mb-6">
+              Zaregistrujte se a vyberte si úkol, který vám vyhovuje. Nebo přispějte finančně.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <a href="/register" className="bg-blue-600 text-white font-semibold rounded-xl px-6 py-2.5 text-sm hover:bg-blue-700 transition-colors">
+                Zaregistrovat se →
+              </a>
+              <a href="/login" className="bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl px-6 py-2.5 text-sm hover:bg-gray-50 transition-colors">
+                Přihlásit se
+              </a>
+              <a href="/payments" className="bg-white border border-blue-200 text-blue-700 font-semibold rounded-xl px-6 py-2.5 text-sm hover:bg-blue-50 transition-colors">
+                💳 Finanční příspěvek
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* FOOTER */}
       <footer className="border-t border-gray-100 px-4 py-8 bg-white">
