@@ -32,24 +32,48 @@ const PRIORITY_LABEL: Record<string, string> = {
   low: "nízká",
 };
 
+const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
+
 function TaskDetail() {
   const { id } = useParams<{ id: string }>();
 
   const [task, setTask] = useState<Task | null>(null);
   const [authed, setAuthed] = useState(false);
+  const [isStaff, setIsStaff] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editPriority, setEditPriority] = useState("normal");
+  const [editDeadline, setEditDeadline] = useState("");
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   useEffect(() => {
     Promise.all([
       fetch(`/api/tasks/${id}`).then((r) => r.json()),
-      fetch("/api/auth/session").then((r) => r.json()).catch(() => ({})),
-    ]).then(([taskData, sessionData]) => {
+      fetch("/api/auth/me").then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
+    ]).then(([taskData, sessionData]: [
+      { error?: { message: string }; task?: Task },
+      { user?: { roles?: string[] } }
+    ]) => {
       if (taskData.error) setError(taskData.error.message);
-      else setTask(taskData.task);
+      else {
+        setTask(taskData.task ?? null);
+        if (taskData.task) {
+          setEditTitle(taskData.task.title);
+          setEditDescription(taskData.task.description);
+          setEditPriority(taskData.task.priority);
+          setEditDeadline(taskData.task.deadline ? taskData.task.deadline.split("T")[0] : "");
+        }
+      }
       setAuthed(!!sessionData.user);
+      const roles: string[] = sessionData.user?.roles ?? [];
+      setIsStaff(roles.some((r: string) => STAFF_ROLES.has(r)));
     }).catch(() => setError("Chyba sítě"))
       .finally(() => setLoading(false));
   }, [id]);
@@ -64,16 +88,62 @@ function TaskDetail() {
         body: JSON.stringify({}),
       });
       const body = await res.json();
-      if (res.status === 401) {
-        window.location.href = `/login?next=/tasks/${id}`;
-        return;
-      }
+      if (res.status === 401) { window.location.href = `/login?next=/tasks/${id}`; return; }
       if (!res.ok) { setActionError(body.error?.message ?? "Přijetí selhalo"); return; }
       setTask((t) => t ? { ...t, status: "reserved", isClaimed: true } : t);
     } catch {
       setActionError("Chyba sítě");
     } finally {
       setActionLoading(false);
+    }
+  }
+
+  async function deleteTask() {
+    if (!confirm("Opravdu smazat tento úkol? Tato akce je nevratná.")) return;
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+      if (res.status === 401) { window.location.href = `/login?next=/tasks/${id}`; return; }
+      if (!res.ok) {
+        const body = await res.json();
+        setActionError(body.error?.message ?? "Smazání selhalo");
+        return;
+      }
+      window.location.href = "/tasks";
+    } catch {
+      setActionError("Chyba sítě");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function saveEdit() {
+    setSaveLoading(true);
+    setSaveError(null);
+    try {
+      const res = await fetch(`/api/tasks/${id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          title: editTitle,
+          description: editDescription,
+          priority: editPriority,
+          deadline: editDeadline || null,
+        }),
+      });
+      if (res.status === 401) { window.location.href = `/login?next=/tasks/${id}`; return; }
+      if (!res.ok) {
+        const body = await res.json();
+        setSaveError(body.error?.message ?? "Uložení selhalo");
+        return;
+      }
+      setTask((t) => t ? { ...t, title: editTitle, description: editDescription, priority: editPriority, deadline: editDeadline || null } : t);
+      setEditing(false);
+    } catch {
+      setSaveError("Chyba sítě");
+    } finally {
+      setSaveLoading(false);
     }
   }
 
@@ -87,10 +157,7 @@ function TaskDetail() {
         body: JSON.stringify({}),
       });
       const body = await res.json();
-      if (res.status === 401) {
-        window.location.href = `/login?next=/tasks/${id}`;
-        return;
-      }
+      if (res.status === 401) { window.location.href = `/login?next=/tasks/${id}`; return; }
       if (!res.ok) { setActionError(body.error?.message ?? "Označení selhalo"); return; }
       setTask((t) => t ? { ...t, status: "completed" } : t);
     } catch {
@@ -146,6 +213,23 @@ function TaskDetail() {
               )}
               {actionError && <p className="text-sm text-red-600">{actionError}</p>}
               <div className="flex gap-3 pt-2 flex-wrap">
+                {isStaff && (
+                  <>
+                    <button
+                      onClick={() => setEditing((e) => !e)}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+                    >
+                      {editing ? "Zrušit" : "Upravit"}
+                    </button>
+                    <button
+                      onClick={deleteTask}
+                      disabled={actionLoading}
+                      className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50 transition-colors"
+                    >
+                      {actionLoading ? "…" : "Smazat úkol"}
+                    </button>
+                  </>
+                )}
                 {authed ? (
                   <>
                     {task.status === "open" && (
@@ -185,6 +269,59 @@ function TaskDetail() {
                   )
                 )}
               </div>
+
+              {editing && (
+                <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
+                  {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Název</label>
+                    <input
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Popis</label>
+                    <textarea
+                      rows={4}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-3 flex-wrap">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Priorita</label>
+                      <select
+                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                        value={editPriority}
+                        onChange={(e) => setEditPriority(e.target.value)}
+                      >
+                        <option value="high">vysoká</option>
+                        <option value="normal">normální</option>
+                        <option value="low">nízká</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Termín</label>
+                      <input
+                        type="date"
+                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                        value={editDeadline}
+                        onChange={(e) => setEditDeadline(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={saveEdit}
+                    disabled={saveLoading || !editTitle.trim() || !editDescription.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50 transition-colors"
+                  >
+                    {saveLoading ? "Ukládám…" : "Uložit změny"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

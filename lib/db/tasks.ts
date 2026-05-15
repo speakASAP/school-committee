@@ -100,6 +100,94 @@ export interface ClaimTaskAuditContext {
   requestId?: string;
 }
 
+export interface DeleteTaskAuditContext {
+  tenantId: string;
+  schoolId: string;
+  requestId?: string;
+}
+
+export async function deleteTask(
+  taskId: string,
+  actorUserId: string,
+  audit: DeleteTaskAuditContext,
+): Promise<void> {
+  await db.$transaction(async (tx) => {
+    const task = await tx.task.findUnique({ where: { id: taskId } });
+    if (!task) throw new NotFoundError("Task not found");
+
+    // Delete child records first (Prisma does not cascade automatically without onDelete)
+    await tx.taskStatusEvent.deleteMany({ where: { taskId } });
+    await tx.taskComment.deleteMany({ where: { taskId } });
+    await tx.taskPhoto.deleteMany({ where: { taskId } });
+    await tx.taskVideo.deleteMany({ where: { taskId } });
+    await tx.task.delete({ where: { id: taskId } });
+
+    await writeAuditEvent(
+      {
+        tenantId: audit.tenantId,
+        schoolId: audit.schoolId,
+        actorUserId,
+        action: "task.deleted",
+        entityType: "task",
+        entityId: taskId,
+        requestId: audit.requestId,
+      },
+      tx,
+    );
+  });
+}
+
+export interface UpdateTaskParams {
+  taskId: string;
+  actorUserId: string;
+  tenantId: string;
+  schoolId: string;
+  title: string;
+  description: string;
+  priority: string;
+  deadline?: string | null;
+  requestId?: string;
+}
+
+export async function updateTask(params: UpdateTaskParams): Promise<Task> {
+  return db.$transaction(async (tx) => {
+    const task = await tx.task.findUnique({ where: { id: params.taskId } });
+    if (!task) throw new NotFoundError("Task not found");
+
+    if (params.deadline !== undefined && params.deadline !== null) {
+      const d = new Date(params.deadline);
+      if (isNaN(d.getTime())) {
+        throw new AppError("VALIDATION_ERROR", "Invalid deadline date", 400);
+      }
+    }
+
+    const updated = await tx.task.update({
+      where: { id: params.taskId },
+      data: {
+        title: params.title,
+        description: params.description,
+        priority: params.priority,
+        deadline: params.deadline ? new Date(params.deadline) : params.deadline === null ? null : undefined,
+      },
+    });
+
+    await writeAuditEvent(
+      {
+        tenantId: params.tenantId,
+        schoolId: params.schoolId,
+        actorUserId: params.actorUserId,
+        action: "task.updated",
+        entityType: "task",
+        entityId: params.taskId,
+        requestId: params.requestId,
+      },
+      tx,
+    );
+
+    return updated;
+  });
+}
+
 export async function claimTask(
   taskId: string,
   userId: string,

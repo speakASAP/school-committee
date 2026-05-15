@@ -9,11 +9,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <h2 className="text-lg font-bold mb-4">Admin</h2>
         <nav className="space-y-1">
           <a href="/admin/users" className="block rounded px-3 py-2 hover:bg-gray-700">Users</a>
+          <a href="/admin/tasks" className="block rounded px-3 py-2 hover:bg-gray-700">Tasks</a>
           <a href="/admin/payments" className="block rounded px-3 py-2 hover:bg-gray-700">Payments</a>
           <a href="/admin/expenses" className="block rounded px-3 py-2 hover:bg-gray-700">Expenses</a>
           <a href="/admin/feedback" className="block rounded px-3 py-2 hover:bg-gray-700">Feedback</a>
           <a href="/admin/exports" className="block rounded px-3 py-2 hover:bg-gray-700">Exports</a>
         </nav>
+        <div className="pt-4 mt-4 border-t border-gray-700">
+          <a href="/dashboard" className="block rounded px-3 py-2 text-gray-400 hover:bg-gray-700 hover:text-white text-sm">← Dashboard</a>
+        </div>
       </aside>
       <main className="flex-1 p-6">{children}</main>
     </div>
