@@ -80,7 +80,7 @@ const T = {
     successPhone:
       "Zavolám vám co nejdříve. Děkujeme za zájem!",
     gdprLinkText: "Zásady ochrany osobních údajů",
-    footerCopy: (year: number) => `© ${year} Školní výbor · school-committee.alfares.cz`,
+    footerCopy: (year: number) => `© ${year} Školní výbor · strilkove.cz`,
     footerLinks: [
       { label: "QR příspěvky", href: "/payments" },
       { label: "Dobrovolnictví", href: "/tasks" },
@@ -169,7 +169,7 @@ const T = {
     successPhone:
       "We'll call you as soon as possible. Thank you for your interest!",
     gdprLinkText: "Privacy Policy",
-    footerCopy: (year: number) => `© ${year} School Committee · school-committee.alfares.cz`,
+    footerCopy: (year: number) => `© ${year} School Committee · strilkove.cz`,
     footerLinks: [
       { label: "QR Payments", href: "/payments" },
       { label: "Volunteering", href: "/tasks" },

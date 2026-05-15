@@ -352,7 +352,7 @@ export default function PrispevkyPage() {
               <a key={l.href} href={l.href} className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">{l.label}</a>
             ))}
           </div>
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · school-committee.alfares.cz</p>
+          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · strilkove.cz</p>
         </div>
       </footer>
     </div>
@@ -521,7 +521,7 @@ export default function UkolyPage() {
               <a key={l.href} href={l.href} className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">{l.label}</a>
             ))}
           </div>
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · school-committee.alfares.cz</p>
+          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · strilkove.cz</p>
         </div>
       </footer>
     </div>
@@ -676,7 +676,7 @@ export default function TransparentnostPage() {
               <a key={l.href} href={l.href} className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">{l.label}</a>
             ))}
           </div>
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · school-committee.alfares.cz</p>
+          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · strilkove.cz</p>
         </div>
       </footer>
     </div>
@@ -780,7 +780,7 @@ export default function GdprPage() {
         <div className="max-w-xl mx-auto">
           <h2 className="text-xl font-bold mb-3">Kontakt správce dat</h2>
           <p className="text-gray-500 text-sm">
-            Školní výbor ZŠ Střílky · school-committee.alfares.cz<br />
+            Školní výbor ZŠ Střílky · strilkove.cz<br />
             Pro žádosti o přístup nebo výmaz dat se přihlaste do aplikace nebo nás kontaktujte e-mailem.
           </p>
         </div>
@@ -798,7 +798,7 @@ export default function GdprPage() {
               <a key={l.href} href={l.href} className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">{l.label}</a>
             ))}
           </div>
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · school-committee.alfares.cz</p>
+          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · strilkove.cz</p>
         </div>
       </footer>
     </div>
@@ -1328,9 +1328,9 @@ Expected: build succeeds, 4 new routes listed (`/prispevky`, `/ukoly`, `/transpa
 
 - [ ] **Step 3: Spot-check live site after deploy**
 ```bash
-curl -s -o /dev/null -w "%{http_code}" https://school-committee.alfares.cz/prispevky
-curl -s -o /dev/null -w "%{http_code}" https://school-committee.alfares.cz/ukoly
-curl -s -o /dev/null -w "%{http_code}" https://school-committee.alfares.cz/transparentnost
-curl -s -o /dev/null -w "%{http_code}" https://school-committee.alfares.cz/gdpr
+curl -s -o /dev/null -w "%{http_code}" https://strilkove.cz/prispevky
+curl -s -o /dev/null -w "%{http_code}" https://strilkove.cz/ukoly
+curl -s -o /dev/null -w "%{http_code}" https://strilkove.cz/transparentnost
+curl -s -o /dev/null -w "%{http_code}" https://strilkove.cz/gdpr
 ```
 Expected: all `200`
