@@ -1050,14 +1050,14 @@ kubectl rollout status deployment/school-committee -n statex-apps --timeout=120s
 - [ ] **Step 3: Smoke test**
 
 ```bash
-curl -s https://school-committee.alfares.cz/api/health/live
+curl -s https://strilkove.cz/api/health/live
 ```
 
 Expected: `{"status":"ok"}` or equivalent
 
 - [ ] **Step 4: Navigate to admin panel**
 
-Open `https://school-committee.alfares.cz/admin/users` in the browser, log in as an admin user, verify the user table loads, roles can be changed, and deactivate/remove actions work.
+Open `https://strilkove.cz/admin/users` in the browser, log in as an admin user, verify the user table loads, roles can be changed, and deactivate/remove actions work.
 
 ---
 

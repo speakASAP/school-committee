@@ -41,6 +41,9 @@ docker build --no-cache -t "$IMAGE" .
 echo -e "${YELLOW}→ Pushing to local registry...${NC}"
 docker push "$IMAGE"
 
+echo -e "${YELLOW}→ Applying ClusterIssuer (HTTP-01 for strilkove.cz)...${NC}"
+kubectl apply -f k8s/cluster-issuer-http01.yaml
+
 echo -e "${YELLOW}→ Applying K8s manifests...${NC}"
 kubectl apply -f k8s/external-secret.yaml -n "${NAMESPACE}"
 kubectl apply -f k8s/configmap.yaml -n "${NAMESPACE}"
@@ -53,7 +56,7 @@ kubectl rollout restart deployment/"$SERVICE_NAME" -n "${NAMESPACE}"
 echo -e "${YELLOW}→ Waiting for rollout...${NC}"
 kubectl rollout status deployment/"$SERVICE_NAME" -n "${NAMESPACE}" --timeout=120s
 
-echo -e "${GREEN}╔══════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║  ✅ School Committee Deploy complete ║${NC}"
-echo -e "${GREEN}║  https://school-committee.alfares.cz ║${NC}"
-echo -e "${GREEN}╚══════════════════════════════════════╝${NC}"
+echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║        ✅ School Committee Deploy complete       ║${NC}"
+echo -e "${GREEN}║               https://strilkove.cz               ║${NC}"
+echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"

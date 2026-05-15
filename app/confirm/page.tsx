@@ -6,7 +6,7 @@ const LEADS_SERVICE_URL =
 const AUTH_SERVICE_BASE_URL =
   process.env.AUTH_SERVICE_BASE_URL ?? "";
 const APP_BASE_URL =
-  process.env.APP_BASE_URL ?? "https://school-committee.alfares.cz";
+  process.env.APP_BASE_URL ?? "https://strilkove.cz";
 const AUTH_INTERNAL_SERVICE_TOKEN =
   process.env.AUTH_INTERNAL_SERVICE_TOKEN ?? "";
 const DEFAULT_TENANT_ID =

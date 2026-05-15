@@ -9,7 +9,7 @@
 | Image registry | `localhost:5000/school-committee` |
 | Blue port | 4800 |
 | Green port | 4801 |
-| Domain | `school-committee.alfares.cz` |
+| Domain | `strilkove.cz` |
 | Health live | `GET /api/health/live` |
 | Health ready | `GET /api/health/ready` |
 
@@ -21,9 +21,9 @@
 |----------|-------|
 | `NODE_ENV` | `production` |
 | `SERVICE_NAME` | `school-committee` |
-| `DOMAIN` | `school-committee.alfares.cz` |
+| `DOMAIN` | `strilkove.cz` |
 | `PORT` | `4800` |
-| `APP_BASE_URL` | `https://school-committee.alfares.cz` |
+| `APP_BASE_URL` | `https://strilkove.cz` |
 | `AUTH_SERVICE_BASE_URL` | `http://auth-microservice.statex-apps.svc.cluster.local:3370` |
 | `AUTH_SERVICE_AUDIENCE` | `school-committee` |
 | `DB_HOST` | `192.168.88.53` |

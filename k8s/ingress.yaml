@@ -7,15 +7,30 @@ metadata:
     app: school-committee
     managed-by: k8s-migration
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # HTTP-01 solver: works for any registrar
+    cert-manager.io/cluster-issuer: "letsencrypt-http01"
+    # Redirect HTTP → HTTPS
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.middlewares: "statex-apps-redirect-https@kubernetescrd"
 spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - school-committee.alfares.cz
+        - strilkove.cz
+        - www.strilkove.cz
       secretName: school-committee-tls
   rules:
-    - host: school-committee.alfares.cz
+    - host: strilkove.cz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: school-committee
+                port:
+                  number: 4800
+    - host: www.strilkove.cz
       http:
         paths:
           - path: /

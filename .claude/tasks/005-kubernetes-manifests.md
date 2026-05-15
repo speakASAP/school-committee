@@ -38,7 +38,7 @@ Create all K8s manifests for `school-committee` in the `k8s/` directory, aligned
 - Readiness probe: `GET /api/health/ready` port 4800
 - Resources: requests `128Mi` / `50m`, limits `512Mi` / `500m`
 - Ingress: `ingressClassName: traefik`, annotation `cert-manager.io/cluster-issuer: letsencrypt-prod`
-- Domain: `school-committee.alfares.cz`
+- Domain: `strilkove.cz`
 - Labels on all resources: `app: school-committee`, `managed-by: k8s-migration`
 - 2 replicas minimum (per docs/18)
 - ConfigMap must NOT contain secret values
@@ -51,7 +51,7 @@ Create all K8s manifests for `school-committee` in the `k8s/` directory, aligned
 - [ ] `k8s/deployment.yaml` has `replicas: 2`
 - [ ] `k8s/deployment.yaml` references both configmap and secret via `envFrom`
 - [ ] `k8s/service.yaml` exposes port 4800 as ClusterIP
-- [ ] `k8s/ingress.yaml` has TLS for `school-committee.alfares.cz` with cert-manager annotation
+- [ ] `k8s/ingress.yaml` has TLS for `strilkove.cz` with cert-manager annotation
 - [ ] `scripts/deploy.sh` builds image, pushes, applies manifests, runs rollout status check
 - [ ] `kubectl apply --dry-run=client -f k8s/` produces no errors
 

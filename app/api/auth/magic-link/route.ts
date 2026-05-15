@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 import { toErrorResponse, AppError } from "@/types/errors";
 
 const AUTH_SERVICE_BASE_URL = process.env.AUTH_SERVICE_BASE_URL ?? "";
-const APP_BASE_URL = process.env.APP_BASE_URL ?? "https://school-committee.alfares.cz";
+const APP_BASE_URL = process.env.APP_BASE_URL ?? "https://strilkove.cz";
 const ROUTE = "/api/auth/magic-link";
 
 export async function POST(req: NextRequest) {

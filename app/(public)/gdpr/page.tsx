@@ -81,7 +81,7 @@ export default function GdprPage() {
         <div className="max-w-xl mx-auto">
           <h2 className="text-xl font-bold mb-3">Kontakt správce dat</h2>
           <p className="text-gray-500 text-sm">
-            Školní výbor ZŠ Střílky · school-committee.alfares.cz<br />
+            Školní výbor ZŠ Střílky · strilkove.cz<br />
             Pro žádosti o přístup nebo výmaz dat se přihlaste do aplikace nebo nás kontaktujte e-mailem.
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function GdprPage() {
               <a key={l.href} href={l.href} className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">{l.label}</a>
             ))}
           </div>
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · school-committee.alfares.cz</p>
+          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · strilkove.cz</p>
         </div>
       </footer>
     </div>

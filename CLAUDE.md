@@ -25,7 +25,7 @@ Mobile-first web platform for Czech primary school parent committees. Parents ca
 
 - **Blue:** 4800
 - **Green:** 4801
-- **Domain:** school-committee.alfares.cz
+- **Domain:** `strilkove.cz`
 - **Health:** `GET /api/health/live` and `GET /api/health/ready`
 
 ---
@@ -92,7 +92,7 @@ kubectl apply -f k8s/ -n statex-apps
 # Verify
 kubectl get pods -n statex-apps -l app=school-committee
 kubectl logs -n statex-apps -l app=school-committee --tail=50
-curl https://school-committee.alfares.cz/api/health/live
+curl https://strilkove.cz/api/health/live
 ```
 
 ---

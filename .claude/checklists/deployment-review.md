@@ -40,8 +40,8 @@ kubectl rollout status deployment/school-committee -n statex-apps
 ## Post-deploy verification
 
 - [ ] `kubectl get pods -n statex-apps -l app=school-committee` — STATUS Running
-- [ ] `curl https://school-committee.alfares.cz/api/health/live` — 200 OK
-- [ ] `curl https://school-committee.alfares.cz/api/health/ready` — 200 OK
+- [ ] `curl https://strilkove.cz/api/health/live` — 200 OK
+- [ ] `curl https://strilkove.cz/api/health/ready` — 200 OK
 - [ ] Check logs: `kubectl logs -n statex-apps -l app=school-committee --tail=50`
 - [ ] No ERROR-level log lines on startup
 

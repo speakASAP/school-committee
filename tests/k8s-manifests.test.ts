@@ -74,7 +74,7 @@ describe("k8s/ingress.yaml", () => {
   });
 
   it("has TLS for correct domain", () => {
-    expect(content).toContain("school-committee.alfares.cz");
+    expect(content).toContain("strilkove.cz");
     expect(content).toContain("tls:");
   });
 });

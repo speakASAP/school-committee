@@ -458,16 +458,16 @@ kubectl rollout status deployment/school-committee -n statex-apps
 - [ ] **Step 4: Verify BFF proxy**
 
 ```bash
-curl -s "https://school-committee.alfares.cz/api/auth/check-email?email=ssfskype@gmail.com"
+curl -s "https://strilkove.cz/api/auth/check-email?email=ssfskype@gmail.com"
 # Expected: {"exists":true}
 
-curl -s "https://school-committee.alfares.cz/api/auth/check-email?email=nobody@nowhere.com"
+curl -s "https://strilkove.cz/api/auth/check-email?email=nobody@nowhere.com"
 # Expected: {"exists":false}
 ```
 
 - [ ] **Step 5: Verify the landing page UX**
 
-Open `https://school-committee.alfares.cz/` in a browser.
+Open `https://strilkove.cz/` in a browser.
 
 1. Scroll to the contact form. Select "Email" contact type.
 2. Type `ssfskype@gmail.com` in the email field and click elsewhere (blur).
