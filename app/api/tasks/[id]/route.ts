@@ -120,7 +120,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const user = await tryGetCurrentUser(requestId);
     const authed = user !== null;
+    const isStaff = user !== null && user.roles.some((r) => STAFF_ROLES.has(r));
     const task = await getTaskDetail(id);
+
+    if (task.status === "draft" && !isStaff) {
+      throw new AppError("NOT_FOUND", "Task not found", 404);
+    }
 
     const safeTask = {
       id: task.id,

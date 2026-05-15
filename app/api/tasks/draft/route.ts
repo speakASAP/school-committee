@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
       textNote?: string;
     };
 
-    if (!body.schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+    const schoolId = body.schoolId ?? process.env.DEFAULT_SCHOOL_ID ?? "";
+    if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
     if (!body.audioFileId && !body.videoFileIds?.length && !body.textNote) {
       return NextResponse.json(
         { error: { code: "VALIDATION_ERROR", message: "Provide at least one of: audioFileId, videoFileIds, textNote", requestId } },
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
     const deadline = draftResult?.deadline;
 
     const task = await createTaskDraft({
-      schoolId: body.schoolId,
+      schoolId,
       classId: body.classId,
       tenantId,
       createdBy: user.id,
