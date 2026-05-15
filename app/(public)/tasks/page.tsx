@@ -28,6 +28,7 @@ const PRIORITY_LABEL: Record<string, string> = {
 };
 
 const STATUS_BADGE: Record<string, string> = {
+  draft: "bg-gray-100 text-gray-500",
   open: "bg-blue-100 text-blue-700",
   reserved: "bg-yellow-100 text-yellow-700",
   claimed: "bg-yellow-100 text-yellow-700",
@@ -36,6 +37,7 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const STATUS_LABEL: Record<string, string> = {
+  draft: "koncept",
   open: "otevřený",
   reserved: "přijatý",
   claimed: "přijatý",
@@ -43,30 +45,30 @@ const STATUS_LABEL: Record<string, string> = {
   verified: "ověřený",
 };
 
+const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
+
 function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [isStaff, setIsStaff] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    fetch("/api/tasks")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) setError(d.error.message);
-        else setTasks(d.items ?? []);
-      })
-      .catch(() => setError("Chyba sítě"))
+    Promise.all([
+      fetch("/api/tasks").then((r) => r.json()),
+      fetch("/api/auth/me").then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
+    ]).then(([tasksData, meData]: [
+      { error?: { message: string }; items?: Task[] },
+      { user?: { roles?: string[] } }
+    ]) => {
+      if (tasksData.error) setError(tasksData.error.message);
+      else setTasks(tasksData.items ?? []);
+      const roles: string[] = meData.user?.roles ?? [];
+      setAuthed(!!meData.user);
+      setIsStaff(roles.some((r) => STAFF_ROLES.has(r)));
+    }).catch(() => setError("Chyba sítě"))
       .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setAuthed(!!d?.user))
-      .catch(() => setAuthed(false));
   }, []);
 
   return (
@@ -94,6 +96,16 @@ function TaskList() {
       {/* TASK LIST */}
       <section className="px-4 py-10 bg-white flex-1">
         <div className="max-w-3xl mx-auto">
+          {isStaff && (
+            <div className="mb-6">
+              <Link
+                href="/dashboard/tasks/new"
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+              >
+                + Nový úkol
+              </Link>
+            </div>
+          )}
           {loading && <p className="text-sm text-gray-400 text-center py-10">Načítám…</p>}
           {error && <p className="text-sm text-red-600 text-center py-10">{error}</p>}
           {!loading && !error && tasks.length === 0 && (
@@ -113,7 +125,7 @@ function TaskList() {
                       {task.assigneeName && (
                         <p className="text-xs text-blue-600 mt-1">👤 {task.assigneeName}</p>
                       )}
-                      {task.isClaimed && !task.assigneeName && (
+                      {task.isClaimed && !task.assigneeName && !authed && (
                         <p className="text-xs text-gray-400 mt-1">
                           👤 <a href="/login" className="underline hover:text-blue-600">Přihlaste se pro zobrazení</a>
                         </p>

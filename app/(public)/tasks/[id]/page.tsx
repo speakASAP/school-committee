@@ -19,6 +19,7 @@ interface Task {
 }
 
 const STATUS_LABEL: Record<string, string> = {
+  draft: "Koncept",
   open: "Otevřený",
   reserved: "Probíhá",
   claimed: "Probíhá",
@@ -196,7 +197,7 @@ function TaskDetail() {
                 <p className="text-sm text-gray-500">
                   Řeší: <span className="font-medium text-gray-800">{task.assigneeName}</span>
                 </p>
-              ) : task.isClaimed ? (
+              ) : task.isClaimed && !authed ? (
                 <p className="text-sm text-gray-400">
                   👤 <a href="/login" className="underline hover:text-blue-600">Přihlaste se pro zobrazení řešitele</a>
                 </p>
