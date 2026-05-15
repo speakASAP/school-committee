@@ -30,9 +30,9 @@ export default function SiteHeader({ authenticated }: Props) {
 
   useEffect(() => {
     if (authenticated !== undefined) return;
-    fetch("/api/auth/session")
-      .then((r) => r.json())
-      .then((d) => setAuthed(!!d.user))
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setAuthed(!!d?.user))
       .catch(() => setAuthed(false));
   }, [authenticated]);
 
