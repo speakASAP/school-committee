@@ -36,8 +36,11 @@ export interface AuthTokens {
 }
 
 export interface AuthLoginResponse {
-  success: boolean;
-  data: {
+  user: AuthUser;
+  accessToken: string;
+  refreshToken: string;
+  // legacy wrapped shape — not used by current auth-microservice
+  data?: {
     user: AuthUser;
     accessToken: string;
     refreshToken: string;
@@ -54,8 +57,10 @@ export interface AuthValidateResponse {
 }
 
 export interface AuthRefreshResponse {
-  success: boolean;
-  data: {
+  accessToken: string;
+  refreshToken: string;
+  // legacy wrapped shape — not used by current auth-microservice
+  data?: {
     accessToken: string;
     refreshToken: string;
   };

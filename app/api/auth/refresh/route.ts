@@ -55,7 +55,9 @@ export async function POST(req: NextRequest) {
     }
 
     const data = (await upstream.json()) as AuthRefreshResponse;
-    await setAuthCookies(data.data.accessToken, data.data.refreshToken);
+    const accessToken = data.data?.accessToken ?? (data as any).accessToken;
+    const refreshToken2 = data.data?.refreshToken ?? (data as any).refreshToken;
+    await setAuthCookies(accessToken, refreshToken2);
 
     logger.info("refresh: token refreshed", { request_id: requestId, route: ROUTE });
 

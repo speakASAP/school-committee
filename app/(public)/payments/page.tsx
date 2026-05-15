@@ -91,28 +91,27 @@ function QrGenerator() {
   );
 }
 
-function AuthGate() {
-  const [authed, setAuthed] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    fetch("/api/auth/session")
-      .then((r) => r.json())
-      .then((d) => setAuthed(!!d.user))
-      .catch(() => setAuthed(false));
-  }, []);
-
+function AuthGate({ authed }: { authed: boolean | null }) {
   if (authed === null) return <p className="text-sm text-gray-400 text-center">Načítám…</p>;
 
   if (!authed) {
     return (
       <div className="text-center space-y-4">
-        <p className="text-gray-600 text-sm">Pro vygenerování platebního QR kódu se prosím přihlaste.</p>
-        <a
-          href="/login?next=/payments"
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-3 text-sm font-semibold transition-colors"
-        >
-          Přihlásit se a zaplatit →
-        </a>
+        <p className="text-gray-600 text-sm">Pro vygenerování platebního QR kódu se prosím zaregistrujte nebo přihlaste.</p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <a
+            href="/register?next=/payments"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-3 text-sm font-semibold transition-colors"
+          >
+            Zaregistrovat se →
+          </a>
+          <a
+            href="/login?next=/payments"
+            className="inline-block bg-white border border-blue-200 hover:bg-blue-50 text-blue-700 rounded-xl px-8 py-3 text-sm font-semibold transition-colors"
+          >
+            Přihlásit se
+          </a>
+        </div>
       </div>
     );
   }
@@ -121,6 +120,15 @@ function AuthGate() {
 }
 
 function PaymentsContent() {
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setAuthed(!!d?.user))
+      .catch(() => setAuthed(false));
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
       <SiteHeader />
@@ -192,11 +200,17 @@ function PaymentsContent() {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Jak zaplatit?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { step: "1", title: "Přihlaste se", desc: "Přihlaste se svým rodičovským účtem." },
-              { step: "2", title: "Vygenerujte QR", desc: "Klikněte na tlačítko níže — QR kód se vygeneruje automaticky na 500 Kč." },
-              { step: "3", title: "Zaplaťte", desc: "Naskenujte QR kód v bankovní aplikaci a potvrďte platbu." },
-            ].map((s) => (
+            {(authed
+              ? [
+                  { step: "1", title: "Vygenerujte QR", desc: "Klikněte na tlačítko níže — QR kód se vygeneruje automaticky na 500 Kč." },
+                  { step: "2", title: "Zaplaťte", desc: "Naskenujte QR kód v bankovní aplikaci a potvrďte platbu." },
+                ]
+              : [
+                  { step: "1", title: "Přihlaste se", desc: "Přihlaste se svým rodičovským účtem." },
+                  { step: "2", title: "Vygenerujte QR", desc: "Klikněte na tlačítko níže — QR kód se vygeneruje automaticky na 500 Kč." },
+                  { step: "3", title: "Zaplaťte", desc: "Naskenujte QR kód v bankovní aplikaci a potvrďte platbu." },
+                ]
+            ).map((s) => (
               <div key={s.step} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-2">
                 <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">{s.step}</div>
                 <p className="font-semibold text-gray-900">{s.title}</p>
@@ -213,7 +227,7 @@ function PaymentsContent() {
           <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
             <h2 className="text-xl font-bold text-gray-900 text-center mb-6">Zaplatit 500 Kč</h2>
             <Suspense fallback={<p className="text-sm text-gray-400 text-center">Načítám…</p>}>
-              <AuthGate />
+              <AuthGate authed={authed} />
             </Suspense>
           </div>
         </div>

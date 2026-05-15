@@ -81,7 +81,10 @@ export async function POST(req: NextRequest) {
     }
 
     const data = (await upstream.json()) as AuthLoginResponse;
-    await setAuthCookies(data.data.accessToken, data.data.refreshToken);
+    const accessToken = data.data?.accessToken ?? (data as any).accessToken;
+    const refreshToken = data.data?.refreshToken ?? (data as any).refreshToken;
+    const user = data.data?.user ?? (data as any).user;
+    await setAuthCookies(accessToken, refreshToken);
 
     logger.info("login: user logged in", {
       request_id: requestId,
@@ -89,7 +92,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(
-      { user: { id: data.data.user.id, email: data.data.user.email } },
+      { user: { id: user.id, email: user.email } },
       { status: 200 },
     );
   } catch (err) {

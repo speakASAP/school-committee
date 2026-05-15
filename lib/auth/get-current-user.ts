@@ -1,6 +1,7 @@
 import { getAccessToken } from "@/lib/auth/session";
 import { validateToken } from "@/lib/auth/validate-token";
 import { logger } from "@/lib/logger";
+import { db } from "@/lib/db/client";
 import type { CurrentUser, Role } from "@/types/auth";
 import { UnauthenticatedError } from "@/types/errors";
 
@@ -12,26 +13,28 @@ const PLATFORM_ROLES = new Set<string>([
   "admin",
 ]);
 
-function filterPlatformRoles(roles: string[]): Role[] {
-  return roles.flatMap((r) => {
-    // Accept bare names ("parent") or scoped names ("app:school-committee:parent")
-    if (PLATFORM_ROLES.has(r)) return [r as Role];
-    const last = r.split(":").at(-1) ?? "";
-    if (PLATFORM_ROLES.has(last)) return [last as Role];
-    return [];
-  });
-}
-
 export async function getCurrentUser(requestId?: string): Promise<CurrentUser> {
   const token = await getAccessToken();
   if (!token) {
     throw new UnauthenticatedError("No session");
   }
   const validated = await validateToken(token, requestId);
+
+  // JWT roles from auth-microservice are always empty for platform roles;
+  // authoritative source is the school-committee user_roles table.
+  const dbRoles = await db.userRole.findMany({
+    where: { userId: validated.id, revokedAt: null },
+    select: { role: true },
+  });
+
+  const roles = dbRoles
+    .map((r) => r.role)
+    .filter((r): r is Role => PLATFORM_ROLES.has(r));
+
   return {
     id: validated.id,
     email: validated.email,
-    roles: filterPlatformRoles(validated.roles),
+    roles,
   };
 }
 
