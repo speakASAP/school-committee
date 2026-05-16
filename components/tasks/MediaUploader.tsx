@@ -29,26 +29,40 @@ export function MediaUploader({ type, onFilesChange, maxFiles = 10 }: MediaUploa
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(e.target.files ?? []);
+    console.log(`[MediaUploader:${type}] handleChange: ${selected.length} file(s) selected`);
     if (!selected.length) return;
     setError(null);
     setUploading(true);
     try {
       const results: UploadedFile[] = [];
       for (const file of selected) {
+        console.log(`[MediaUploader:${type}] file: name=${file.name} size=${file.size} type=${file.type}`);
         if (file.size > MAX_MB[type] * 1024 * 1024) {
           setError(`${file.name} je příliš velký (max ${MAX_MB[type]} MB)`);
           continue;
         }
         const contentType = file.type;
+        console.log(`[MediaUploader:${type}] fetching presigned URL for contentType=${contentType}`);
         const urlRes = await fetch("/api/storage/upload-url/media", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ contentType, sizeBytes: file.size }),
         });
-        if (!urlRes.ok) throw new Error(`Failed to get upload URL for ${file.name}`);
+        console.log(`[MediaUploader:${type}] upload-url response: status=${urlRes.status} ok=${urlRes.ok}`);
+        if (!urlRes.ok) {
+          const body = await urlRes.text();
+          console.error(`[MediaUploader:${type}] upload-url error body:`, body);
+          throw new Error(`Failed to get upload URL for ${file.name}`);
+        }
         const { uploadUrl, fileKey } = await urlRes.json() as { uploadUrl: string; fileKey: string };
+        console.log(`[MediaUploader:${type}] got uploadUrl=${uploadUrl} fileKey=${fileKey}`);
         const putRes = await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": contentType } });
-        if (!putRes.ok) throw new Error(`Upload failed for ${file.name}`);
+        console.log(`[MediaUploader:${type}] PUT response: status=${putRes.status} ok=${putRes.ok}`);
+        if (!putRes.ok) {
+          const body = await putRes.text();
+          console.error(`[MediaUploader:${type}] PUT error body:`, body);
+          throw new Error(`Upload failed for ${file.name}`);
+        }
         results.push({
           fileKey,
           name: file.name,
@@ -59,6 +73,7 @@ export function MediaUploader({ type, onFilesChange, maxFiles = 10 }: MediaUploa
       setFiles(updated);
       onFilesChange(updated.map((f) => f.fileKey));
     } catch (err) {
+      console.error(`[MediaUploader:${type}] caught error:`, err);
       setError(err instanceof Error ? err.message : "Nahrávání selhalo");
     } finally {
       setUploading(false);

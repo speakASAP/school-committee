@@ -71,6 +71,9 @@ export async function POST(req: NextRequest) {
     const priority = draftResult?.priority ?? "normal";
     const deadline = draftResult?.deadline;
 
+    // Extract UUID from voice file key (DB column is typed as UUID)
+    const extractAudioUuid = (fileKey: string) => fileKey.split("/").pop()?.replace(/\.[^.]+$/, "") ?? fileKey;
+
     const task = await createTaskDraft({
       schoolId,
       classId: body.classId,
@@ -80,11 +83,11 @@ export async function POST(req: NextRequest) {
       description,
       priority,
       deadline,
-      audioFileId: body.audioFileId,
+      audioFileId: body.audioFileId ? extractAudioUuid(body.audioFileId) : undefined,
       rawTranscript: transcript,
       aiDraftMeta: { modelTier: draftResult?.modelTier ?? "none", aiFailed, processedAt: new Date().toISOString() },
-      photoFileIds: body.photoFileIds,
-      videoFileIds: body.videoFileIds,
+      photoFileKeys: body.photoFileIds,
+      videoFileKeys: body.videoFileIds,
       requestId,
     });
 
