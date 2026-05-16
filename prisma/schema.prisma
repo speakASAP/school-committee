@@ -331,9 +331,17 @@ model Idea {
   categories       String[] @default([]) @map("categories")
   createdAt        DateTime @default(now()) @map("created_at")
 
-  school School  @relation(fields: [schoolId], references: [id])
-  class  Class?  @relation(fields: [classId], references: [id])
-  votes  IdeaVote[]
+  isAnonymous     Boolean  @default(false) @map("is_anonymous")
+  voiceFileKey    String?  @map("voice_file_key")
+  voiceTranscript String?  @map("voice_transcript")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+
+  school   School  @relation(fields: [schoolId], references: [id])
+  class    Class?  @relation(fields: [classId], references: [id])
+  votes    IdeaVote[]
+  photos   IdeaPhoto[]
+  videos   IdeaVideo[]
+  comments IdeaComment[]
 
   @@map("ideas")
 }
@@ -399,4 +407,75 @@ model AuditLog {
   school School? @relation(fields: [schoolId], references: [id])
 
   @@map("audit_logs")
+}
+
+model IdeaPhoto {
+  id        String   @id @default(uuid()) @db.Uuid
+  ideaId    String   @map("idea_id") @db.Uuid
+  fileId    String   @map("file_id") @db.Uuid
+  fileExt   String   @default("jpg") @map("file_ext")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  idea      Idea     @relation(fields: [ideaId], references: [id])
+
+  @@map("idea_photos")
+}
+
+model IdeaVideo {
+  id        String   @id @default(uuid()) @db.Uuid
+  ideaId    String   @map("idea_id") @db.Uuid
+  fileId    String   @map("file_id") @db.Uuid
+  fileExt   String   @default("mp4") @map("file_ext")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  idea      Idea     @relation(fields: [ideaId], references: [id])
+
+  @@map("idea_videos")
+}
+
+model IdeaComment {
+  id        String   @id @default(uuid()) @db.Uuid
+  ideaId    String   @map("idea_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  idea      Idea     @relation(fields: [ideaId], references: [id])
+  likes     IdeaCommentLike[]
+
+  @@map("idea_comments")
+}
+
+model IdeaCommentLike {
+  id        String      @id @default(uuid()) @db.Uuid
+  commentId String      @map("comment_id") @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
+  createdAt DateTime    @default(now()) @map("created_at")
+  comment   IdeaComment @relation(fields: [commentId], references: [id])
+
+  @@unique([commentId, userId])
+  @@map("idea_comment_likes")
+}
+
+model Achievement {
+  id            String   @id @default(uuid()) @db.Uuid
+  key           String   @unique
+  labelCs       String   @map("label_cs")
+  labelEn       String   @map("label_en")
+  descriptionCs String?  @map("description_cs")
+  tier          String
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  achievementKey String   @map("achievement_key")
+  awardedAt      DateTime @default(now()) @map("awarded_at")
+  metadata       Json     @default("{}")
+
+  @@unique([userId, achievementKey])
+  @@map("user_achievements")
 }

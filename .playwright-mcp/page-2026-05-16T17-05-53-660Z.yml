@@ -1,0 +1,64 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "Spolek Střílkové" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Spolek Střílkové" [ref=e6]
+        - navigation [ref=e7]:
+          - link "Domů" [ref=e8] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Platby" [ref=e9] [cursor=pointer]:
+            - /url: /payments
+          - link "Úkoly" [ref=e10] [cursor=pointer]:
+            - /url: /tasks
+          - link "Nápady" [ref=e11] [cursor=pointer]:
+            - /url: /ideas
+          - link "Akce" [ref=e12] [cursor=pointer]:
+            - /url: /events
+          - link "Zpětná vazba" [ref=e13] [cursor=pointer]:
+            - /url: /feedback
+          - link "Profil" [ref=e14] [cursor=pointer]:
+            - /url: /account
+        - button "Odhlásit se" [ref=e16]
+    - main [ref=e17]:
+      - main [ref=e43]:
+        - generic [ref=e44]:
+          - heading "Test User" [level=1] [ref=e45]
+          - paragraph [ref=e46]: Člen od 15. 5. 2026
+          - generic [ref=e47]:
+            - generic [ref=e48]: Administrátor
+            - generic [ref=e49]: Učitel
+            - generic [ref=e50]: Člen výboru
+            - generic [ref=e51]: Školní personál
+        - generic [ref=e52]:
+          - heading "Odznaky (4)" [level=2] [ref=e53]
+          - generic [ref=e54]:
+            - generic [ref=e55]:
+              - generic [ref=e56]: 🥉
+              - generic [ref=e57]: Nový člen
+            - generic [ref=e58]:
+              - generic [ref=e59]: 🥇
+              - generic [ref=e60]: Člen výboru
+            - generic [ref=e61]:
+              - generic [ref=e62]: 🥉
+              - generic [ref=e63]: Nápadník
+            - generic [ref=e64]:
+              - generic [ref=e65]: 🥈
+              - generic [ref=e66]: Učitel
+        - generic [ref=e67]:
+          - heading "Statistiky" [level=2] [ref=e68]
+          - generic [ref=e69]:
+            - generic [ref=e70]:
+              - term [ref=e71]: Nápady
+              - definition [ref=e72]: "1"
+            - generic [ref=e73]:
+              - term [ref=e74]: Hlasy
+              - definition [ref=e75]: "0"
+            - generic [ref=e76]:
+              - term [ref=e77]: Komentáře
+              - definition [ref=e78]: "0"
+            - generic [ref=e79]:
+              - term [ref=e80]: Úkoly
+              - definition [ref=e81]: "0"
+  - alert [ref=e22]

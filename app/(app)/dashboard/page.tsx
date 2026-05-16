@@ -82,6 +82,28 @@ export default function DashboardPage() {
         </Link>
 
         <Link
+          href="/ideas"
+          className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg mb-3">
+            💡
+          </div>
+          <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Nápady</h2>
+          <p className="text-sm text-gray-500 mt-1">Navrhujte vylepšení a hlasujte pro nápady ostatních</p>
+        </Link>
+
+        <Link
+          href="/events"
+          className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg mb-3">
+            📅
+          </div>
+          <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Akce</h2>
+          <p className="text-sm text-gray-500 mt-1">Nadcházející školní události a přihlašování</p>
+        </Link>
+
+        <Link
           href="/feedback"
           className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
         >

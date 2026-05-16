@@ -15,9 +15,13 @@ const ALLOWED_TYPES: Record<string, { ext: string; prefix: string; maxMb: number
   "video/mp4":   { ext: "mp4",  prefix: "tasks/videos", maxMb: 100 },
   "video/webm":  { ext: "webm", prefix: "tasks/videos", maxMb: 100 },
   "video/quicktime": { ext: "mov", prefix: "tasks/videos", maxMb: 100 },
+  "idea/jpeg": { ext: "jpg", prefix: "ideas/photos", maxMb: 10 },
+  "idea/mp4":  { ext: "mp4", prefix: "ideas/videos", maxMb: 50 },
+  "idea/wav":  { ext: "wav", prefix: "ideas/audio",  maxMb: 10 },
+  "idea/webm": { ext: "webm", prefix: "ideas/audio", maxMb: 10 },
 };
 
-const ALLOWED_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
+const ALLOWED_ROLES = new Set(["parent", "committee", "teacher", "school_staff", "admin"]);
 const ROUTE = "/api/storage/upload-url/media";
 
 export async function POST(req: NextRequest) {
