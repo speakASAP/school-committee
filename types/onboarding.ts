@@ -8,10 +8,20 @@ export interface OnboardingProfileRequest {
   lastName: string;
   phone?: string;
   language: Language;
-  classId: string;
-  childrenCount: number;
-  childBirthYears?: number[];
   participationType: ParticipationType;
+}
+
+export interface ChildInput {
+  firstName: string;
+  lastName: string;
+  classId: string;
+  notes?: string;
+}
+
+export interface OnboardingChildrenRequest {
+  tenantId: string;
+  schoolId: string;
+  children: ChildInput[];
 }
 
 export interface ConsentRecord {

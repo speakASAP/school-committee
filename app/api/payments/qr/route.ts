@@ -8,6 +8,7 @@ import { createPaymentIntent } from "@/lib/db/payments";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 import type { CreatePaymentQrRequest, CreatePaymentQrResponse } from "@/types/payments";
+import { requireApproved } from "@/lib/auth/require-approved";
 
 const ROUTE = "/api/payments/qr";
 
@@ -27,6 +28,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const user = await getCurrentUser(requestId);
+    requireApproved(user);
 
     const body = (await req.json()) as CreatePaymentQrRequest;
 

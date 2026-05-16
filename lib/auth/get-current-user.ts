@@ -20,12 +20,16 @@ export async function getCurrentUser(requestId?: string): Promise<CurrentUser> {
   }
   const validated = await validateToken(token, requestId);
 
-  // JWT roles from auth-microservice are always empty for platform roles;
-  // authoritative source is the school-committee user_roles table.
-  const dbRoles = await db.userRole.findMany({
-    where: { userId: validated.id, revokedAt: null },
-    select: { role: true },
-  });
+  const [dbRoles, profile] = await Promise.all([
+    db.userRole.findMany({
+      where: { userId: validated.id, revokedAt: null },
+      select: { role: true },
+    }),
+    db.profile.findUnique({
+      where: { userId: validated.id },
+      select: { approvalStatus: true, rejectionReason: true },
+    }),
+  ]);
 
   const roles = dbRoles
     .map((r) => r.role)
@@ -35,6 +39,8 @@ export async function getCurrentUser(requestId?: string): Promise<CurrentUser> {
     id: validated.id,
     email: validated.email,
     roles,
+    approvalStatus: profile?.approvalStatus ?? "pending",
+    rejectionReason: profile?.rejectionReason ?? null,
   };
 }
 

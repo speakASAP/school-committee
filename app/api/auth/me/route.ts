@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const user = await getCurrentUser(requestId);
     const profile = await db.profile.findUnique({
       where: { userId: user.id },
-      select: { tenantId: true, schoolId: true },
+      select: { tenantId: true, schoolId: true, approvalStatus: true, rejectionReason: true },
     });
     return NextResponse.json({
       user: {
@@ -23,6 +23,8 @@ export async function GET(req: NextRequest) {
         roles: user.roles,
         tenantId: profile?.tenantId ?? null,
         schoolId: profile?.schoolId ?? null,
+        approvalStatus: profile?.approvalStatus ?? "pending",
+        rejectionReason: profile?.rejectionReason ?? null,
       },
     });
   } catch (err) {

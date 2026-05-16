@@ -1,17 +1,23 @@
 "use client";
 import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useVoiceRecorder } from "@/lib/hooks/use-voice-recorder";
 
-const CATEGORIES = ["general", "safety", "facilities", "teachers", "events", "other"] as const;
 const TYPES = ["suggestion", "complaint", "praise", "question"] as const;
 
 const CATEGORY_LABEL: Record<string, string> = {
-  general: "Obecné",
-  safety: "Bezpečnost",
-  facilities: "Vybavení",
-  teachers: "Učitelé",
-  events: "Akce",
-  other: "Ostatní",
+  bezpecnost: "Bezpečnost",
+  vybaveni: "Vybavení",
+  ucitele: "Učitelé",
+  akce: "Akce",
+  finance: "Finance",
+  komunikace: "Komunikace",
+  administrativa: "Administrativa",
+  jidelna: "Jídelna",
+  sport: "Sport",
+  kultura: "Kultura",
+  prostory: "Prostory",
+  obecne: "Obecné",
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -23,7 +29,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 interface SubmittedItem {
   id: string;
-  category: string;
+  categories: string[];
   type: string;
   text: string;
   status: string;
@@ -102,7 +108,6 @@ function VoiceButton({ onFileKey }: { onFileKey: (key: string | null) => void })
 
 function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
   const [form, setForm] = useState({
-    category: "general" as typeof CATEGORIES[number],
     type: "suggestion" as typeof TYPES[number],
     text: "",
     isAnonymous: false,
@@ -120,7 +125,6 @@ function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          category: form.category,
           type: form.type,
           text: form.text,
           isAnonymous: form.isAnonymous,
@@ -143,18 +147,6 @@ function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Kategorie</label>
-        <select
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={form.category}
-          onChange={(e) => setForm({ ...form, category: e.target.value as typeof CATEGORIES[number] })}
-        >
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>
-          ))}
-        </select>
-      </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Vaše zpráva</label>
         <textarea
@@ -190,14 +182,19 @@ function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
   );
 }
 
-function HistoryList({ refresh }: { refresh: number }) {
+function HistoryList({ refresh, activeCategory }: { refresh: number; activeCategory: string | null }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [items, setItems] = useState<SubmittedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
-    fetch("/api/feedback?limit=20")
+    const url = new URL("/api/feedback", window.location.origin);
+    url.searchParams.set("limit", "20");
+    if (activeCategory) url.searchParams.set("category", activeCategory);
+    fetch(url.toString())
       .then((r) => r.json())
       .then((d) => {
         if (d.error) setError(d.error.message);
@@ -205,11 +202,26 @@ function HistoryList({ refresh }: { refresh: number }) {
       })
       .catch(() => setError("Chyba sítě"))
       .finally(() => setLoading(false));
-  }, [refresh]);
+  }, [refresh, activeCategory]);
+
+  function handleCategoryClick(slug: string) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("category") === slug) {
+      params.delete("category");
+    } else {
+      params.set("category", slug);
+    }
+    const query = params.toString();
+    router.push(`${pathname}${query ? `?${query}` : ""}`);
+  }
 
   if (loading) return <p className="text-sm text-gray-400">Načítám…</p>;
   if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (items.length === 0) return <p className="text-sm text-gray-400">Zatím žádná podání.</p>;
+  if (items.length === 0) return (
+    <p className="text-sm text-gray-400">
+      {activeCategory ? `Žádná podání v kategorii „${CATEGORY_LABEL[activeCategory] ?? activeCategory}".` : "Zatím žádná podání."}
+    </p>
+  );
 
   return (
     <ul className="space-y-3">
@@ -217,9 +229,20 @@ function HistoryList({ refresh }: { refresh: number }) {
         <li key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-2">
           <div className="flex items-center justify-between gap-2">
             <div className="flex gap-2 flex-wrap">
-              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                {CATEGORY_LABEL[item.category] ?? item.category}
-              </span>
+              {item.categories.map((slug) => (
+                <button
+                  key={slug}
+                  type="button"
+                  onClick={() => handleCategoryClick(slug)}
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
+                    activeCategory === slug
+                      ? "bg-blue-600 text-white"
+                      : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  }`}
+                >
+                  {CATEGORY_LABEL[slug] ?? slug}
+                </button>
+              ))}
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
                 {TYPE_LABEL[item.type] ?? item.type}
               </span>
@@ -246,6 +269,8 @@ function HistoryList({ refresh }: { refresh: number }) {
 }
 
 function FeedbackContent() {
+  const searchParams = useSearchParams();
+  const activeCategory = searchParams.get("category");
   const [tab, setTab] = useState<"new" | "history">("new");
   const [refreshKey, setRefreshKey] = useState(0);
   const [justSubmitted, setJustSubmitted] = useState(false);
@@ -316,7 +341,7 @@ function FeedbackContent() {
                   </div>
                 )}
                 {tab === "new" && <SubmitForm onSubmitted={handleSubmitted} />}
-                {tab === "history" && <HistoryList refresh={refreshKey} />}
+                {tab === "history" && <HistoryList refresh={refreshKey} activeCategory={activeCategory} />}
               </div>
             </div>
           </div>

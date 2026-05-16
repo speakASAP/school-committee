@@ -24,6 +24,7 @@ export async function upsertProfile(
       language: data.language ?? "cs",
       participationType: data.participationType!,
       onboardingStatus: data.onboardingStatus ?? "incomplete",
+      approvalStatus: data.approvalStatus ?? "pending",
     },
     update: {
       firstName: data.firstName,
@@ -32,7 +33,29 @@ export async function upsertProfile(
       language: data.language,
       participationType: data.participationType,
       onboardingStatus: data.onboardingStatus,
+      approvalStatus: data.approvalStatus,
+      approvedBy: data.approvedBy,
+      approvedAt: data.approvedAt,
+      rejectionReason: data.rejectionReason,
       isActive: data.isActive,
     },
+  });
+}
+
+export async function listPendingApprovals(tenantId: string, schoolId?: string) {
+  return db.profile.findMany({
+    where: {
+      tenantId,
+      onboardingStatus: "complete",
+      approvalStatus: "pending",
+      ...(schoolId ? { schoolId } : {}),
+    },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+export async function countPendingApprovals(tenantId: string): Promise<number> {
+  return db.profile.count({
+    where: { tenantId, onboardingStatus: "complete", approvalStatus: "pending" },
   });
 }

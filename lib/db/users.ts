@@ -10,6 +10,8 @@ export interface UserRow {
   language: string;
   participationType: string;
   onboardingStatus: string;
+  approvalStatus: string;
+  rejectionReason: string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -55,6 +57,8 @@ export async function listUsers(tenantId: string, schoolId?: string): Promise<Us
     language: p.language,
     participationType: p.participationType,
     onboardingStatus: p.onboardingStatus,
+    approvalStatus: p.approvalStatus,
+    rejectionReason: p.rejectionReason,
     isActive: p.isActive,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,

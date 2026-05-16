@@ -65,22 +65,27 @@ model Class {
 }
 
 model Profile {
-  userId             String   @id @map("user_id") @db.Uuid
-  tenantId           String   @map("tenant_id") @db.Uuid
-  schoolId           String   @map("school_id") @db.Uuid
-  firstName          String   @map("first_name")
-  lastName           String   @map("last_name")
+  userId             String    @id @map("user_id") @db.Uuid
+  tenantId           String    @map("tenant_id") @db.Uuid
+  schoolId           String    @map("school_id") @db.Uuid
+  firstName          String    @map("first_name")
+  lastName           String    @map("last_name")
   phone              String?
-  language           String   @default("cs")
-  participationType  String   @map("participation_type")
-  onboardingStatus   String   @default("incomplete") @map("onboarding_status")
-  isActive           Boolean  @default(true) @map("is_active")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+  language           String    @default("cs")
+  participationType  String    @map("participation_type")
+  onboardingStatus   String    @default("incomplete") @map("onboarding_status")
+  approvalStatus     String    @default("pending") @map("approval_status")
+  approvedBy         String?   @map("approved_by") @db.Uuid
+  approvedAt         DateTime? @map("approved_at")
+  rejectionReason    String?   @map("rejection_reason")
+  isActive           Boolean   @default(true) @map("is_active")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
   school School @relation(fields: [schoolId], references: [id])
 
+  @@index([approvalStatus], map: "profiles_approval_status_idx")
   @@map("profiles")
 }
 
@@ -89,6 +94,9 @@ model Child {
   parentUserId  String   @map("parent_user_id") @db.Uuid
   schoolId      String   @map("school_id") @db.Uuid
   classId       String   @map("class_id") @db.Uuid
+  firstName     String   @map("first_name")
+  lastName      String   @map("last_name")
+  notes         String?
   displayLabel  String?  @map("display_label")
   birthYear     Int?     @map("birth_year")
   parentConsent Boolean  @default(true) @map("parent_consent")
@@ -98,6 +106,25 @@ model Child {
   class  Class  @relation(fields: [classId], references: [id])
 
   @@map("children")
+}
+
+model RoleUpgradeRequest {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  schoolId        String    @map("school_id") @db.Uuid
+  requestedRole   String    @map("requested_role")
+  reason          String?
+  status          String    @default("pending")
+  reviewedBy      String?   @map("reviewed_by") @db.Uuid
+  reviewedAt      DateTime? @map("reviewed_at")
+  rejectionReason String?   @map("rejection_reason")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@index([userId], map: "role_upgrade_requests_user_id_idx")
+  @@index([status], map: "role_upgrade_requests_status_idx")
+  @@index([tenantId, status], map: "role_upgrade_requests_tenant_status_idx")
+  @@map("role_upgrade_requests")
 }
 
 model UserRole {
@@ -201,6 +228,7 @@ model Task {
   audioFileId   String?   @map("audio_file_id") @db.Uuid
   rawTranscript String?   @map("raw_transcript")
   aiDraftMeta   Json?     @map("ai_draft_meta")
+  categories    String[]  @default([]) @map("categories")
   assignedTo    String?   @map("assigned_to") @db.Uuid
   verifiedBy    String?   @map("verified_by") @db.Uuid
   createdAt     DateTime  @default(now()) @map("created_at")
@@ -274,7 +302,7 @@ model FeedbackItem {
   classId     String?  @map("class_id") @db.Uuid
   userId      String?  @map("user_id") @db.Uuid
   isAnonymous Boolean  @default(false) @map("is_anonymous")
-  category    String
+  categories  String[]  @default([]) @map("categories")
   type        String
   text        String
   voiceFileKey  String?  @map("voice_file_key")
@@ -300,6 +328,7 @@ model Idea {
   description      String
   budgetNeededCzk  Int?     @map("budget_needed_czk")
   status           String   @default("submitted")
+  categories       String[] @default([]) @map("categories")
   createdAt        DateTime @default(now()) @map("created_at")
 
   school School  @relation(fields: [schoolId], references: [id])

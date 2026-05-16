@@ -4,6 +4,7 @@ import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
+import { requireApproved } from "@/lib/auth/require-approved";
 
 const ROUTE = "/api/account/delete-request";
 
@@ -11,6 +12,7 @@ export async function POST(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
   try {
     const actor = await getCurrentUser(requestId);
+    requireApproved(actor);
     const body = (await req.json()) as { tenantId?: string; schoolId?: string; reason?: string };
     const tenantId = body.tenantId || process.env.DEFAULT_TENANT_ID || "";
     const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID;

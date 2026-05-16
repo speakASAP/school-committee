@@ -16,17 +16,15 @@ function ProfileForm() {
   const [form, setForm] = useState({
     tenantId: "",
     schoolId: "",
-    classId: "",
     firstName: "",
     lastName: "",
     phone: "",
     participationType: "financial",
-    childrenCount: 1,
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function set(field: string, value: string | number) {
+  function set(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
   }
 
@@ -42,7 +40,7 @@ function ProfileForm() {
       });
       const body = await res.json();
       if (!res.ok) { setError(body.error?.message ?? "Failed to save profile"); return; }
-      router.replace("/onboarding/consent");
+      router.replace("/onboarding/children");
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -81,11 +79,6 @@ function ProfileForm() {
             ))}
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Number of children *</label>
-          <input type="number" required min={0} className="w-full border rounded-lg px-3 py-2 text-sm"
-            value={form.childrenCount} onChange={(e) => set("childrenCount", parseInt(e.target.value) || 0)} />
-        </div>
         <div className="border-t pt-4 space-y-3">
           <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">School info</p>
           <div>
@@ -97,11 +90,6 @@ function ProfileForm() {
             <label className="block text-sm font-medium mb-1">School ID *</label>
             <input required className="w-full border rounded-lg px-3 py-2 text-sm font-mono text-xs"
               placeholder="uuid — provided by your school" value={form.schoolId} onChange={(e) => set("schoolId", e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Class ID *</label>
-            <input required className="w-full border rounded-lg px-3 py-2 text-sm font-mono text-xs"
-              placeholder="uuid — provided by your school" value={form.classId} onChange={(e) => set("classId", e.target.value)} />
           </div>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}

@@ -8,6 +8,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <aside className="w-64 bg-gray-900 text-white p-4 space-y-2">
         <h2 className="text-lg font-bold mb-4">Admin</h2>
         <nav className="space-y-1">
+          <a href="/admin/approvals" className="block rounded px-3 py-2 hover:bg-gray-700">Approvals</a>
           <a href="/admin/users" className="block rounded px-3 py-2 hover:bg-gray-700">Users</a>
           <a href="/admin/tasks" className="block rounded px-3 py-2 hover:bg-gray-700">Tasks</a>
           <a href="/admin/payments" className="block rounded px-3 py-2 hover:bg-gray-700">Payments</a>
