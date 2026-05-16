@@ -6,6 +6,7 @@ import { getTask } from "@/lib/db/tasks";
 import { db } from "@/lib/db/client";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
+import { requireApproved } from "@/lib/auth/require-approved";
 
 const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
 
@@ -16,6 +17,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     const user = await getCurrentUser(requestId);
+    requireApproved(user);
     if (!user.roles.some((r) => STAFF_ROLES.has(r))) {
       throw new AppError("FORBIDDEN", "Staff role required", 403);
     }

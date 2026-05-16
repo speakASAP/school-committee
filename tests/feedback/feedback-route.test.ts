@@ -9,6 +9,7 @@ const {
   mockModerateFeedback,
   mockFindUnique,
   mockWriteAuditEvent,
+  mockCallCategorizeAI,
 } = vi.hoisted(() => ({
   mockTryGetCurrentUser: vi.fn(),
   mockGetCurrentUser: vi.fn(),
@@ -17,6 +18,7 @@ const {
   mockModerateFeedback: vi.fn(),
   mockFindUnique: vi.fn(),
   mockWriteAuditEvent: vi.fn(),
+  mockCallCategorizeAI: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/get-current-user", () => ({
@@ -32,6 +34,7 @@ vi.mock("@/lib/db/client", () => ({
   db: { feedbackItem: { findUnique: mockFindUnique } },
 }));
 vi.mock("@/lib/db/audit", () => ({ writeAuditEvent: mockWriteAuditEvent }));
+vi.mock("@/lib/ai/categorize", () => ({ callCategorizeAI: mockCallCategorizeAI }));
 
 import { POST, GET } from "@/app/api/feedback/route";
 import { GET as getFeedbackById, PATCH as patchFeedback } from "@/app/api/feedback/[id]/route";
@@ -45,7 +48,7 @@ const baseFeedback = {
   classId: null,
   userId: "u-1",
   isAnonymous: false,
-  category: "general",
+  categories: ["obecne"],
   type: "suggestion",
   text: "Needs more parking",
   status: "new",
@@ -75,12 +78,12 @@ beforeEach(() => {
   mockGetCurrentUser.mockResolvedValue(parentUser);
   mockCreateFeedback.mockResolvedValue(baseFeedback);
   mockWriteAuditEvent.mockResolvedValue(undefined);
+  mockCallCategorizeAI.mockResolvedValue(["obecne"]);
 });
 
 const validSubmission = {
   schoolId: "s-1",
   isAnonymous: false,
-  category: "general",
   type: "suggestion",
   text: "More parking please",
 };
@@ -91,6 +94,23 @@ describe("POST /api/feedback (public)", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.id).toBe("fi-1");
+  });
+
+  it("calls AI categorization with submission text and type", async () => {
+    await POST(makePostRequest(validSubmission));
+    expect(mockCallCategorizeAI).toHaveBeenCalledWith(
+      "More parking please",
+      "suggestion",
+      expect.any(String),
+    );
+  });
+
+  it("saves categories returned by AI", async () => {
+    mockCallCategorizeAI.mockResolvedValue(["vybaveni", "prostory"]);
+    await POST(makePostRequest(validSubmission));
+    expect(mockCreateFeedback).toHaveBeenCalledWith(
+      expect.objectContaining({ categories: ["vybaveni", "prostory"] }),
+    );
   });
 
   it("returns 200 for anonymous submission without login", async () => {
@@ -121,11 +141,6 @@ describe("POST /api/feedback (public)", () => {
     expect(res.status).toBe(401);
   });
 
-  it("returns 400 when category is invalid", async () => {
-    const res = await POST(makePostRequest({ ...validSubmission, category: "invalid_cat" }));
-    expect(res.status).toBe(400);
-  });
-
   it("returns 400 when type is invalid", async () => {
     const res = await POST(makePostRequest({ ...validSubmission, type: "invalid_type" }));
     expect(res.status).toBe(400);
@@ -148,6 +163,15 @@ describe("GET /api/feedback (auth required)", () => {
     mockListFeedback.mockResolvedValue({ items: [baseFeedback], nextCursor: null });
     const res = await GET(makeGetRequest({ schoolId: "s-1" }));
     expect(res.status).toBe(200);
+  });
+
+  it("passes category filter to listFeedback", async () => {
+    mockListFeedback.mockResolvedValue({ items: [], nextCursor: null });
+    await GET(makeGetRequest({ schoolId: "s-1", category: "bezpecnost" }));
+    expect(mockListFeedback).toHaveBeenCalledWith(
+      "s-1",
+      expect.objectContaining({ category: "bezpecnost" }),
+    );
   });
 
   it("scrubs userId from anonymous items in response", async () => {

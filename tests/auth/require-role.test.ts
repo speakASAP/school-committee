@@ -3,9 +3,9 @@ import { requireRole } from "@/lib/auth/require-role";
 import type { CurrentUser } from "@/types/auth";
 import { ForbiddenError, UnauthenticatedError } from "@/types/errors";
 
-const parent: CurrentUser = { id: "u1", email: "p@test.com", roles: ["parent"] };
-const committee: CurrentUser = { id: "u2", email: "c@test.com", roles: ["committee"] };
-const admin: CurrentUser = { id: "u3", email: "a@test.com", roles: ["admin"] };
+const parent: CurrentUser = { id: "u1", email: "p@test.com", roles: ["parent"], approvalStatus: "approved", rejectionReason: null };
+const committee: CurrentUser = { id: "u2", email: "c@test.com", roles: ["committee"], approvalStatus: "approved", rejectionReason: null };
+const admin: CurrentUser = { id: "u3", email: "a@test.com", roles: ["admin"], approvalStatus: "approved", rejectionReason: null };
 
 describe("requireRole", () => {
   it("allows user with matching role", () => {

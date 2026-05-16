@@ -6,6 +6,7 @@ import { callTaskDraftAI } from "@/lib/ai/task-draft";
 import { createTaskDraft } from "@/lib/db/task-media";
 import { transcribeAudioFile } from "@/lib/storage/transcribe";
 import { toErrorResponse, AppError } from "@/types/errors";
+import { requireApproved } from "@/lib/auth/require-approved";
 
 const ALLOWED_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
 const ROUTE = "/api/tasks/draft";
@@ -14,6 +15,7 @@ export async function POST(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
   try {
     const user = await getCurrentUser(requestId);
+    requireApproved(user);
     if (!user.roles.some((r) => ALLOWED_ROLES.has(r))) {
       throw new AppError("FORBIDDEN", "Insufficient role", 403);
     }

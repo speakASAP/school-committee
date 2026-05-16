@@ -6,6 +6,8 @@ interface User {
   id: string;
   email: string;
   roles: string[];
+  approvalStatus?: string;
+  rejectionReason?: string | null;
 }
 
 export default function DashboardPage() {
@@ -19,9 +21,38 @@ export default function DashboardPage() {
   }, []);
 
   const isAdmin = user?.roles.includes("admin") || user?.roles.includes("committee");
+  const isPending = user?.approvalStatus === "pending";
+  const isRejected = user?.approvalStatus === "rejected";
 
   return (
     <div className="space-y-6">
+      {/* Approval status banners */}
+      {isPending && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex gap-3">
+          <span className="text-xl shrink-0">⏳</span>
+          <div>
+            <p className="font-semibold text-yellow-800">Váš účet čeká na schválení</p>
+            <p className="text-sm text-yellow-700 mt-0.5">
+              Správce školy váš účet brzy zkontroluje. Mezitím si můžete prohlížet obsah.
+            </p>
+          </div>
+        </div>
+      )}
+      {isRejected && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3">
+          <span className="text-xl shrink-0">❌</span>
+          <div>
+            <p className="font-semibold text-red-800">Registrace nebyla schválena</p>
+            {user?.rejectionReason && (
+              <p className="text-sm text-red-700 mt-0.5">Důvod: {user.rejectionReason}</p>
+            )}
+            <Link href="/account" className="text-sm text-red-600 underline mt-1 inline-block">
+              Upravit profil a znovu odeslat →
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h1 className="text-2xl font-extrabold text-gray-900">Vítejte zpět</h1>
         {user && <p className="text-sm text-gray-500 mt-1">{user.email}</p>}
@@ -70,6 +101,17 @@ export default function DashboardPage() {
           </div>
           <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Zpráva o transparentnosti</h2>
           <p className="text-sm text-gray-500 mt-1">Podívejte se, jak jsou využívány vybrané prostředky</p>
+        </Link>
+
+        <Link
+          href="/account"
+          className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg mb-3">
+            👤
+          </div>
+          <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Můj profil</h2>
+          <p className="text-sm text-gray-500 mt-1">Upravte údaje, děti, heslo a nastavení účtu</p>
         </Link>
 
         {(user?.roles.includes("teacher") ||

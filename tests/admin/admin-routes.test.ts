@@ -171,6 +171,8 @@ describe("GET /api/admin/users — list users", () => {
     language: "cs",
     participationType: "financial",
     onboardingStatus: "complete",
+    approvalStatus: "approved",
+    rejectionReason: null,
     isActive: true,
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),

@@ -18,6 +18,8 @@ export interface CurrentUser {
   id: string;
   email: string;
   roles: Role[];
+  approvalStatus: string;
+  rejectionReason: string | null;
 }
 
 export interface JwtClaims {

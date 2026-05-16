@@ -4,6 +4,7 @@ import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { claimTask } from "@/lib/db/tasks";
 import { toErrorResponse, AppError } from "@/types/errors";
+import { requireApproved } from "@/lib/auth/require-approved";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
@@ -12,6 +13,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     const user = await getCurrentUser(requestId);
+    requireApproved(user);
 
     const body = await req.json().catch(() => ({})) as { tenantId?: string; schoolId?: string };
 

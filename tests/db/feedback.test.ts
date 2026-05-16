@@ -27,7 +27,7 @@ const baseItem = {
   classId: null,
   userId: "u-1",
   isAnonymous: false,
-  category: "general",
+  categories: ["obecne"],
   type: "praise",
   text: "Great work!",
   status: "new",
@@ -46,7 +46,7 @@ describe("createFeedback", () => {
       schoolId: "s-1",
       userId: "u-1",
       isAnonymous: false,
-      category: "general",
+      categories: ["obecne"],
       type: "praise",
       text: "Great work!",
     });
@@ -61,7 +61,7 @@ describe("createFeedback", () => {
       schoolId: "s-1",
       userId: "u-1",
       isAnonymous: true,
-      category: "general",
+      categories: ["obecne"],
       type: "complaint",
       text: "Something bad",
     });
@@ -75,7 +75,7 @@ describe("createFeedback", () => {
     await createFeedback({
       schoolId: "s-1",
       isAnonymous: false,
-      category: "general",
+      categories: ["obecne"],
       type: "praise",
       text: "x",
     });

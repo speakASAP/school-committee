@@ -6,6 +6,7 @@ import { getTask } from "@/lib/db/tasks";
 import { db } from "@/lib/db/client";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
+import { requireApproved } from "@/lib/auth/require-approved";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
@@ -14,6 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     const user = await getCurrentUser(requestId);
+    requireApproved(user);
     const body = await req.json().catch(() => ({})) as { tenantId?: string; schoolId?: string; note?: string };
 
     const tenantId = body.tenantId || process.env.DEFAULT_TENANT_ID || "";

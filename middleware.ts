@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const LOGIN_PATH = "/login";
-const ONBOARDING_PATHS = ["/onboarding/profile", "/onboarding/consent", "/onboarding/language", "/onboarding/set-password"];
+const ONBOARDING_PATHS = ["/onboarding/profile", "/onboarding/children", "/onboarding/consent", "/onboarding/language", "/onboarding/set-password"];
 
 const PUBLIC_PREFIXES = [
   "/login",

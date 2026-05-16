@@ -8,7 +8,7 @@ export interface CreateFeedbackInput {
   classId?: string;
   userId?: string;
   isAnonymous: boolean;
-  category: string;
+  categories: string[];
   type: string;
   text: string;
   voiceFileKey?: string;
@@ -23,7 +23,7 @@ export async function createFeedback(input: CreateFeedbackInput): Promise<Feedba
       // Strip userId if anonymous to enforce non-linkability
       userId: input.isAnonymous ? null : (input.userId ?? null),
       isAnonymous: input.isAnonymous,
-      category: input.category,
+      categories: input.categories,
       type: input.type,
       text: input.text,
       voiceFileKey: input.voiceFileKey ?? null,
@@ -35,13 +35,14 @@ export async function createFeedback(input: CreateFeedbackInput): Promise<Feedba
 
 export async function listFeedback(
   schoolId: string,
-  params?: PageParams & { status?: string },
+  params?: PageParams & { status?: string; category?: string },
 ): Promise<PageResult<FeedbackItem>> {
   const limit = resolveLimit(params?.limit);
   const rows = await db.feedbackItem.findMany({
     where: {
       schoolId,
       ...(params?.status ? { status: params.status } : {}),
+      ...(params?.category ? { categories: { hasSome: [params.category] } } : {}),
     },
     orderBy: { createdAt: "desc" },
     take: limit + 1,

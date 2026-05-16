@@ -14,6 +14,7 @@ const AUTH_NAV = [
   { href: "/payments", label: "Platby" },
   { href: "/tasks", label: "Úkoly" },
   { href: "/feedback", label: "Zpětná vazba" },
+  { href: "/account", label: "Profil" },
 ];
 
 interface Props {

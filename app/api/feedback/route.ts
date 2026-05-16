@@ -5,9 +5,10 @@ import { logger } from "@/lib/logger";
 import { createFeedback, listFeedback } from "@/lib/db/feedback";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { transcribeVoice } from "@/lib/ai/transcribe";
+import { callCategorizeAI } from "@/lib/ai/categorize";
 import { toErrorResponse, AppError } from "@/types/errors";
+import { requireApproved } from "@/lib/auth/require-approved";
 
-const ALLOWED_CATEGORIES = ["general", "safety", "facilities", "teachers", "events", "other"];
 const ALLOWED_TYPES = ["suggestion", "complaint", "praise", "question", "issue", "other"];
 const ROUTE = "/api/feedback";
 
@@ -19,7 +20,6 @@ export async function POST(req: NextRequest) {
       schoolId?: string;
       classId?: string;
       isAnonymous?: boolean;
-      category?: string;
       type?: string;
       text?: string;
       voiceFileKey?: string;
@@ -31,9 +31,6 @@ export async function POST(req: NextRequest) {
     }
     if (!body.schoolId) {
       throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
-    }
-    if (!body.category || !ALLOWED_CATEGORIES.includes(body.category)) {
-      throw new AppError("VALIDATION_ERROR", `category must be one of: ${ALLOWED_CATEGORIES.join(", ")}`, 400);
     }
     if (!body.type || !ALLOWED_TYPES.includes(body.type)) {
       throw new AppError("VALIDATION_ERROR", `type must be one of: ${ALLOWED_TYPES.join(", ")}`, 400);
@@ -47,9 +44,12 @@ export async function POST(req: NextRequest) {
     // Try to get current user — public endpoint, so user may be null
     const user = await tryGetCurrentUser(requestId);
 
-    // Named submission requires authentication
+    // Named submission requires authentication and approval
     if (!isAnonymous && !user) {
       throw new AppError("UNAUTHENTICATED", "Authentication required for named feedback", 401);
+    }
+    if (!isAnonymous && user) {
+      requireApproved(user);
     }
 
     let voiceTranscript: string | undefined;
@@ -68,12 +68,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const textForCategorization = voiceTranscript ?? body.text?.trim() ?? "";
+    const categories = await callCategorizeAI(textForCategorization, body.type, requestId);
+
     const item = await createFeedback({
       schoolId: body.schoolId,
       classId: body.classId,
       userId: isAnonymous ? undefined : user?.id,
       isAnonymous,
-      category: body.category,
+      categories,
       type: body.type,
       text: body.text?.trim() ?? "",
       voiceFileKey: body.voiceFileKey,
@@ -134,6 +137,7 @@ export async function GET(req: NextRequest) {
 
     const result = await listFeedback(schoolId, {
       status: searchParams.get("status") ?? undefined,
+      category: searchParams.get("category") ?? undefined,
       limit: searchParams.get("limit") ? Number(searchParams.get("limit")) : undefined,
       cursor: searchParams.get("cursor") ?? undefined,
     });

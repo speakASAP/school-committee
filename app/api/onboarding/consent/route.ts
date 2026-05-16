@@ -9,6 +9,36 @@ import type { RecordConsentRequest } from "@/types/onboarding";
 
 const ROUTE = "/api/onboarding/consent";
 
+async function notifyStaffPendingApproval(
+  userId: string,
+  name: string,
+  email: string,
+  requestId: string,
+): Promise<void> {
+  const notificationUrl = process.env.NOTIFICATION_SERVICE_BASE_URL;
+  if (!notificationUrl) return;
+
+  try {
+    await fetch(`${notificationUrl}/api/notifications`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        type: "new_user_pending_approval",
+        recipientRole: "school_staff",
+        payload: { userId, name, email },
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch (err) {
+    logger.error("onboarding/consent: failed to notify staff", {
+      request_id: requestId,
+      route: ROUTE,
+      error_message: err instanceof Error ? err.message : String(err),
+    });
+    // Non-fatal — approval can still happen manually
+  }
+}
+
 export async function POST(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
 
@@ -58,20 +88,28 @@ export async function POST(req: NextRequest) {
       requestId,
     });
 
-    // Mark profile onboarding as complete
     await upsertProfile(user.id, {
       tenantId: body.tenantId,
       schoolId: body.schoolId,
       onboardingStatus: "complete",
+      approvalStatus: "pending",
     });
 
-    logger.info("onboarding/consent: consent recorded", {
+    // Fire-and-forget notification to school_staff
+    void notifyStaffPendingApproval(
+      user.id,
+      user.email,
+      user.email,
+      requestId,
+    );
+
+    logger.info("onboarding/consent: consent recorded, approval pending", {
       request_id: requestId,
       route: ROUTE,
       user_id: user.id,
     });
 
-    return NextResponse.json({ recorded: true, timestamp }, { status: 200 });
+    return NextResponse.json({ recorded: true, timestamp, approvalStatus: "pending" }, { status: 200 });
   } catch (err) {
     if (err instanceof AppError) {
       logger.error("onboarding/consent: returning error response", {

@@ -20,9 +20,6 @@ export async function POST(req: NextRequest) {
     if (!body.tenantId || !body.schoolId || !body.firstName || !body.lastName) {
       throw new AppError("VALIDATION_ERROR", "firstName, lastName, tenantId, schoolId are required", 400);
     }
-    if (!body.classId) {
-      throw new AppError("VALIDATION_ERROR", "classId is required", 400);
-    }
     if (!body.participationType) {
       throw new AppError("VALIDATION_ERROR", "participationType is required", 400);
     }
@@ -34,9 +31,6 @@ export async function POST(req: NextRequest) {
     }
     if (!["cs", "en", "ru", "uk"].includes(body.language)) {
       throw new AppError("VALIDATION_ERROR", "language must be cs, en, ru, or uk", 400);
-    }
-    if (typeof body.childrenCount !== "number" || body.childrenCount < 0) {
-      throw new AppError("VALIDATION_ERROR", "childrenCount must be a non-negative number", 400);
     }
 
     // Block unverified users — auth-microservice validates token; if getCurrentUser succeeds, token is valid.
