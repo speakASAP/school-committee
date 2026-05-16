@@ -3,6 +3,8 @@ import { tryGetCurrentUser, getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { getTaskDetail, deleteTask, updateTask } from "@/lib/db/tasks";
+import { getTaskMedia } from "@/lib/db/task-media";
+import { getMediaPresignedUrls } from "@/lib/storage/media-urls";
 import { toErrorResponse, AppError } from "@/types/errors";
 
 const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
@@ -127,6 +129,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       throw new AppError("NOT_FOUND", "Task not found", 404);
     }
 
+    const media = await getTaskMedia(id);
+    const mediaUrls = await getMediaPresignedUrls(media, requestId);
+
     const safeTask = {
       id: task.id,
       schoolId: task.schoolId,
@@ -143,6 +148,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       assigneeName: authed ? task.assigneeName : null,
       startedAt: authed ? task.startedAt : null,
       finishedAt: authed ? task.finishedAt : null,
+      photos: mediaUrls.photos,
+      videos: mediaUrls.videos,
     };
 
     return NextResponse.json({ task: safeTask }, { status: 200 });

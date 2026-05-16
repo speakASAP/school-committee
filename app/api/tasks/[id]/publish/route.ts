@@ -20,28 +20,35 @@ export async function POST(
       throw new AppError("FORBIDDEN", "Insufficient role", 403);
     }
 
-    let body: { title?: string; description?: string; priority?: string; deadline?: string; tenantId?: string; schoolId?: string };
+    let body: { title?: string; description?: string; priority?: string; deadline?: string; tenantId?: string; schoolId?: string } = {};
     try {
-      body = await req.json() as typeof body;
+      const text = await req.text();
+      if (text) body = JSON.parse(text) as typeof body;
     } catch {
       throw new AppError("VALIDATION_ERROR", "Invalid JSON body", 400);
     }
-
-    if (!body.title) throw new AppError("VALIDATION_ERROR", "title is required", 400);
-    if (!body.description) throw new AppError("VALIDATION_ERROR", "description is required", 400);
 
     const tenantId = body.tenantId ?? process.env.DEFAULT_TENANT_ID ?? "";
     const schoolId = body.schoolId ?? process.env.DEFAULT_SCHOOL_ID ?? "";
     if (!tenantId) throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
     if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
 
+    // If title/description not provided, fetch from existing task
+    let title = body.title;
+    let description = body.description;
+    if (!title || !description) {
+      const existing = await import("@/lib/db/tasks").then(m => m.getTask(taskId));
+      title = title ?? existing.title;
+      description = description ?? existing.description;
+    }
+
     const task = await publishTask({
       taskId,
       actorUserId: user.id,
       tenantId,
       schoolId,
-      title: body.title,
-      description: body.description,
+      title,
+      description,
       priority: body.priority,
       deadline: body.deadline,
       requestId,

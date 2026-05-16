@@ -16,14 +16,23 @@ export interface CreateTaskDraftParams {
   audioFileId?: string;
   rawTranscript?: string;
   aiDraftMeta?: Record<string, unknown>;
-  photoFileIds?: string[];
-  videoFileIds?: string[];
+  // Full MinIO file keys e.g. "tasks/photos/uuid.jpg"
+  photoFileKeys?: string[];
+  videoFileKeys?: string[];
   requestId?: string;
 }
 
 export interface TaskDraftWithMedia extends Task {
-  photos: { id: string; fileId: string; sortOrder: number }[];
-  videos: { id: string; fileId: string; sortOrder: number }[];
+  photos: { id: string; fileId: string; fileExt: string; sortOrder: number }[];
+  videos: { id: string; fileId: string; fileExt: string; sortOrder: number }[];
+}
+
+function parseFileKey(fileKey: string): { fileId: string; fileExt: string } {
+  const filename = fileKey.split("/").pop() ?? fileKey;
+  const dotIdx = filename.lastIndexOf(".");
+  const fileExt = dotIdx >= 0 ? filename.slice(dotIdx + 1) : "bin";
+  const fileId = dotIdx >= 0 ? filename.slice(0, dotIdx) : filename;
+  return { fileId, fileExt };
 }
 
 export async function createTaskDraft(params: CreateTaskDraftParams): Promise<TaskDraftWithMedia> {
@@ -51,23 +60,21 @@ export async function createTaskDraft(params: CreateTaskDraftParams): Promise<Ta
       },
     });
 
-    if (params.photoFileIds?.length) {
+    if (params.photoFileKeys?.length) {
       await tx.taskPhoto.createMany({
-        data: params.photoFileIds.map((fileId, i) => ({
-          taskId: task.id,
-          fileId,
-          sortOrder: i,
-        })),
+        data: params.photoFileKeys.map((key, i) => {
+          const { fileId, fileExt } = parseFileKey(key);
+          return { taskId: task.id, fileId, fileExt, sortOrder: i };
+        }),
       });
     }
 
-    if (params.videoFileIds?.length) {
+    if (params.videoFileKeys?.length) {
       await tx.taskVideo.createMany({
-        data: params.videoFileIds.map((fileId, i) => ({
-          taskId: task.id,
-          fileId,
-          sortOrder: i,
-        })),
+        data: params.videoFileKeys.map((key, i) => {
+          const { fileId, fileExt } = parseFileKey(key);
+          return { taskId: task.id, fileId, fileExt, sortOrder: i };
+        }),
       });
     }
 
@@ -92,6 +99,19 @@ export async function createTaskDraft(params: CreateTaskDraftParams): Promise<Ta
   });
 }
 
+export interface TaskMediaResult {
+  photos: { id: string; fileId: string; fileExt: string; sortOrder: number }[];
+  videos: { id: string; fileId: string; fileExt: string; sortOrder: number }[];
+}
+
+export async function getTaskMedia(taskId: string): Promise<TaskMediaResult> {
+  const [photos, videos] = await Promise.all([
+    db.taskPhoto.findMany({ where: { taskId }, orderBy: { sortOrder: "asc" } }),
+    db.taskVideo.findMany({ where: { taskId }, orderBy: { sortOrder: "asc" } }),
+  ]);
+  return { photos, videos };
+}
+
 export interface PublishTaskParams {
   taskId: string;
   actorUserId: string;
@@ -109,7 +129,6 @@ export async function publishTask(params: PublishTaskParams): Promise<Task> {
     const task = await tx.task.findUnique({ where: { id: params.taskId } });
     if (!task) throw new AppError("NOT_FOUND", "Task not found", 404);
     if (task.status !== "draft") throw new AppError("CONFLICT", "Task is not a draft", 409);
-    if (task.createdBy !== params.actorUserId) throw new AppError("FORBIDDEN", "Not your draft", 403);
 
     if (params.deadline) {
       const d = new Date(params.deadline);

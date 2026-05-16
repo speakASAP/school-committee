@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface DraftTask {
   id: string;
@@ -29,6 +29,19 @@ export function WizardStep3Review({ draft, schoolId, tenantId, onPublished, onRe
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!draft.photos.length && !draft.videos.length) return;
+    fetch(`/api/tasks/${draft.id}/media-urls`)
+      .then((r) => r.ok ? r.json() as Promise<{ photos: { url: string }[]; videos: { url: string }[] }> : Promise.reject())
+      .then(({ photos, videos }) => {
+        setPhotoUrls(photos.map((p) => p.url));
+        setVideoUrls(videos.map((v) => v.url));
+      })
+      .catch(() => {});
+  }, [draft.id, draft.photos.length, draft.videos.length]);
 
   async function publish() {
     setPublishing(true);
@@ -105,14 +118,30 @@ export function WizardStep3Review({ draft, schoolId, tenantId, onPublished, onRe
 
       {draft.photos.length > 0 && (
         <div>
-          <p className="text-sm font-semibold text-gray-700 mb-1">Fotografie ({draft.photos.length})</p>
-          <p className="text-xs text-gray-400">Nahráno a připraveno k publikaci.</p>
+          <p className="text-sm font-semibold text-gray-700 mb-2">Fotografie ({draft.photos.length})</p>
+          {photoUrls.length > 0 ? (
+            <div className="grid grid-cols-3 gap-2">
+              {photoUrls.map((url, i) => (
+                <img key={i} src={url} alt="" className="rounded-lg object-cover w-full aspect-square border border-gray-200" />
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400">Nahráno a připraveno k publikaci.</p>
+          )}
         </div>
       )}
       {draft.videos.length > 0 && (
         <div>
-          <p className="text-sm font-semibold text-gray-700 mb-1">Videa ({draft.videos.length})</p>
-          <p className="text-xs text-gray-400">Nahráno a připraveno k publikaci.</p>
+          <p className="text-sm font-semibold text-gray-700 mb-2">Videa ({draft.videos.length})</p>
+          {videoUrls.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {videoUrls.map((url, i) => (
+                <video key={i} src={url} controls className="rounded-lg w-full border border-gray-200" />
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400">Nahráno a připraveno k publikaci.</p>
+          )}
         </div>
       )}
 

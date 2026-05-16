@@ -4,7 +4,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
-import { getStorageClient, STORAGE_BUCKET, toPublicUrl } from "@/lib/storage/client";
+import { getPresignClient, STORAGE_BUCKET } from "@/lib/storage/client";
 import { toErrorResponse, AppError } from "@/types/errors";
 import { randomUUID } from "crypto";
 
@@ -35,13 +35,13 @@ export async function POST(req: NextRequest) {
     const ext = ALLOWED_TYPES[body.contentType];
     const fileKey = `voice/${randomUUID()}.${ext}`;
 
-    const client = getStorageClient();
+    const client = getPresignClient();
     const command = new PutObjectCommand({
       Bucket: STORAGE_BUCKET,
       Key: fileKey,
       ContentType: body.contentType,
     });
-    const uploadUrl = toPublicUrl(await getSignedUrl(client, command, { expiresIn: 300 }));
+    const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
 
     logger.info("storage/upload-url: signed URL generated", {
       request_id: requestId,

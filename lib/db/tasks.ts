@@ -9,6 +9,7 @@ export interface ListTasksParams extends PageParams {
   classId?: string;
   status?: string;
   callerRoles?: string[];
+  isAuthenticated?: boolean;
 }
 
 export interface TaskWithAssignee extends Task {
@@ -20,13 +21,14 @@ const STAFF_ROLES = new Set(['committee', 'teacher', 'school_staff', 'admin']);
 export async function listTasks(params: ListTasksParams): Promise<PageResult<TaskWithAssignee>> {
   const limit = resolveLimit(params.limit);
   const isStaff = params.callerRoles?.some(r => STAFF_ROLES.has(r)) ?? false;
+  const isAuthed = params.isAuthenticated ?? false;
   const rows = await db.task.findMany({
     where: {
       schoolId: params.schoolId,
       ...(params.classId ? { classId: params.classId } : {}),
-      ...(!isStaff
-        ? { status: { not: 'draft' } }
-        : params.status ? { status: params.status } : {}),
+      ...(isStaff
+        ? (params.status ? { status: params.status } : {})
+        : { status: { not: 'draft' } }),
     },
     orderBy: { createdAt: "desc" },
     take: limit + 1,

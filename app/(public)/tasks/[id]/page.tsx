@@ -4,6 +4,18 @@ import { useParams } from "next/navigation";
 import { Suspense } from "react";
 import SiteHeader from "@/components/SiteHeader";
 
+interface TaskPhoto {
+  id: string;
+  fileId: string;
+  url: string;
+}
+
+interface TaskVideo {
+  id: string;
+  fileId: string;
+  url: string;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -16,6 +28,8 @@ interface Task {
   assigneeName: string | null;
   startedAt: string | null;
   finishedAt: string | null;
+  photos: TaskPhoto[];
+  videos: TaskVideo[];
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -64,7 +78,9 @@ function TaskDetail() {
     ]) => {
       if (taskData.error) setError(taskData.error.message);
       else {
-        setTask(taskData.task ?? null);
+        const t = taskData.task;
+        if (t) { t.photos = t.photos ?? []; t.videos = t.videos ?? []; }
+        setTask(t ?? null);
         if (taskData.task) {
           setEditTitle(taskData.task.title);
           setEditDescription(taskData.task.description);
@@ -148,6 +164,26 @@ function TaskDetail() {
     }
   }
 
+  async function approveTask() {
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/tasks/${id}/publish`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const body = await res.json();
+      if (res.status === 401) { window.location.href = `/login?next=/tasks/${id}`; return; }
+      if (!res.ok) { setActionError(body.error?.message ?? "Schválení selhalo"); return; }
+      setTask((t) => t ? { ...t, status: "open" } : t);
+    } catch {
+      setActionError("Chyba sítě");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   async function complete() {
     setActionLoading(true);
     setActionError(null);
@@ -188,6 +224,34 @@ function TaskDetail() {
                 </p>
               </div>
               <p className="text-gray-700 text-sm whitespace-pre-wrap">{task.description}</p>
+
+              {task.photos?.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {task.photos.map((photo) => (
+                    <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={photo.url}
+                        alt=""
+                        className="rounded-xl object-cover w-full aspect-square border border-gray-100 hover:opacity-90 transition-opacity"
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {task.videos?.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  {task.videos.map((video) => (
+                    <video
+                      key={video.id}
+                      src={video.url}
+                      controls
+                      className="rounded-xl w-full border border-gray-100"
+                    />
+                  ))}
+                </div>
+              )}
+
               {task.deadline && (
                 <p className="text-sm text-gray-500">
                   Termín: {new Date(task.deadline).toLocaleDateString("cs-CZ")}
@@ -216,6 +280,15 @@ function TaskDetail() {
               <div className="flex gap-3 pt-2 flex-wrap">
                 {isStaff && (
                   <>
+                    {task.status === "draft" && (
+                      <button
+                        onClick={approveTask}
+                        disabled={actionLoading}
+                        className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50 transition-colors"
+                      >
+                        {actionLoading ? "…" : "Schválit a zveřejnit"}
+                      </button>
+                    )}
                     <button
                       onClick={() => setEditing((e) => !e)}
                       className="bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors"

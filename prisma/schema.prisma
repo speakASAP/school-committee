@@ -246,6 +246,7 @@ model TaskPhoto {
   id        String   @id @default(uuid()) @db.Uuid
   taskId    String   @map("task_id") @db.Uuid
   fileId    String   @map("file_id") @db.Uuid
+  fileExt   String   @default("jpg") @map("file_ext")
   sortOrder Int      @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -258,6 +259,7 @@ model TaskVideo {
   id        String   @id @default(uuid()) @db.Uuid
   taskId    String   @map("task_id") @db.Uuid
   fileId    String   @map("file_id") @db.Uuid
+  fileExt   String   @default("mp4") @map("file_ext")
   sortOrder Int      @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
 
