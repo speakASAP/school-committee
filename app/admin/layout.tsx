@@ -12,8 +12,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <a href="/admin/users" className="block rounded px-3 py-2 hover:bg-gray-700">Users</a>
           <a href="/admin/tasks" className="block rounded px-3 py-2 hover:bg-gray-700">Tasks</a>
           <a href="/admin/payments" className="block rounded px-3 py-2 hover:bg-gray-700">Payments</a>
-          <a href="/admin/expenses" className="block rounded px-3 py-2 hover:bg-gray-700">Expenses</a>
           <a href="/admin/feedback" className="block rounded px-3 py-2 hover:bg-gray-700">Feedback</a>
+          <a href="/admin/ideas" className="block rounded px-3 py-2 hover:bg-gray-700">Nápady</a>
           <a href="/admin/exports" className="block rounded px-3 py-2 hover:bg-gray-700">Exports</a>
         </nav>
         <div className="pt-4 mt-4 border-t border-gray-700">

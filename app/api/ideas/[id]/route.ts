@@ -38,6 +38,38 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
+  const { id } = await params;
+  const ALLOWED_STATUSES = ["submitted", "under_review", "approved", "rejected", "implemented"];
+  try {
+    const user = await getCurrentUser(requestId);
+    if (!user.roles.some((r) => STAFF_ROLES.has(r))) {
+      throw new AppError("FORBIDDEN", "Insufficient permissions", 403);
+    }
+    const body = await req.json() as { status?: string };
+    if (!body.status || !ALLOWED_STATUSES.includes(body.status)) {
+      throw new AppError("VALIDATION_ERROR", `status must be one of: ${ALLOWED_STATUSES.join(", ")}`, 400);
+    }
+    const { db } = await import("@/lib/db/client");
+    const { writeAuditEvent } = await import("@/lib/db/audit");
+    const schoolId = process.env.DEFAULT_SCHOOL_ID ?? "";
+    const tenantId = process.env.DEFAULT_TENANT_ID ?? schoolId;
+    const updated = await db.$transaction(async (tx) => {
+      const item = await tx.idea.update({ where: { id }, data: { status: body.status! } });
+      await writeAuditEvent({ tenantId, schoolId, actorUserId: user.id, action: "idea.status_updated", entityType: "idea", entityId: id, metadata: { newStatus: body.status }, requestId });
+      return item;
+    });
+    return NextResponse.json({ id: updated.id, status: updated.status }, { status: 200 });
+  } catch (err) {
+    if (err instanceof AppError) {
+      return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
+    }
+    logger.error("ideas/[id] PATCH: unexpected", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+  }
+}
+
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
   const { id } = await params;

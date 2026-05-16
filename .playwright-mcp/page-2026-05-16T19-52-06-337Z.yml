@@ -1,0 +1,7 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - heading "Nápady" [level=1] [ref=e5]
+      - paragraph [ref=e6]: Hlasujte pro nápady a přidávejte vlastní
+    - paragraph [ref=e7]: Načítám nápady...
+  - alert [ref=e8]

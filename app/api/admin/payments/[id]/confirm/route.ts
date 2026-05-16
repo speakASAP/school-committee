@@ -20,12 +20,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const body = await req.json() as { reference?: string; tenantId?: string };
 
-    if (!body.reference?.trim()) {
-      throw new AppError("VALIDATION_ERROR", "Bank statement reference is required", 400);
+    const tenantId = body.tenantId || process.env.DEFAULT_TENANT_ID || process.env.DEFAULT_SCHOOL_ID;
+    if (!tenantId) {
+      throw new AppError("INTERNAL_ERROR", "DEFAULT_TENANT_ID not configured", 500);
     }
-    if (!body.tenantId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
-    }
+    const reference = body.reference?.trim() || "manual";
 
     const pi = await db.paymentIntent.findUnique({ where: { id: paymentIntentId } });
     if (!pi) throw new AppError("NOT_FOUND", "Payment intent not found", 404);
@@ -47,19 +46,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         source: "manual",
         amountCzk: pi.amountCzk,
         variableSymbol: pi.variableSymbol,
-        rawReference: body.reference,
+        rawReference: reference,
         createdBy: actor.id,
       },
     });
 
     await writeAuditEvent({
-      tenantId: body.tenantId,
+      tenantId,
       schoolId: pi.schoolId,
       actorUserId: actor.id,
       action: "payment.confirmed",
       entityType: "payment_intent",
       entityId: paymentIntentId,
-      metadata: { reference: body.reference, amountCzk: pi.amountCzk },
+      metadata: { reference, amountCzk: pi.amountCzk },
       requestId,
     });
 
