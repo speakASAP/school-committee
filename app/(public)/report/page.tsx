@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import SiteHeader from "@/components/SiteHeader";
 
 interface TaskItem {
   id: string;
@@ -147,27 +146,21 @@ export default async function ReportPage({
 
   if (!schoolId) {
     return (
-      <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
-        <SiteHeader />
-        <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
-          <p className="text-red-600">Konfigurace školy chybí.</p>
-        </main>
-      </div>
+      <main className="max-w-4xl mx-auto w-full px-4 py-8">
+        <p className="text-red-600">Konfigurace školy chybí.</p>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
-      <SiteHeader />
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8 space-y-8">
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <h1 className="text-2xl font-extrabold text-gray-900">Zpráva o činnosti výboru</h1>
-          <p className="text-sm text-gray-500 mt-1">Přehled toho, co jsme jako školní výbor dosud udělali a co plánujeme</p>
-        </div>
-        <Suspense fallback={<p className="text-sm text-gray-400">Načítám…</p>}>
-          <ReportContent schoolId={schoolId} />
-        </Suspense>
-      </main>
-    </div>
+    <main className="max-w-4xl mx-auto w-full px-4 py-8 space-y-8">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <h1 className="text-2xl font-extrabold text-gray-900">Zpráva o činnosti výboru</h1>
+        <p className="text-sm text-gray-500 mt-1">Přehled toho, co jsme jako školní výbor dosud udělali a co plánujeme</p>
+      </div>
+      <Suspense fallback={<p className="text-sm text-gray-400">Načítám…</p>}>
+        <ReportContent schoolId={schoolId} />
+      </Suspense>
+    </main>
   );
 }

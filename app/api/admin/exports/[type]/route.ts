@@ -38,8 +38,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ type
     }
 
     const { searchParams } = new URL(req.url);
-    const schoolId = searchParams.get("schoolId");
-    const tenantId = searchParams.get("tenantId");
+    const schoolId = searchParams.get("schoolId") || process.env.DEFAULT_SCHOOL_ID;
+    const tenantId = searchParams.get("tenantId") || process.env.DEFAULT_TENANT_ID || schoolId;
     if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
     if (!tenantId) throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
 

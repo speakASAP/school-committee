@@ -6,6 +6,7 @@ import Image from "next/image";
 const PUBLIC_NAV = [
   { href: "/payments", label: "Platby" },
   { href: "/tasks", label: "Úkoly" },
+  { href: "/ideas", label: "Nápady" },
   { href: "/report", label: "Zpráva" },
 ];
 
@@ -14,6 +15,7 @@ const AUTH_NAV = [
   { href: "/payments", label: "Platby" },
   { href: "/tasks", label: "Úkoly" },
   { href: "/ideas", label: "Nápady" },
+  { href: "/hall-of-fame", label: "Síň slávy" },
   { href: "/events", label: "Akce" },
   { href: "/feedback", label: "Zpětná vazba" },
   { href: "/account", label: "Profil" },
@@ -25,7 +27,14 @@ interface Props {
 }
 
 export default function SiteHeader({ authenticated }: Props) {
-  const [authed, setAuthed] = useState<boolean | null>(authenticated ?? null);
+  const [authed, setAuthed] = useState<boolean | null>(() => {
+    if (authenticated !== undefined) return authenticated;
+    if (typeof window !== "undefined") {
+      const cached = sessionStorage.getItem("authed");
+      if (cached !== null) return cached === "1";
+    }
+    return null;
+  });
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -35,8 +44,15 @@ export default function SiteHeader({ authenticated }: Props) {
     if (authenticated !== undefined) return;
     fetch("/api/auth/me")
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setAuthed(!!d?.user))
-      .catch(() => setAuthed(false));
+      .then((d) => {
+        const val = !!d?.user;
+        setAuthed(val);
+        sessionStorage.setItem("authed", val ? "1" : "0");
+      })
+      .catch(() => {
+        setAuthed(false);
+        sessionStorage.setItem("authed", "0");
+      });
   }, [authenticated]);
 
   useEffect(() => {
@@ -71,23 +87,26 @@ export default function SiteHeader({ authenticated }: Props) {
 
         {/* Desktop nav */}
         <nav className="hidden sm:flex items-center gap-1">
-          {nav.map(({ href, label }) => (
-            <a
-              key={href}
-              href={href}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                pathname === href || pathname.startsWith(href + "/")
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600 hover:text-blue-700 hover:bg-blue-50"
-              }`}
-            >
-              {label}
-            </a>
-          ))}
+          {nav.map(({ href, label }) => {
+            const active = pathname === href || pathname.startsWith(href + "/");
+            return (
+              <a
+                key={href}
+                href={href}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border-b-2 ${
+                  active
+                    ? "border-blue-600 text-blue-700 bg-blue-50"
+                    : "border-transparent text-gray-600 hover:text-blue-700 hover:bg-blue-50"
+                }`}
+              >
+                {label}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Desktop auth button */}
-        <div className="hidden sm:flex items-center">
+        <div className="hidden sm:flex items-center min-w-[88px] justify-end">
           {authed === null ? (
             <span className="w-20 h-8 rounded-lg bg-gray-100 animate-pulse" />
           ) : authed ? (
@@ -127,10 +146,10 @@ export default function SiteHeader({ authenticated }: Props) {
             <a
               key={href}
               href={href}
-              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border-l-2 ${
                 pathname === href || pathname.startsWith(href + "/")
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-700 hover:text-blue-700 hover:bg-blue-50"
+                  ? "border-blue-600 text-blue-700 bg-blue-50"
+                  : "border-transparent text-gray-700 hover:text-blue-700 hover:bg-blue-50"
               }`}
             >
               {label}

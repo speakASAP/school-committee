@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import SiteHeader from "@/components/SiteHeader";
 
 export const metadata: Metadata = { title: "Dobrovolnictví – Školní výbor" };
 
@@ -62,9 +61,7 @@ const TASKS = [
 
 export default function UkolyPage() {
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
-      <SiteHeader />
-
+    <div className="font-sans text-gray-900">
       <section className="bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-16 text-center">
         <div className="max-w-2xl mx-auto">
           <div className="text-5xl mb-4">🕐</div>
@@ -123,21 +120,6 @@ export default function UkolyPage() {
         </div>
       </section>
 
-      <footer className="mt-auto border-t border-gray-100 px-4 py-8 bg-white">
-        <div className="max-w-3xl mx-auto flex flex-col items-center gap-4">
-          <div className="flex flex-wrap justify-center gap-4">
-            {[
-              { label: "QR příspěvky", href: "/prispevky" },
-              { label: "Dobrovolnictví", href: "/ukoly" },
-              { label: "Transparentnost", href: "/transparentnost" },
-              { label: "GDPR", href: "/gdpr" },
-            ].map((l) => (
-              <a key={l.href} href={l.href} className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">{l.label}</a>
-            ))}
-          </div>
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · strilkove.cz</p>
-        </div>
-      </footer>
     </div>
   );
 }

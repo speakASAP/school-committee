@@ -261,7 +261,7 @@ function HistoryList({ refresh, activeCategory }: { refresh: number; activeCateg
               <p className="text-sm text-blue-900">{item.voiceTranscript}</p>
             </div>
           )}
-          <p className="text-xs text-gray-400">{new Date(item.createdAt).toLocaleString("cs-CZ")}</p>
+          <p className="text-xs text-gray-400">{new Date(item.createdAt).toLocaleString("cs-CZ", { hour12: false })}</p>
         </li>
       ))}
     </ul>
@@ -278,7 +278,8 @@ function FeedbackContent() {
   const handleSubmitted = useCallback(() => {
     setJustSubmitted(true);
     setRefreshKey((k) => k + 1);
-    setTimeout(() => setJustSubmitted(false), 3000);
+    setTab("history");
+    setTimeout(() => setJustSubmitted(false), 4000);
   }, []);
 
   return (
@@ -333,11 +334,6 @@ function FeedbackContent() {
                 {justSubmitted && (
                   <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700">
                     Děkujeme — vaše zpětná vazba byla odeslána.
-                    {tab === "new" && (
-                      <button onClick={() => setTab("history")} className="ml-2 underline font-medium">
-                        Zobrazit →
-                      </button>
-                    )}
                   </div>
                 )}
                 {tab === "new" && <SubmitForm onSubmitted={handleSubmitted} />}

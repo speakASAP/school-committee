@@ -3,6 +3,9 @@ import { getCurrentUser, tryGetCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { createIdea, listIdeas, getUserVotedIdeaIds } from "@/lib/db/ideas";
+import { db } from "@/lib/db/client";
+
+const STAFF_ROLES = new Set(["school_staff", "admin", "committee"]);
 import { awardBadgesForUser } from "@/lib/gamification/award-badges";
 import { transcribeVoice } from "@/lib/ai/transcribe";
 import { toErrorResponse, AppError } from "@/types/errors";
@@ -16,6 +19,37 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const schoolId = searchParams.get("schoolId") || process.env.DEFAULT_SCHOOL_ID;
     if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+
+    const isAdmin = searchParams.get("admin") === "1" && user && user.roles.some((r) => STAFF_ROLES.has(r));
+
+    if (isAdmin) {
+      const statusFilter = searchParams.get("status");
+      const limit = searchParams.get("limit") ? Number(searchParams.get("limit")) : 200;
+      const rows = await db.idea.findMany({
+        where: {
+          schoolId,
+          ...(statusFilter ? { status: statusFilter } : { status: { not: "deleted" } }),
+        },
+        include: {
+          _count: { select: { votes: true, comments: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      });
+      const items = rows.map((idea) => ({
+        id: idea.id,
+        title: idea.title,
+        description: idea.description,
+        isAnonymous: idea.isAnonymous,
+        categories: idea.categories,
+        status: idea.status,
+        voteCount: idea._count.votes,
+        commentCount: idea._count.comments,
+        createdAt: idea.createdAt,
+        submittedBy: idea.isAnonymous ? null : idea.submittedBy,
+      }));
+      return NextResponse.json({ items }, { status: 200 });
+    }
 
     const result = await listIdeas(schoolId, {
       limit: searchParams.get("limit") ? Number(searchParams.get("limit")) : undefined,
