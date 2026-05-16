@@ -7,6 +7,7 @@ import { db } from "@/lib/db/client";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 import { requireApproved } from "@/lib/auth/require-approved";
+import { awardBadgesForUser } from "@/lib/gamification/award-badges";
 
 const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
 
@@ -63,6 +64,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
       return result;
     });
+
+    awardBadgesForUser(user.id).catch(() => {});
 
     logger.info(`${ROUTE}: task verified`, { request_id: requestId, task_id: taskId, actor: user.id });
     return NextResponse.json({ task: { id: updated.id, status: updated.status } }, { status: 200 });

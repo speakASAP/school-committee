@@ -1,0 +1,48 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - heading "Nápady" [level=1] [ref=e5]
+        - paragraph [ref=e6]: Hlasujte pro nápady a přidávejte vlastní
+      - button "+ Přidat nápad" [ref=e9]
+    - generic [ref=e11]:
+      - link "Nová lavička na školním dvoře" [ref=e12] [cursor=pointer]:
+        - /url: /ideas/ae3a60de-0867-4bf7-8bf9-827cd155454a
+        - heading "Nová lavička na školním dvoře" [level=3] [ref=e13]
+      - paragraph [ref=e14]: Navrhujeme přidat novou lavičku na školní dvůr, aby děti měly místo k sezení o přestávkách.
+      - generic [ref=e15]:
+        - generic [ref=e16]: Rodič · 16. 5. 2026
+        - generic [ref=e17]:
+          - link "💬 0" [ref=e18] [cursor=pointer]:
+            - /url: /ideas/ae3a60de-0867-4bf7-8bf9-827cd155454a#comments
+          - button "☆ 0" [disabled] [ref=e19]:
+            - generic [ref=e20]: ☆
+            - generic [ref=e21]: "0"
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - heading "Nový nápad" [level=2] [ref=e25]
+        - button "×" [ref=e26]
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]: Název *
+          - textbox "Krátký název nápadu" [ref=e30]: Anonymní testovací nápad
+        - generic [ref=e31]:
+          - generic [ref=e32]: Popis
+          - textbox "Popište svůj nápad..." [ref=e33]
+        - generic [ref=e34]:
+          - paragraph [ref=e35]: Fotografie
+          - generic [ref=e37] [cursor=pointer]: + Přidat fotky
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: Video
+          - generic [ref=e41] [cursor=pointer]: + Přidat videa
+        - generic [ref=e42]:
+          - paragraph [ref=e43]: Hlasová zpráva
+          - button "🎙 Nahrát hlas" [ref=e45]
+        - generic [ref=e46]:
+          - checkbox "Zveřejnit anonymně (nápad nebude počítán do vašich hvězd)" [checked] [ref=e47]
+          - generic [ref=e48]: Zveřejnit anonymně (nápad nebude počítán do vašich hvězd)
+        - paragraph [ref=e52]: description or voiceFileKey is required
+        - generic [ref=e49]:
+          - button "Zrušit" [ref=e50]
+          - button "Přidat nápad" [ref=e51]
+  - alert [ref=e8]

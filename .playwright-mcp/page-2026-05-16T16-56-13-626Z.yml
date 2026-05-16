@@ -1,0 +1,21 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - heading "Nápady" [level=1] [ref=e5]
+        - paragraph [ref=e6]: Hlasujte pro nápady a přidávejte vlastní
+      - button "+ Přidat nápad" [ref=e9]
+    - generic [ref=e41]:
+      - link "Nová lavička na školním dvoře" [ref=e42] [cursor=pointer]:
+        - /url: /ideas/ae3a60de-0867-4bf7-8bf9-827cd155454a
+        - heading "Nová lavička na školním dvoře" [level=3] [ref=e43]
+      - paragraph [ref=e44]: Navrhujeme přidat novou lavičku na školní dvůr, aby děti měly místo k sezení o přestávkách.
+      - generic [ref=e45]:
+        - generic [ref=e46]: Rodič · 16. 5. 2026
+        - generic [ref=e47]:
+          - link "💬 0" [ref=e48] [cursor=pointer]:
+            - /url: /ideas/ae3a60de-0867-4bf7-8bf9-827cd155454a#comments
+          - button "☆ 0" [disabled] [ref=e49]:
+            - generic [ref=e50]: ☆
+            - generic [ref=e51]: "0"
+  - alert [ref=e8]

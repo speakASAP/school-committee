@@ -6,6 +6,7 @@ import { upsertProfile, getProfile } from "@/lib/db/profiles";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError, ForbiddenError } from "@/types/errors";
 import type { OnboardingProfileRequest } from "@/types/onboarding";
+import { awardBadgesForUser } from "@/lib/gamification/award-badges";
 
 const ROUTE = "/api/onboarding/profile";
 
@@ -60,6 +61,8 @@ export async function POST(req: NextRequest) {
       entityId: user.id,
       requestId,
     });
+
+    awardBadgesForUser(user.id).catch(() => {});
 
     logger.info("onboarding/profile: profile created", {
       request_id: requestId,

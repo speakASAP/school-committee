@@ -7,6 +7,7 @@ import { db } from "@/lib/db/client";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 import { requireApproved } from "@/lib/auth/require-approved";
+import { awardBadgesForUser } from "@/lib/gamification/award-badges";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
@@ -59,6 +60,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       entityId: taskId,
       requestId,
     });
+
+    awardBadgesForUser(user.id).catch(() => {});
 
     logger.info("tasks/complete: task marked completed", {
       request_id: requestId,

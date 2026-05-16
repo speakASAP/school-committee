@@ -1,0 +1,7 @@
+[ 7273928ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://strilkove.cz/api/ideas/ad3b9adf-a01a-4688-8ea2-e95edddcab98/vote:0
+[ 7275543ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://strilkove.cz/api/ideas/ad3b9adf-a01a-4688-8ea2-e95edddcab98/vote:0
+[ 7276447ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://strilkove.cz/api/ideas/ad3b9adf-a01a-4688-8ea2-e95edddcab98/vote:0
+[ 7283374ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://strilkove.cz/api/ideas/ad3b9adf-a01a-4688-8ea2-e95edddcab98/vote:0
+[ 7341431ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://strilkove.cz/api/feedback:0
+[ 7346025ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://strilkove.cz/api/feedback:0
+[ 7428952ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://strilkove.cz/api/profile/children:0

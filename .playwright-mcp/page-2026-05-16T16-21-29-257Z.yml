@@ -1,0 +1,20 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Přihlášení" [level=1] [ref=e5]
+      - paragraph [ref=e6]: Platforma školního výboru
+    - generic [ref=e7]:
+      - button "Heslo" [ref=e8]
+      - button "Odkaz na e-mail" [ref=e9]
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: E-mail
+        - textbox [ref=e13]
+      - generic [ref=e14]:
+        - generic [ref=e15]: Heslo
+        - textbox [ref=e16]
+      - button "Přihlásit se" [ref=e17]
+      - paragraph [ref=e18]:
+        - text: Zapomněli jste heslo?
+        - button "Přihlaste se bez hesla" [ref=e19]
+  - alert [ref=e20]

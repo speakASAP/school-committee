@@ -1,0 +1,35 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - heading "Nápady" [level=1] [ref=e5]
+        - paragraph [ref=e6]: Hlasujte pro nápady a přidávejte vlastní
+      - button "+ Přidat nápad" [ref=e9]
+    - generic [ref=e10]:
+      - generic [ref=e52]:
+        - link "Anonymní testovací nápad" [ref=e53] [cursor=pointer]:
+          - /url: /ideas/ad3b9adf-a01a-4688-8ea2-e95edddcab98
+          - heading "Anonymní testovací nápad" [level=3] [ref=e54]
+        - paragraph
+        - generic [ref=e55]:
+          - generic [ref=e56]: Anonymní · 16. 5. 2026
+          - generic [ref=e57]:
+            - link "💬 0" [ref=e58] [cursor=pointer]:
+              - /url: /ideas/ad3b9adf-a01a-4688-8ea2-e95edddcab98#comments
+            - button "☆ 0" [ref=e59] [cursor=pointer]:
+              - generic [ref=e60]: ☆
+              - generic [ref=e61]: "0"
+      - generic [ref=e62]:
+        - link "Nová lavička na školním dvoře" [ref=e63] [cursor=pointer]:
+          - /url: /ideas/ae3a60de-0867-4bf7-8bf9-827cd155454a
+          - heading "Nová lavička na školním dvoře" [level=3] [ref=e64]
+        - paragraph [ref=e65]: Navrhujeme přidat novou lavičku na školní dvůr, aby děti měly místo k sezení o přestávkách.
+        - generic [ref=e66]:
+          - generic [ref=e67]: Rodič · 16. 5. 2026
+          - generic [ref=e68]:
+            - link "💬 0" [ref=e69] [cursor=pointer]:
+              - /url: /ideas/ae3a60de-0867-4bf7-8bf9-827cd155454a#comments
+            - button "☆ 0" [disabled] [ref=e70]:
+              - generic [ref=e71]: ☆
+              - generic [ref=e72]: "0"
+  - alert [ref=e8]

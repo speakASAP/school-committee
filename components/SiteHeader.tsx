@@ -13,6 +13,8 @@ const AUTH_NAV = [
   { href: "/dashboard", label: "Domů" },
   { href: "/payments", label: "Platby" },
   { href: "/tasks", label: "Úkoly" },
+  { href: "/ideas", label: "Nápady" },
+  { href: "/events", label: "Akce" },
   { href: "/feedback", label: "Zpětná vazba" },
   { href: "/account", label: "Profil" },
 ];

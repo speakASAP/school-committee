@@ -2,101 +2,104 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, tryGetCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
-import { listIdeas, createIdea } from "@/lib/db/ideas";
-import { writeAuditEvent } from "@/lib/db/audit";
-import { requireApproved } from "@/lib/auth/require-approved";
+import { createIdea, listIdeas, getUserVotedIdeaIds } from "@/lib/db/ideas";
+import { awardBadgesForUser } from "@/lib/gamification/award-badges";
+import { transcribeVoice } from "@/lib/ai/transcribe";
 import { toErrorResponse, AppError } from "@/types/errors";
 
 const ROUTE = "/api/ideas";
 
 export async function GET(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
-
   try {
+    const user = await tryGetCurrentUser(requestId);
     const { searchParams } = new URL(req.url);
     const schoolId = searchParams.get("schoolId") || process.env.DEFAULT_SCHOOL_ID;
     if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
 
-    const user = await tryGetCurrentUser(requestId);
-
-    const result = await listIdeas({
-      schoolId,
-      classId: searchParams.get("classId") ?? undefined,
-      status: searchParams.get("status") ?? undefined,
+    const result = await listIdeas(schoolId, {
       limit: searchParams.get("limit") ? Number(searchParams.get("limit")) : undefined,
       cursor: searchParams.get("cursor") ?? undefined,
     });
 
-    // Only expose voter IDs to authenticated users
+    const votedIds = user
+      ? await getUserVotedIdeaIds(user.id, result.items.map((i) => i.id))
+      : new Set<string>();
+
     const safeItems = result.items.map((idea) => ({
-      ...idea,
-      voterIds: user ? idea.voterIds : [],
-      hasVoted: user ? idea.voterIds.includes(user.id) : false,
+      id: idea.id,
+      title: idea.title,
+      description: idea.description,
+      isAnonymous: idea.isAnonymous,
+      categories: idea.categories,
+      voteCount: idea.voteCount,
+      commentCount: idea.commentCount,
+      createdAt: idea.createdAt,
+      authorId: user && !idea.isAnonymous ? idea.submittedBy : null,
+      hasVoted: votedIds.has(idea.id),
+      photos: idea.photos,
+      videos: idea.videos,
     }));
 
-    return NextResponse.json({ items: safeItems, nextCursor: result.nextCursor });
+    return NextResponse.json({ items: safeItems, nextCursor: result.nextCursor }, { status: 200 });
   } catch (err) {
     if (err instanceof AppError) {
+      logger.error("ideas GET: error", { request_id: requestId, route: ROUTE, error_code: err.code, error_message: err.message });
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
-    logger.error("ideas GET: unexpected error", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
+    logger.error("ideas GET: unexpected", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
-
   try {
     const user = await getCurrentUser(requestId);
-    requireApproved(user);
-
     const body = await req.json() as {
       title?: string;
       description?: string;
-      classId?: string;
-      budgetNeededCzk?: number;
+      isAnonymous?: boolean;
+      voiceFileKey?: string;
+      voiceLanguage?: string;
+      photoFileKeys?: string[];
+      videoFileKeys?: string[];
       schoolId?: string;
     };
 
     const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID;
     if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
     if (!body.title?.trim()) throw new AppError("VALIDATION_ERROR", "title is required", 400);
-    if (!body.description?.trim()) throw new AppError("VALIDATION_ERROR", "description is required", 400);
-    if (body.budgetNeededCzk !== undefined && (typeof body.budgetNeededCzk !== "number" || body.budgetNeededCzk < 0)) {
-      throw new AppError("VALIDATION_ERROR", "budgetNeededCzk must be a non-negative number", 400);
+
+    let voiceTranscript: string | undefined;
+    if (body.voiceFileKey) {
+      voiceTranscript = await transcribeVoice(body.voiceFileKey, body.voiceLanguage);
     }
 
     const tenantId = process.env.DEFAULT_TENANT_ID ?? schoolId;
-
-    const idea = await createIdea({
+    const result = await createIdea({
       schoolId,
-      classId: body.classId,
       submittedBy: user.id,
       title: body.title.trim(),
-      description: body.description.trim(),
-      budgetNeededCzk: body.budgetNeededCzk,
-    });
-
-    await writeAuditEvent({
+      description: body.description?.trim() ?? "",
+      isAnonymous: body.isAnonymous ?? false,
+      voiceFileKey: body.voiceFileKey,
+      voiceTranscript,
+      photoFileKeys: body.photoFileKeys ?? [],
+      videoFileKeys: body.videoFileKeys ?? [],
       tenantId,
-      schoolId,
-      actorUserId: user.id,
-      action: "idea.submitted",
-      entityType: "idea",
-      entityId: idea.id,
       requestId,
     });
 
-    logger.info("ideas POST: idea created", { request_id: requestId, route: ROUTE, user_id: user.id, idea_id: idea.id });
+    awardBadgesForUser(user.id).catch(() => {});
 
-    return NextResponse.json({ idea }, { status: 201 });
+    return NextResponse.json({ id: result.id }, { status: 201 });
   } catch (err) {
     if (err instanceof AppError) {
-      logger.error("ideas POST: error", { request_id: requestId, route: ROUTE, error_code: err.code });
+      logger.error("ideas POST: error", { request_id: requestId, route: ROUTE, error_code: err.code, error_message: err.message });
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
-    logger.error("ideas POST: unexpected error", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
+    logger.error("ideas POST: unexpected", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
     return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
   }
 }

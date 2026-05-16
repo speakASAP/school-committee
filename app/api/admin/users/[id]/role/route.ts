@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { db } from "@/lib/db/client";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
+import { awardBadgesForUser } from "@/lib/gamification/award-badges";
 
 const ALLOWED_ROLES = ["parent", "committee", "teacher", "school_staff", "admin"];
 
@@ -68,6 +69,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       metadata: { role: body.role, targetUserId },
       requestId,
     });
+
+    awardBadgesForUser(targetUserId).catch(() => {});
 
     logger.info("users/role: role updated", {
       request_id: requestId,
