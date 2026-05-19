@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
+import ReactMarkdown from "react-markdown";
 interface TaskPhoto {
   id: string;
   fileId: string;
@@ -219,7 +220,22 @@ function TaskDetail() {
                   Priorita: <span className="font-medium text-gray-700">{PRIORITY_LABEL[task.priority] ?? task.priority}</span>
                 </p>
               </div>
-              <p className="text-gray-700 text-sm whitespace-pre-wrap">{task.description}</p>
+              <div className="prose prose-sm prose-gray max-w-none text-gray-700">
+                <ReactMarkdown
+                  components={{
+                    h1: ({ children }) => <h1 className="text-lg font-bold text-gray-900 mt-4 mb-1">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-base font-bold text-gray-900 mt-4 mb-1">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-sm font-bold text-gray-900 mt-3 mb-1">{children}</h3>,
+                    strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                    p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                  }}
+                >
+                  {task.description}
+                </ReactMarkdown>
+              </div>
 
               {task.photos?.length > 0 && (
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -329,7 +345,7 @@ function TaskDetail() {
                     )}
                   </>
                 ) : (
-                  task.status === "open" && (
+                  task.status === "open" && !task.isClaimed && !task.assigneeName && (
                     <a
                       href={`/login?next=/tasks/${id}`}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
