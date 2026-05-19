@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 interface Task {
   id: string;
@@ -45,7 +46,19 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
 
+type FilterKey = "open" | "in_progress" | "completed";
+
+const FILTER_STATUS_MAP: Record<FilterKey, string[]> = {
+  open: ["open"],
+  in_progress: ["reserved", "claimed"],
+  completed: ["completed", "verified"],
+};
+
 function TaskList() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const activeFilter = (searchParams.get("filter") as FilterKey | null) ?? null;
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +82,26 @@ function TaskList() {
       .finally(() => setLoading(false));
   }, []);
 
+  const setFilter = useCallback((key: FilterKey | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (key === null || key === activeFilter) {
+      params.delete("filter");
+    } else {
+      params.set("filter", key);
+    }
+    router.replace(`/tasks?${params.toString()}`, { scroll: false });
+  }, [searchParams, router, activeFilter]);
+
+  const visibleTasks = activeFilter
+    ? tasks.filter((t) => FILTER_STATUS_MAP[activeFilter].includes(t.status))
+    : tasks;
+
+  const filters: { key: FilterKey; dot: string; label: string }[] = [
+    { key: "open", dot: "🔵", label: "otevřený — volný k přijetí" },
+    { key: "in_progress", dot: "🟡", label: "probíhá — někdo pracuje" },
+    { key: "completed", dot: "🟢", label: "dokončený" },
+  ];
+
   return (
     <div className="font-sans text-gray-900">
       {/* HERO */}
@@ -82,9 +115,22 @@ function TaskList() {
             Přehled všech úkolů školy — otevřených, probíhajících i dokončených.
           </p>
           <div className="flex flex-wrap justify-center gap-2 text-sm">
-            <span className="bg-white border border-gray-200 rounded-full px-3 py-1 text-gray-600">🔵 otevřený — volný k přijetí</span>
-            <span className="bg-white border border-gray-200 rounded-full px-3 py-1 text-gray-600">🟡 probíhá — někdo pracuje</span>
-            <span className="bg-white border border-gray-200 rounded-full px-3 py-1 text-gray-600">🟢 dokončený</span>
+            {filters.map(({ key, dot, label }) => {
+              const isActive = activeFilter === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setFilter(key)}
+                  className={`rounded-full px-3 py-1 border transition-all cursor-pointer select-none ${
+                    isActive
+                      ? "bg-blue-600 border-blue-600 text-white shadow-md"
+                      : "bg-white border-gray-200 text-gray-600 hover:bg-blue-50 hover:border-blue-300"
+                  }`}
+                >
+                  {dot} {label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -104,11 +150,13 @@ function TaskList() {
           )}
           {loading && <p className="text-sm text-gray-400 text-center py-10">Načítám…</p>}
           {error && <p className="text-sm text-red-600 text-center py-10">{error}</p>}
-          {!loading && !error && tasks.length === 0 && (
-            <p className="text-sm text-gray-400 text-center py-10">Žádné úkoly.</p>
+          {!loading && !error && visibleTasks.length === 0 && (
+            <p className="text-sm text-gray-400 text-center py-10">
+              {activeFilter ? "Žádné úkoly v tomto filtru." : "Žádné úkoly."}
+            </p>
           )}
           <ul className="space-y-3">
-            {tasks.map((task) => (
+            {visibleTasks.map((task) => (
               <li key={task.id}>
                 <Link
                   href={`/tasks/${task.id}`}

@@ -132,17 +132,17 @@ function PaymentsContent() {
       {/* HERO */}
       <section className="bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-14 text-center">
         <div className="max-w-2xl mx-auto">
-          <div className="text-5xl mb-4">💳</div>
+          <a href="#pay" className="text-5xl mb-4 inline-block hover:scale-110 transition-transform cursor-pointer">💳</a>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4 leading-tight">
             Finanční příspěvek
           </h1>
           <p className="text-gray-600 text-lg mb-6 max-w-xl mx-auto">
             Roční příspěvek 500 Kč pomáhá škole zajišťovat lepší vzdělání a zázemí pro vaše děti.
           </p>
-          <div className="inline-block bg-white border border-gray-200 rounded-2xl px-8 py-4 shadow-sm">
+          <a href="#pay" className="inline-block bg-white border border-gray-200 rounded-2xl px-8 py-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer">
             <p className="text-4xl font-extrabold text-blue-700">500 Kč</p>
             <p className="text-sm text-gray-500 mt-1">za školní rok</p>
-          </div>
+          </a>
         </div>
       </section>
 
@@ -152,15 +152,15 @@ function PaymentsContent() {
           <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Proč přispívat?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { icon: "🏫", title: "Lepší vybavení", desc: "Příspěvky jdou přímo na pomůcky, knihy a vybavení tříd." },
-              { icon: "📊", title: "Transparentní", desc: "Každou korunu zveřejňujeme ve výroční zprávě. Víte, za co platíte." },
-              { icon: "⚡", title: "Rychlé a jednoduché", desc: "Platba přes QR kód — žádné formuláře, žádné složitosti." },
+              { icon: "🏫", title: "Lepší vybavení", desc: "Příspěvky jdou přímo na pomůcky, knihy a vybavení tříd.", href: "/report" },
+              { icon: "📊", title: "Transparentní", desc: "Každou korunu zveřejňujeme ve výroční zprávě. Víte, za co platíte.", href: "/report" },
+              { icon: "⚡", title: "Rychlé a jednoduché", desc: "Platba přes QR kód — žádné formuláře, žádné složitosti.", href: "#pay" },
             ].map((c) => (
-              <div key={c.title} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-2">
+              <a key={c.title} href={c.href} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-2 hover:shadow-md hover:border-blue-200 transition-all">
                 <div className="text-3xl">{c.icon}</div>
                 <p className="font-semibold text-gray-900">{c.title}</p>
                 <p className="text-sm text-gray-500">{c.desc}</p>
-              </div>
+              </a>
             ))}
           </div>
         </div>
@@ -172,12 +172,12 @@ function PaymentsContent() {
           <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Kam peníze jdou?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { icon: "📚", title: "Učební pomůcky", pct: "40 %", desc: "Knihy, sešity, výtvarné potřeby a laboratorní vybavení." },
-              { icon: "🖥️", title: "Digitální technika", pct: "25 %", desc: "Tablety, projektory a software pro moderní výuku." },
-              { icon: "🏃", title: "Volnočasové aktivity", pct: "20 %", desc: "Kroužky, výlety a sportovní akce pro žáky." },
-              { icon: "🌱", title: "Rezerva a opravy", pct: "15 %", desc: "Nečekané opravy a fond pro příští rok." },
+              { icon: "📚", title: "Učební pomůcky", pct: "40 %", desc: "Knihy, sešity, výtvarné potřeby a laboratorní vybavení.", href: "/report" },
+              { icon: "🖥️", title: "Digitální technika", pct: "25 %", desc: "Tablety, projektory a software pro moderní výuku.", href: "/report" },
+              { icon: "🏃", title: "Volnočasové aktivity", pct: "20 %", desc: "Kroužky, výlety a sportovní akce pro žáky.", href: "/tasks" },
+              { icon: "🌱", title: "Rezerva a opravy", pct: "15 %", desc: "Nečekané opravy a fond pro příští rok.", href: "/report" },
             ].map((c) => (
-              <div key={c.title} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex gap-4 items-start">
+              <a key={c.title} href={c.href} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex gap-4 items-start hover:shadow-md hover:border-blue-200 transition-all">
                 <div className="text-3xl shrink-0">{c.icon}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
@@ -186,7 +186,7 @@ function PaymentsContent() {
                   </div>
                   <p className="text-sm text-gray-500">{c.desc}</p>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
@@ -199,27 +199,27 @@ function PaymentsContent() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {(authed
               ? [
-                  { step: "1", title: "Vygenerujte QR", desc: "Klikněte na tlačítko níže — QR kód se vygeneruje automaticky na 500 Kč." },
-                  { step: "2", title: "Zaplaťte", desc: "Naskenujte QR kód v bankovní aplikaci a potvrďte platbu." },
+                  { step: "1", title: "Vygenerujte QR", desc: "Klikněte na tlačítko níže — QR kód se vygeneruje automaticky na 500 Kč.", href: "#pay" },
+                  { step: "2", title: "Zaplaťte", desc: "Naskenujte QR kód v bankovní aplikaci a potvrďte platbu.", href: "#pay" },
                 ]
               : [
-                  { step: "1", title: "Přihlaste se", desc: "Přihlaste se svým rodičovským účtem." },
-                  { step: "2", title: "Vygenerujte QR", desc: "Klikněte na tlačítko níže — QR kód se vygeneruje automaticky na 500 Kč." },
-                  { step: "3", title: "Zaplaťte", desc: "Naskenujte QR kód v bankovní aplikaci a potvrďte platbu." },
+                  { step: "1", title: "Přihlaste se", desc: "Přihlaste se svým rodičovským účtem.", href: "/login?next=/payments" },
+                  { step: "2", title: "Vygenerujte QR", desc: "Klikněte na tlačítko níže — QR kód se vygeneruje automaticky na 500 Kč.", href: "#pay" },
+                  { step: "3", title: "Zaplaťte", desc: "Naskenujte QR kód v bankovní aplikaci a potvrďte platbu.", href: "#pay" },
                 ]
             ).map((s) => (
-              <div key={s.step} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-2">
+              <a key={s.step} href={s.href} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-2 hover:shadow-md hover:border-blue-200 transition-all">
                 <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">{s.step}</div>
                 <p className="font-semibold text-gray-900">{s.title}</p>
                 <p className="text-sm text-gray-500">{s.desc}</p>
-              </div>
+              </a>
             ))}
           </div>
         </div>
       </section>
 
       {/* QR SECTION */}
-      <section className="px-4 py-12 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <section id="pay" className="px-4 py-12 bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="max-w-lg mx-auto">
           <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
             <h2 className="text-xl font-bold text-gray-900 text-center mb-6">Zaplatit 500 Kč</h2>
