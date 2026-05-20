@@ -207,8 +207,8 @@ export default function AccountPage() {
       setPasswordError("Hesla se neshodují");
       return;
     }
-    if (password.length < 8) {
-      setPasswordError("Heslo musí mít alespoň 8 znaků");
+    if (password.length < 6) {
+      setPasswordError("Heslo musí mít alespoň 6 znaků");
       return;
     }
     setPasswordSaving(true);
@@ -553,7 +553,7 @@ export default function AccountPage() {
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Alespoň 8 znaků"
+                placeholder="Alespoň 6 znaků"
               />
             </div>
             <div>

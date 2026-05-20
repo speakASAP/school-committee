@@ -1,7 +1,7 @@
 "use client";
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useVoiceRecorder } from "@/lib/hooks/use-voice-recorder";
+import { voiceRecordingService } from "@/app/(landing)/voiceRecording";
 
 const TYPES = ["suggestion", "complaint", "praise", "question"] as const;
 
@@ -52,69 +52,49 @@ const STATUS_LABEL: Record<string, string> = {
   rejected: "zamítnuto",
 };
 
-function VoiceButton({ onFileKey }: { onFileKey: (key: string | null) => void }) {
-  const { state, seconds, errorMsg, fileKey, start, stop, clear } = useVoiceRecorder();
-
-  useEffect(() => { onFileKey(fileKey); }, [fileKey, onFileKey]);
-
-  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-
-  if (state === "idle") {
-    return (
-      <button type="button" onClick={start}
-        className="flex items-center gap-2 border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:border-blue-300 transition-colors">
-        <span className="text-red-500">●</span> Nahrát hlasovou zprávu
-      </button>
-    );
-  }
-  if (state === "recording") {
-    return (
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-red-600 animate-pulse">● Nahrávám {fmt(seconds)}</span>
-        <button type="button" onClick={stop}
-          className="border border-gray-200 rounded-lg px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">
-          Zastavit
-        </button>
-      </div>
-    );
-  }
-  if (state === "uploading") {
-    return <p className="text-sm text-gray-400">Nahrávám…</p>;
-  }
-  if (state === "done") {
-    return (
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-green-700">✓ Hlasová zpráva připravena ({fmt(seconds)})</span>
-        <button type="button" onClick={() => { clear(); onFileKey(null); }}
-          className="text-xs text-gray-400 hover:text-gray-700 underline">
-          Odebrat
-        </button>
-      </div>
-    );
-  }
-  if (state === "error") {
-    return (
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-red-600">{errorMsg}</span>
-        <button type="button" onClick={() => { clear(); onFileKey(null); }}
-          className="text-xs text-gray-400 hover:text-gray-700 underline">
-          Zkusit znovu
-        </button>
-      </div>
-    );
-  }
-  return null;
-}
-
 function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
-  const [form, setForm] = useState({
-    type: "suggestion" as typeof TYPES[number],
-    text: "",
-    isAnonymous: false,
-  });
-  const [voiceFileKey, setVoiceFileKey] = useState<string | null>(null);
+  const [type, setType] = useState<typeof TYPES[number]>("suggestion");
+  const [text, setText] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [transcriptFailed, setTranscriptFailed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const preRecordTextRef = useRef("");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      const { transcript } = await voiceRecordingService.stopRecording();
+      setIsRecording(false);
+      if (timerRef.current) clearInterval(timerRef.current);
+      const base = preRecordTextRef.current;
+      if (transcript) {
+        setTranscriptFailed(false);
+        setText(base.trim() ? `${base.trim()}\n\n${transcript}` : transcript);
+      } else {
+        setTranscriptFailed(true);
+        setText(base);
+      }
+    } else {
+      try {
+        setTranscriptFailed(false);
+        preRecordTextRef.current = text;
+        await voiceRecordingService.startRecording((liveText) => {
+          const base = preRecordTextRef.current;
+          setText(base.trim() ? `${base.trim()}\n\n${liveText}` : liveText);
+        });
+        setIsRecording(true);
+        setRecordingSeconds(0);
+        timerRef.current = setInterval(() => setRecordingSeconds((s) => s + 1), 1000);
+      } catch (e) {
+        alert(e instanceof Error ? e.message : "Nelze spustit nahrávání.");
+      }
+    }
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -124,12 +104,7 @@ function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
       const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          type: form.type,
-          text: form.text,
-          isAnonymous: form.isAnonymous,
-          voiceFileKey: voiceFileKey ?? undefined,
-        }),
+        body: JSON.stringify({ type, text, isAnonymous }),
       });
       const body = await res.json();
       if (res.status === 401) {
@@ -150,30 +125,51 @@ function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Vaše zpráva</label>
         <textarea
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 resize-none transition-colors ${
+            isRecording
+              ? "border-red-300 bg-red-50 focus:ring-red-400 text-gray-700"
+              : "border-gray-200 bg-white focus:ring-blue-500"
+          }`}
           rows={4}
-          value={form.text}
-          onChange={(e) => setForm({ ...form, text: e.target.value })}
-          placeholder="Napište svou zprávu nebo nahrajte hlasovou zprávu níže…"
+          value={text}
+          onChange={(e) => !isRecording && setText(e.target.value)}
+          readOnly={isRecording}
+          placeholder="Napište svou zprávu nebo použijte hlasový vstup níže…"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Hlasová zpráva (volitelně)</label>
-        <VoiceButton onFileKey={setVoiceFileKey} />
-        {voiceFileKey && (
-          <p className="text-xs text-gray-400 mt-1">Hlas bude po odeslání automaticky přepsán.</p>
+        {transcriptFailed ? (
+          <div className="flex items-start gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-300 rounded-lg px-4 py-3">
+            <span className="flex-1">Váš prohlížeč nepodporuje převod řeči na text — zpráva nebyla zaznamenána. Napište ji prosím ručně.</span>
+            <button type="button" onClick={() => setTranscriptFailed(false)}
+              className="ml-2 text-xs text-amber-700 hover:text-amber-900 shrink-0">Zavřít</button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={toggleRecording}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${
+              isRecording
+                ? "bg-red-50 border border-red-300 text-red-700"
+                : "border border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300"
+            }`}
+          >
+            <span className={isRecording ? "animate-pulse" : ""}>
+              {isRecording ? `● Nahrávám ${fmt(recordingSeconds)} — zastavit` : "🎤 Hlasový vstup"}
+            </span>
+          </button>
         )}
       </div>
       <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-700">
-        <input type="checkbox" checked={form.isAnonymous}
-          onChange={(e) => setForm({ ...form, isAnonymous: e.target.checked })} />
+        <input type="checkbox" checked={isAnonymous}
+          onChange={(e) => setIsAnonymous(e.target.checked)} />
         Odeslat anonymně
       </label>
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <p className="text-xs text-gray-400">Pro odeslání zpětné vazby je nutné přihlášení.</p>
       <button
         type="submit"
-        disabled={submitting || (!form.text.trim() && !voiceFileKey)}
+        disabled={submitting || !text.trim()}
         className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors"
       >
         {submitting ? "Odesílám…" : "Odeslat zpětnou vazbu"}

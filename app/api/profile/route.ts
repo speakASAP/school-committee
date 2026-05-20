@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { db } from "@/lib/db/client";
-import { upsertProfile, getProfile } from "@/lib/db/profiles";
+import { getProfile } from "@/lib/db/profiles";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError, NotFoundError } from "@/types/errors";
 
@@ -99,13 +99,16 @@ export async function PATCH(req: NextRequest) {
       ? { approvalStatus: "pending", rejectionReason: null }
       : {};
 
-    const profile = await upsertProfile(user.id, {
-      ...(body.firstName ? { firstName: body.firstName.trim() } : {}),
-      ...(body.lastName ? { lastName: body.lastName.trim() } : {}),
-      ...(body.phone !== undefined ? { phone: body.phone?.trim() || null } : {}),
-      ...(body.language ? { language: body.language } : {}),
-      ...(body.participationType ? { participationType: body.participationType } : {}),
-      ...approvalReset,
+    const profile = await db.profile.update({
+      where: { userId: user.id },
+      data: {
+        ...(body.firstName ? { firstName: body.firstName.trim() } : {}),
+        ...(body.lastName ? { lastName: body.lastName.trim() } : {}),
+        ...(body.phone !== undefined ? { phone: body.phone?.trim() || null } : {}),
+        ...(body.language ? { language: body.language } : {}),
+        ...(body.participationType ? { participationType: body.participationType } : {}),
+        ...approvalReset,
+      },
     });
 
     await writeAuditEvent({

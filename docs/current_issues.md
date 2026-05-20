@@ -1,8 +1,10 @@
-4. Add the workflow for newly registered user to fill up his profile after he registered and logged in with magic passwordless link. New user should add his name and his children names in text field. So he needs to inform who is his children. And school_staff should approve it. We need to bind parent with children and classes. We need to be sure it is real parents. Approval should be done by school_staff in admin section.
+1. https://github.com/speakASAP/school-committee/issues/1 
+Add the workflow for newly registered user to fill up his profile after he registered and logged in with magic passwordless link. New user should add his name and his children names in text field. So he needs to inform who is his children. And school_staff should approve it. We need to bind parent with children and classes. We need to be sure it is real parents. Approval should be done by school_staff in admin section.
 If person wants to register as teacher or school staff it needs to be approved also in admin dashboard by school_staff.
 So every user should be manually approved by school_staff in admin dashboard.
 
-5. We need to have gamification and achievements in our application. Let's start with feedback votings. All registered users can vote for any ideas (feedback) in https://strilkove.cz/feedback site. all users should see all their feedbacks and to be able to vote for some ideas and to see how many strars they have for their ideas. So it will stimulate people to vote and to get stars for theuir ideas (feedbacks). Also they should be able to l;eave their feedback anonymously but such ideas/feedback should not be counted for them as stars. So anonymous feedbacks will be also rated but without author. 
+2. https://github.com/speakASAP/school-committee/issues/2
+We need to have gamification and achievements in our application. Let's start with feedback votings. All registered users can vote for any ideas (feedback) in https://strilkove.cz/feedback site. all users should see all their feedbacks and to be able to vote for some ideas and to see how many strars they have for their ideas. So it will stimulate people to vote and to get stars for theuir ideas (feedbacks). Also they should be able to l;eave their feedback anonymously but such ideas/feedback should not be counted for them as stars. So anonymous feedbacks will be also rated but without author. 
 All ideas should be posted immediatelly for public but school_staff should be able to delete them in admin section.
 All feedbacks on public page should have name/anonymous in public. Users should tick this option when they create feedback. 
 And there will be achievements publicly visible for every user so most active or most popular will be on top of others.
@@ -13,5 +15,5 @@ All feedback ideas should be published immediatelly and everybody could vote for
 Every idea or feedback could have comments from all registered users including author even if idea is anonymous. So every idea could have discussions.
 Ideas could also have the same functionality as tasks: add voice, photos, videos.
 
-6. Remove Kategorie from the form on https://strilkove.cz/feedback. All feedback and ideas, tasks should be marked by AI agent to be in some categories. It should not be done by people - it is AI task to put there as much categories as possible.
-When users click on category link they should see everything filtered by this category.
+3. When we save voice in the whole app we need to bechave like on main page when voice saved into text field. So make sure https://strilkove.cz/feedback will add recognized voice into text
+  field. If there are some text already please add text from voice - don't remove existing text. Make sure main page form also don't remove existing text in the form.

@@ -199,7 +199,7 @@ export default function LandingPage() {
   const [contactValue, setContactValue] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
+  const [voiceRecorded, setVoiceRecorded] = useState(false);
   const [transcriptFailed, setTranscriptFailed] = useState(false);
   const [voiceHidden, setVoiceHidden] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
@@ -244,11 +244,11 @@ export default function LandingPage() {
       const base = preRecordMessageRef.current;
       if (transcript) {
         setTranscriptFailed(false);
-        setVoiceBlob(blob);
+        setVoiceRecorded(true);
         setMessage(base.trim() ? `${base.trim()}\n\n${transcript}` : transcript);
       } else {
         setTranscriptFailed(true);
-        setVoiceBlob(null);
+        setVoiceRecorded(false);
         setMessage(base);
       }
     } else {
@@ -322,7 +322,7 @@ export default function LandingPage() {
           metadata: {
             name,
             lang,
-            hasVoice: !!voiceBlob,
+            hasVoice: voiceRecorded,
             voiceSeconds: recordingTime,
             page: "landing",
           },
@@ -485,13 +485,13 @@ export default function LandingPage() {
                         {t.voiceRemove}
                       </button>
                     </div>
-                  ) : voiceBlob ? (
+                  ) : voiceRecorded ? (
                     <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-2 flex-1">
                       <span>{t.voiceRecorded}</span>
                       <button
                         type="button"
                         onClick={() => {
-                          setVoiceBlob(null);
+                          setVoiceRecorded(false);
                           setRecordingTime(0);
                         }}
                         className="ml-auto text-xs text-red-500 hover:text-red-700"

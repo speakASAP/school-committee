@@ -4,7 +4,6 @@ import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { createFeedback, listFeedback } from "@/lib/db/feedback";
 import { writeAuditEvent } from "@/lib/db/audit";
-import { transcribeVoice } from "@/lib/ai/transcribe";
 import { callCategorizeAI } from "@/lib/ai/categorize";
 import { toErrorResponse, AppError } from "@/types/errors";
 import { requireApproved } from "@/lib/auth/require-approved";
@@ -22,8 +21,6 @@ export async function POST(req: NextRequest) {
       isAnonymous?: boolean;
       type?: string;
       text?: string;
-      voiceFileKey?: string;
-      voiceLanguage?: string;
     };
 
     if (!body.schoolId) {
@@ -35,8 +32,8 @@ export async function POST(req: NextRequest) {
     if (!body.type || !ALLOWED_TYPES.includes(body.type)) {
       throw new AppError("VALIDATION_ERROR", `type must be one of: ${ALLOWED_TYPES.join(", ")}`, 400);
     }
-    if (!body.text?.trim() && !body.voiceFileKey) {
-      throw new AppError("VALIDATION_ERROR", "text or voiceFileKey is required", 400);
+    if (!body.text?.trim()) {
+      throw new AppError("VALIDATION_ERROR", "text is required", 400);
     }
 
     const isAnonymous = body.isAnonymous ?? false;
@@ -52,24 +49,8 @@ export async function POST(req: NextRequest) {
       requireApproved(user);
     }
 
-    let voiceTranscript: string | undefined;
-    if (body.voiceFileKey) {
-      try {
-        voiceTranscript = await transcribeVoice(body.voiceFileKey, body.voiceLanguage);
-      } catch (transcribeErr) {
-        logger.error("feedback POST: voice transcription failed", {
-          request_id: requestId,
-          route: ROUTE,
-          error_code: "TRANSCRIPTION_ERROR",
-          error_message: transcribeErr instanceof Error ? transcribeErr.message : String(transcribeErr),
-          file_key: body.voiceFileKey,
-        });
-        throw new AppError("INTERNAL_ERROR", "Voice transcription failed", 500);
-      }
-    }
-
-    const textForCategorization = voiceTranscript ?? body.text?.trim() ?? "";
-    const categories = await callCategorizeAI(textForCategorization, body.type, requestId);
+    const text = body.text!.trim();
+    const categories = await callCategorizeAI(text, body.type, requestId);
 
     const item = await createFeedback({
       schoolId: body.schoolId,
@@ -78,15 +59,12 @@ export async function POST(req: NextRequest) {
       isAnonymous,
       categories,
       type: body.type,
-      text: body.text?.trim() ?? "",
-      voiceFileKey: body.voiceFileKey,
-      voiceTranscript,
+      text,
     });
 
     await writeAuditEvent({
       tenantId: process.env.DEFAULT_TENANT_ID ?? body.schoolId,
       schoolId: body.schoolId,
-      // Omit actorUserId for anonymous submissions
       actorUserId: isAnonymous ? undefined : user?.id,
       action: "feedback.submitted",
       entityType: "feedback_item",
@@ -94,7 +72,7 @@ export async function POST(req: NextRequest) {
       requestId,
     });
 
-    return NextResponse.json({ id: item.id, status: item.status, voiceTranscript: voiceTranscript ?? null }, { status: 200 });
+    return NextResponse.json({ id: item.id, status: item.status }, { status: 200 });
   } catch (err) {
     if (err instanceof AppError) {
       logger.error("feedback POST: returning error response", {
