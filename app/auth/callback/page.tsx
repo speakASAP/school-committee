@@ -30,7 +30,21 @@ export default function AuthCallbackPage() {
     })
       .then((res) => {
         if (!res.ok) throw new Error("session");
-        router.replace("/dashboard");
+        return fetch("/api/auth/me");
+      })
+      .then((res) => res.json())
+      .then((data) => {
+        const status = data.user?.onboardingStatus;
+        if (!status || status === "incomplete") {
+          router.replace("/onboarding/profile");
+        } else if (status === "profile_complete") {
+          router.replace("/onboarding/children");
+        } else if (status === "consent_complete") {
+          router.replace("/onboarding/set-password");
+        } else {
+          // complete — onboarding done, go to dashboard
+          router.replace("/dashboard");
+        }
       })
       .catch(() => {
         setError("Přihlášení se nezdařilo. Zkuste odkaz znovu nebo požádejte o nový.");

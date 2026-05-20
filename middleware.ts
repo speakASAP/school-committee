@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const LOGIN_PATH = "/login";
 const ONBOARDING_PATHS = ["/onboarding/profile", "/onboarding/children", "/onboarding/consent", "/onboarding/language", "/onboarding/set-password"];
+const ONBOARDING_STATUS_COOKIE = "scp_onboarding";
 
 const PUBLIC_PREFIXES = [
   "/login",
@@ -67,10 +68,20 @@ function getOnboardingStatus(token: string): string | null {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Authenticated users hitting the landing page go straight to dashboard
+  // Authenticated users hitting the landing page: route by onboarding status
   if (pathname === "/") {
     const accessToken = req.cookies.get("scp_access")?.value;
     if (accessToken && !isTokenExpired(accessToken)) {
+      const onboardingStatus = req.cookies.get(ONBOARDING_STATUS_COOKIE)?.value ?? getOnboardingStatus(accessToken);
+      if (!onboardingStatus || onboardingStatus === "incomplete") {
+        return NextResponse.redirect(new URL("/onboarding/profile", req.url));
+      }
+      if (onboardingStatus === "profile_complete") {
+        return NextResponse.redirect(new URL("/onboarding/children", req.url));
+      }
+      if (onboardingStatus === "consent_complete") {
+        return NextResponse.redirect(new URL("/onboarding/set-password", req.url));
+      }
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     return NextResponse.next();
@@ -90,9 +101,15 @@ export function middleware(req: NextRequest) {
 
   const isOnboardingPath = ONBOARDING_PATHS.some((p) => pathname.startsWith(p));
   if (!isOnboardingPath) {
-    const onboardingStatus = getOnboardingStatus(accessToken);
-    if (onboardingStatus === "incomplete") {
+    const onboardingStatus = req.cookies.get(ONBOARDING_STATUS_COOKIE)?.value ?? getOnboardingStatus(accessToken);
+    if (!onboardingStatus || onboardingStatus === "incomplete") {
       return NextResponse.redirect(new URL("/onboarding/profile", req.url));
+    }
+    if (onboardingStatus === "profile_complete") {
+      return NextResponse.redirect(new URL("/onboarding/children", req.url));
+    }
+    if (onboardingStatus === "consent_complete") {
+      return NextResponse.redirect(new URL("/onboarding/set-password", req.url));
     }
   }
 

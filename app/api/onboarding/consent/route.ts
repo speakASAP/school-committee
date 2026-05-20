@@ -6,6 +6,7 @@ import { upsertProfile } from "@/lib/db/profiles";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 import type { RecordConsentRequest } from "@/types/onboarding";
+import { setOnboardingStatusCookie } from "@/lib/auth/session";
 
 const ROUTE = "/api/onboarding/consent";
 
@@ -91,9 +92,10 @@ export async function POST(req: NextRequest) {
     await upsertProfile(user.id, {
       tenantId: body.tenantId,
       schoolId: body.schoolId,
-      onboardingStatus: "complete",
+      onboardingStatus: "consent_complete",
       approvalStatus: "pending",
     });
+    await setOnboardingStatusCookie("consent_complete");
 
     // Fire-and-forget notification to school_staff
     void notifyStaffPendingApproval(

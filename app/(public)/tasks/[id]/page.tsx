@@ -345,7 +345,7 @@ function TaskDetail() {
                     )}
                   </>
                 ) : (
-                  task.status === "open" && !task.isClaimed && !task.assigneeName && (
+                  task.status === "open" && !task.isClaimed && (
                     <a
                       href={`/login?next=/tasks/${id}`}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors"

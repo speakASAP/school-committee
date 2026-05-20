@@ -8,7 +8,6 @@ export default function SetPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [skipping, setSkipping] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,16 +40,11 @@ export default function SetPasswordPage() {
     }
   }
 
-  function skip() {
-    setSkipping(true);
-    router.replace("/dashboard");
-  }
-
   return (
     <div>
       <h1 className="text-2xl font-bold mb-2">Nastavte si heslo</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Přihlásili jste se pomocí odkazu. Nastavte si heslo, abyste se mohli příště přihlásit i bez e-mailu.
+        Pro dokončení registrace si nastavte heslo. Bez hesla se do systému nepřihlásíte.
       </p>
       <form onSubmit={submit} className="space-y-4">
         <div>
@@ -83,19 +77,9 @@ export default function SetPasswordPage() {
           disabled={loading}
           className="w-full rounded-xl bg-blue-600 py-2.5 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "Ukládám…" : "Nastavit heslo a pokračovat"}
+          {loading ? "Ukládám…" : "Nastavit heslo a dokončit registraci"}
         </button>
       </form>
-      <div className="mt-4 text-center">
-        <button
-          type="button"
-          onClick={skip}
-          disabled={skipping}
-          className="text-sm text-gray-400 hover:text-gray-600 underline"
-        >
-          Přeskočit — budu se přihlašovat odkazem
-        </button>
-      </div>
     </div>
   );
 }

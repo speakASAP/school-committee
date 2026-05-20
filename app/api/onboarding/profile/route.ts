@@ -7,6 +7,7 @@ import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError, ForbiddenError } from "@/types/errors";
 import type { OnboardingProfileRequest } from "@/types/onboarding";
 import { awardBadgesForUser } from "@/lib/gamification/award-badges";
+import { setOnboardingStatusCookie } from "@/lib/auth/session";
 
 const ROUTE = "/api/onboarding/profile";
 
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
     });
 
     awardBadgesForUser(user.id).catch(() => {});
+    await setOnboardingStatusCookie("profile_complete");
 
     logger.info("onboarding/profile: profile created", {
       request_id: requestId,
