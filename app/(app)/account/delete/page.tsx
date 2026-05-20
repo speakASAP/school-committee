@@ -33,10 +33,9 @@ export default function DeleteAccountPage() {
     return (
       <div className="max-w-md mx-auto mt-16 text-center space-y-4">
         <div className="text-5xl mb-4">✅</div>
-        <p className="text-2xl font-bold text-gray-900">Žádost přijata</p>
+        <p className="text-2xl font-bold text-gray-900">Účet byl smazán</p>
         <p className="text-gray-600">
-          Vaše žádost o smazání účtu byla odeslána. Administrátor ji zpracuje
-          do 30 dnů v souladu s článkem 17 GDPR.
+          Váš účet a všechna vaše osobní data byla trvale smazána v souladu s článkem 17 GDPR.
         </p>
       </div>
     );

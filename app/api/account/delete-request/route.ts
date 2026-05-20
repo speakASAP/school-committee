@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
+import { deleteUserFromApp } from "@/lib/db/users";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 import { requireApproved } from "@/lib/auth/require-approved";
@@ -21,19 +22,20 @@ export async function POST(req: NextRequest) {
       tenantId,
       schoolId,
       actorUserId: actor.id,
-      action: "account.deletion_requested",
+      action: "account.deleted",
       entityType: "profile",
       entityId: actor.id,
       metadata: { reason: body.reason ?? null, email: actor.email },
       requestId,
     });
-    logger.info("delete-request: account deletion requested", {
+    await deleteUserFromApp(actor.id, tenantId);
+    logger.info("delete-request: account deleted", {
       request_id: requestId,
       route: ROUTE,
       user_id: actor.id,
     });
     return NextResponse.json(
-      { message: "Deletion request received. An admin will process it within 30 days." },
+      { message: "Your account has been deleted." },
       { status: 200 },
     );
   } catch (err) {
