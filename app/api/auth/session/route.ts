@@ -42,21 +42,22 @@ export async function POST(req: NextRequest) {
   try {
     await setAuthCookies(body.accessToken, body.refreshToken);
 
-    // Sync onboarding status cookie so middleware can gate access without a DB call
+    // Sync onboarding status cookie and return status so caller can route without a second request
+    let onboardingStatus: string = "incomplete";
     try {
       const validated = await validateToken(body.accessToken, requestId);
       const profile = await db.profile.findUnique({
         where: { userId: validated.id },
         select: { onboardingStatus: true },
       });
-      const status = profile?.onboardingStatus ?? "incomplete";
-      await setOnboardingStatusCookie(status);
+      onboardingStatus = profile?.onboardingStatus ?? "incomplete";
+      await setOnboardingStatusCookie(onboardingStatus);
     } catch {
-      // Non-fatal — callback will call /api/auth/me and redirect appropriately
+      // Non-fatal — callback will route to profile step
     }
 
     logger.info("session: cookies set", { request_id: requestId, route: ROUTE });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, onboardingStatus });
   } catch (err) {
     logger.error("session: failed to set auth cookies", {
       request_id: requestId,

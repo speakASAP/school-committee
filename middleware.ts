@@ -89,7 +89,7 @@ export function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/onboarding/children", req.url));
       }
       if (onboardingStatus === "consent_complete") {
-        return NextResponse.redirect(new URL("/onboarding/set-password", req.url));
+        return NextResponse.redirect(new URL("/onboarding/consent", req.url));
       }
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
@@ -119,7 +119,7 @@ export function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/onboarding/children", req.url));
     }
     if (onboardingStatus === "consent_complete") {
-      return NextResponse.redirect(new URL("/onboarding/set-password", req.url));
+      return NextResponse.redirect(new URL("/onboarding/consent", req.url));
     }
   }
 

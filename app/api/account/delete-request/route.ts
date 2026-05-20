@@ -5,15 +5,15 @@ import { logger } from "@/lib/logger";
 import { deleteUserFromApp } from "@/lib/db/users";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
-import { requireApproved } from "@/lib/auth/require-approved";
+import { getAccessToken, clearAuthCookies } from "@/lib/auth/session";
 
+const AUTH_SERVICE_BASE_URL = process.env.AUTH_SERVICE_BASE_URL ?? "";
 const ROUTE = "/api/account/delete-request";
 
 export async function POST(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
   try {
     const actor = await getCurrentUser(requestId);
-    requireApproved(actor);
     const body = (await req.json()) as { tenantId?: string; schoolId?: string; reason?: string };
     const tenantId = body.tenantId || process.env.DEFAULT_TENANT_ID || "";
     const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID;
@@ -29,13 +29,36 @@ export async function POST(req: NextRequest) {
       requestId,
     });
     await deleteUserFromApp(actor.id, tenantId);
-    logger.info("delete-request: account deleted", {
+
+    // Revoke session at auth-microservice and clear cookies
+    const token = await getAccessToken();
+    if (token && AUTH_SERVICE_BASE_URL) {
+      try {
+        await fetch(`${AUTH_SERVICE_BASE_URL}/auth/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          signal: AbortSignal.timeout(3000),
+        });
+      } catch (err) {
+        logger.error("delete-request: failed to revoke session at auth-microservice", {
+          request_id: requestId,
+          route: ROUTE,
+          error_message: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+    await clearAuthCookies();
+
+    logger.info("delete-request: account deleted and session cleared", {
       request_id: requestId,
       route: ROUTE,
       user_id: actor.id,
     });
     return NextResponse.json(
-      { message: "Your account has been deleted." },
+      { deleted: true },
       { status: 200 },
     );
   } catch (err) {

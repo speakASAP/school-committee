@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
-import { upsertProfile } from "@/lib/db/profiles";
+import { db } from "@/lib/db/client";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 import type { RecordConsentRequest } from "@/types/onboarding";
@@ -97,11 +97,9 @@ export async function POST(req: NextRequest) {
       requestId,
     });
 
-    await upsertProfile(user.id, {
-      tenantId,
-      schoolId,
-      onboardingStatus: "consent_complete",
-      approvalStatus: "pending",
+    await db.profile.update({
+      where: { userId: user.id },
+      data: { onboardingStatus: "consent_complete", approvalStatus: "pending" },
     });
     await setOnboardingStatusCookie("consent_complete");
 

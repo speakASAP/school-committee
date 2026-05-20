@@ -7,8 +7,10 @@ type Mode = "password" | "magic";
 function LoginForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const next = searchParams.get("next") ?? "/dashboard";
+  const nextParam = searchParams.get("next") ?? "";
+  const next = nextParam && !nextParam.startsWith("/login") ? nextParam : "/dashboard";
   const emailParam = searchParams.get("email") ?? "";
+  const accountDeleted = searchParams.get("deleted") === "1";
 
   const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState(emailParam);
@@ -98,6 +100,11 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-sm bg-white rounded-xl shadow p-8 space-y-6">
+        {accountDeleted && (
+          <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800">
+            Váš účet byl trvale smazán. Všechna vaše osobní data byla odstraněna.
+          </div>
+        )}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Přihlášení</h1>
           <p className="text-sm text-gray-500 mt-1">Platforma školního výboru</p>

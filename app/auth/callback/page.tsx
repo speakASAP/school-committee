@@ -23,31 +23,47 @@ export default function AuthCallbackPage() {
       return;
     }
 
+    function routeByStatus(status: string | null | undefined) {
+      if (!status || status === "incomplete") {
+        router.replace("/onboarding/profile");
+      } else if (status === "profile_complete") {
+        router.replace("/onboarding/children");
+      } else if (status === "consent_complete") {
+        router.replace("/onboarding/consent");
+      } else {
+        router.replace("/dashboard");
+      }
+    }
+
     fetch("/api/auth/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ accessToken, refreshToken }),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("session");
-        return fetch("/api/auth/me");
-      })
-      .then((res) => res.json())
-      .then((data) => {
-        const status = data.user?.onboardingStatus;
-        if (!status || status === "incomplete") {
-          router.replace("/onboarding/profile");
-        } else if (status === "profile_complete") {
-          router.replace("/onboarding/children");
-        } else if (status === "consent_complete") {
-          router.replace("/onboarding/set-password");
-        } else {
-          // complete — onboarding done, go to dashboard
-          router.replace("/dashboard");
+      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (ok) {
+          // Session route returns onboardingStatus — route immediately, no extra fetch needed.
+          routeByStatus(data.onboardingStatus);
+          return;
         }
+
+        // Token already used — check for an existing live session.
+        return fetch("/api/auth/me", { redirect: "manual" })
+          .then((r) => {
+            if (r.type === "opaqueredirect" || !r.ok) throw new Error("no session");
+            return r.json();
+          })
+          .then((data) => {
+            if (data?.user) {
+              routeByStatus(data.user.onboardingStatus);
+            } else {
+              throw new Error("no session");
+            }
+          });
       })
       .catch(() => {
-        setError("Přihlášení se nezdařilo. Zkuste odkaz znovu nebo požádejte o nový.");
+        setError("Přihlašovací odkaz již byl použit nebo vypršel. Požádejte o nový odkaz.");
       });
   }, [router]);
 
@@ -61,10 +77,10 @@ export default function AuthCallbackPage() {
           </h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <a
-            href="/"
+            href="/login"
             className="inline-block bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 hover:bg-blue-700 transition-colors"
           >
-            Zpět na úvodní stránku
+            Přihlásit se znovu
           </a>
         </div>
       </div>

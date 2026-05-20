@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function DeleteAccountPage() {
+  const router = useRouter();
   const [reason, setReason] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -19,9 +20,10 @@ export default function DeleteAccountPage() {
       if (!res.ok) {
         const body = await res.json();
         setError(body.error?.message ?? "Odeslání selhalo");
-      } else {
-        setSubmitted(true);
+        return;
       }
+      // Session is cleared server-side — redirect to login with confirmation message
+      router.replace("/login?deleted=1");
     } catch {
       setError("Chyba sítě. Zkuste to prosím znovu.");
     } finally {
@@ -29,25 +31,13 @@ export default function DeleteAccountPage() {
     }
   }
 
-  if (submitted) {
-    return (
-      <div className="max-w-md mx-auto mt-16 text-center space-y-4">
-        <div className="text-5xl mb-4">✅</div>
-        <p className="text-2xl font-bold text-gray-900">Účet byl smazán</p>
-        <p className="text-gray-600">
-          Váš účet a všechna vaše osobní data byla trvale smazána v souladu s článkem 17 GDPR.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-md mx-auto py-8 space-y-6">
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <h1 className="text-2xl font-extrabold text-red-700 mb-2">Žádost o smazání účtu</h1>
         <p className="text-sm text-gray-600">
-          Podle článku 17 GDPR máte právo požádat o smazání svých osobních údajů.
-          Vaše žádost bude přezkoumána a zpracována do 30 dnů.
+          Podle článku 17 GDPR máte právo na smazání svých osobních údajů.
+          Po potvrzení bude váš účet a všechna data okamžitě a trvale smazána.
         </p>
       </div>
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4">
