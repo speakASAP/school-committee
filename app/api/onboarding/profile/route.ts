@@ -11,6 +11,9 @@ import { setOnboardingStatusCookie } from "@/lib/auth/session";
 
 const ROUTE = "/api/onboarding/profile";
 
+const DEFAULT_TENANT_ID = process.env.DEFAULT_TENANT_ID ?? "";
+const DEFAULT_SCHOOL_ID = process.env.DEFAULT_SCHOOL_ID ?? "";
+
 export async function POST(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
 
@@ -19,8 +22,15 @@ export async function POST(req: NextRequest) {
 
     const body = (await req.json()) as OnboardingProfileRequest;
 
-    if (!body.tenantId || !body.schoolId || !body.firstName || !body.lastName) {
-      throw new AppError("VALIDATION_ERROR", "firstName, lastName, tenantId, schoolId are required", 400);
+    // tenantId and schoolId come from env defaults — not from the client
+    const tenantId = body.tenantId || DEFAULT_TENANT_ID;
+    const schoolId = body.schoolId || DEFAULT_SCHOOL_ID;
+
+    if (!tenantId || !schoolId) {
+      throw new AppError("VALIDATION_ERROR", "tenantId and schoolId are not configured", 500);
+    }
+    if (!body.firstName || !body.lastName) {
+      throw new AppError("VALIDATION_ERROR", "firstName and lastName are required", 400);
     }
     if (!body.participationType) {
       throw new AppError("VALIDATION_ERROR", "participationType is required", 400);
@@ -43,8 +53,8 @@ export async function POST(req: NextRequest) {
     }
 
     const profile = await upsertProfile(user.id, {
-      tenantId: body.tenantId,
-      schoolId: body.schoolId,
+      tenantId,
+      schoolId,
       firstName: body.firstName,
       lastName: body.lastName,
       phone: body.phone,
@@ -54,8 +64,8 @@ export async function POST(req: NextRequest) {
     });
 
     await writeAuditEvent({
-      tenantId: body.tenantId,
-      schoolId: body.schoolId,
+      tenantId,
+      schoolId,
       actorUserId: user.id,
       action: "onboarding.profile_created",
       entityType: "profile",

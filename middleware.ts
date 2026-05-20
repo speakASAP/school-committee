@@ -4,6 +4,15 @@ const LOGIN_PATH = "/login";
 const ONBOARDING_PATHS = ["/onboarding/profile", "/onboarding/children", "/onboarding/consent", "/onboarding/language", "/onboarding/set-password"];
 const ONBOARDING_STATUS_COOKIE = "scp_onboarding";
 
+// API routes needed during onboarding — must not be blocked by onboarding status check
+const ONBOARDING_ALLOWED_API = [
+  "/api/auth/me",
+  "/api/auth/set-password",
+  "/api/auth/logout",
+  "/api/onboarding",
+  "/api/public/classes",
+];
+
 const PUBLIC_PREFIXES = [
   "/login",
   "/confirm",
@@ -100,7 +109,8 @@ export function middleware(req: NextRequest) {
   }
 
   const isOnboardingPath = ONBOARDING_PATHS.some((p) => pathname.startsWith(p));
-  if (!isOnboardingPath) {
+  const isOnboardingAllowedApi = ONBOARDING_ALLOWED_API.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  if (!isOnboardingPath && !isOnboardingAllowedApi) {
     const onboardingStatus = req.cookies.get(ONBOARDING_STATUS_COOKIE)?.value ?? getOnboardingStatus(accessToken);
     if (!onboardingStatus || onboardingStatus === "incomplete") {
       return NextResponse.redirect(new URL("/onboarding/profile", req.url));

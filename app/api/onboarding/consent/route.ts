@@ -10,6 +10,9 @@ import { setOnboardingStatusCookie } from "@/lib/auth/session";
 
 const ROUTE = "/api/onboarding/consent";
 
+const DEFAULT_TENANT_ID = process.env.DEFAULT_TENANT_ID ?? "";
+const DEFAULT_SCHOOL_ID = process.env.DEFAULT_SCHOOL_ID ?? "";
+
 async function notifyStaffPendingApproval(
   userId: string,
   name: string,
@@ -48,8 +51,13 @@ export async function POST(req: NextRequest) {
 
     const body = (await req.json()) as RecordConsentRequest;
 
-    if (!body.tenantId || !body.schoolId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId and schoolId are required", 400);
+    // tenantId and schoolId from profile (saved earlier) or env defaults
+    const profile = await import("@/lib/db/profiles").then((m) => m.getProfile(user.id).catch(() => null));
+    const tenantId = profile?.tenantId ?? DEFAULT_TENANT_ID;
+    const schoolId = profile?.schoolId ?? DEFAULT_SCHOOL_ID;
+
+    if (!tenantId || !schoolId) {
+      throw new AppError("VALIDATION_ERROR", "tenantId and schoolId are not configured", 500);
     }
 
     const { consent } = body;
@@ -73,8 +81,8 @@ export async function POST(req: NextRequest) {
     const timestamp = new Date().toISOString();
 
     await writeAuditEvent({
-      tenantId: body.tenantId,
-      schoolId: body.schoolId,
+      tenantId,
+      schoolId,
       actorUserId: user.id,
       action: "onboarding.consent_recorded",
       entityType: "profile",
@@ -90,8 +98,8 @@ export async function POST(req: NextRequest) {
     });
 
     await upsertProfile(user.id, {
-      tenantId: body.tenantId,
-      schoolId: body.schoolId,
+      tenantId,
+      schoolId,
       onboardingStatus: "consent_complete",
       approvalStatus: "pending",
     });
