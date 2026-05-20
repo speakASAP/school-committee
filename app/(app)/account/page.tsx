@@ -218,7 +218,7 @@ export default function AccountPage() {
       const res = await fetch("/api/auth/set-password", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ newPassword: password }),
       });
       if (!res.ok) {
         const data = await res.json();
