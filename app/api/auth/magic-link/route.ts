@@ -5,7 +5,7 @@ import { toErrorResponse, AppError } from "@/types/errors";
 
 const AUTH_SERVICE_BASE_URL = process.env.AUTH_SERVICE_BASE_URL ?? "";
 const APP_BASE_URL = process.env.APP_BASE_URL ?? "";
-const APP_DOMAIN = process.env.APP_DOMAIN ?? "";
+const DOMAIN = process.env.DOMAIN ?? "";
 const ROUTE = "/api/auth/magic-link";
 
 export async function POST(req: NextRequest) {
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         email: body.email,
         return_url: `${APP_BASE_URL}/auth/callback`,
-        ...(APP_DOMAIN && { app_domain: APP_DOMAIN }),
+        ...(DOMAIN && { app_domain: DOMAIN }),
       }),
     });
 
