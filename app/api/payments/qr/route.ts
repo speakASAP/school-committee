@@ -3,12 +3,13 @@ import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { generateVariableSymbol } from "@/lib/payments/variable-symbol";
-import { generateQrPayload } from "@/lib/payments/qr-generator";
+import { generateQrPayload, buildPaymentMessage } from "@/lib/payments/qr-generator";
 import { createPaymentIntent } from "@/lib/db/payments";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 import type { CreatePaymentQrRequest, CreatePaymentQrResponse } from "@/types/payments";
 import { requireApproved } from "@/lib/auth/require-approved";
+import { db } from "@/lib/db/client";
 
 const ROUTE = "/api/payments/qr";
 
@@ -59,13 +60,23 @@ export async function POST(req: NextRequest) {
     // Expiry: 30 days from now
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
+    // Build Czech payment message from parent profile + children names
+    const [profile, children] = await Promise.all([
+      db.profile.findUnique({ where: { userId: user.id }, select: { lastName: true } }),
+      db.child.findMany({ where: { parentUserId: user.id }, select: { firstName: true } }),
+    ]);
+    const paymentMessage = buildPaymentMessage(
+      profile?.lastName ?? "",
+      children.map((c) => c.firstName),
+    );
+
     const intent = await createPaymentIntent({
       schoolId: body.schoolId,
       userId: user.id,
       planId: body.planId,
       amountCzk: body.amountCzk,
       variableSymbol,
-      message: body.message,
+      message: paymentMessage,
       expiresAt,
     });
 

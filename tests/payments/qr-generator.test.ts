@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildQrString, validateAmount } from "@/lib/payments/qr-generator";
+import { buildQrString, validateAmount, buildPaymentMessage, currentSchoolYear } from "@/lib/payments/qr-generator";
 import { AppError } from "@/types/errors";
 
 const validInput = {
@@ -78,5 +78,43 @@ describe("buildQrString", () => {
     const longMsg = "A".repeat(80);
     const result = buildQrString({ ...validInput, message: longMsg });
     expect(result).toContain(`MSG:${"A".repeat(60)}`);
+  });
+});
+
+describe("currentSchoolYear", () => {
+  it("returns year starting in September, e.g. 2025/26", () => {
+    const result = currentSchoolYear();
+    expect(result).toMatch(/^\d{4}\/\d{2}$/);
+  });
+});
+
+describe("buildPaymentMessage", () => {
+  it("returns prefix-only when no name or children", () => {
+    const msg = buildPaymentMessage("", [], "2025/26");
+    expect(msg).toBe("Příspěvek ŠV 2025/26");
+  });
+
+  it("includes parent last name", () => {
+    const msg = buildPaymentMessage("Novák", [], "2025/26");
+    expect(msg).toBe("Příspěvek ŠV 2025/26 Novák");
+  });
+
+  it("includes children first names", () => {
+    const msg = buildPaymentMessage("Novák", ["Adam", "Eva"], "2025/26");
+    expect(msg).toBe("Příspěvek ŠV 2025/26 Novák: Adam, Eva");
+  });
+
+  it("result is never longer than 60 chars", () => {
+    const msg = buildPaymentMessage(
+      "Dlouhépříjmení",
+      ["Alexandřina", "Bartoloměj", "Celestýna"],
+      "2025/26",
+    );
+    expect(msg.length).toBeLessThanOrEqual(60);
+  });
+
+  it("uses currentSchoolYear when not provided", () => {
+    const msg = buildPaymentMessage("Novák", []);
+    expect(msg).toMatch(/^Příspěvek ŠV \d{4}\/\d{2}/);
   });
 });
