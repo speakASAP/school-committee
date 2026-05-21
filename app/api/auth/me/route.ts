@@ -4,6 +4,7 @@ import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { db } from "@/lib/db/client";
 import { toErrorResponse, AppError } from "@/types/errors";
+import { setOnboardingStatusCookie } from "@/lib/auth/session";
 
 const ROUTE = "/api/auth/me";
 
@@ -16,6 +17,11 @@ export async function GET(req: NextRequest) {
       where: { userId: user.id },
       select: { tenantId: true, schoolId: true, approvalStatus: true, rejectionReason: true, onboardingStatus: true },
     });
+
+    // Re-sync cookie so middleware always has a fresh onboarding status
+    const onboardingStatus = profile?.onboardingStatus ?? "incomplete";
+    await setOnboardingStatusCookie(onboardingStatus).catch(() => {});
+
     return NextResponse.json({
       user: {
         id: user.id,

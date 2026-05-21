@@ -9,6 +9,7 @@ const ONBOARDING_ALLOWED_API = [
   "/api/auth/me",
   "/api/auth/set-password",
   "/api/auth/logout",
+  "/api/auth/sync",
   "/api/onboarding",
   "/api/public/classes",
 ];
@@ -59,21 +60,6 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
-function getOnboardingStatus(token: string): string | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(
-      Buffer.from(parts[1], "base64url").toString("utf8"),
-    );
-    return typeof payload.onboarding_status === "string"
-      ? payload.onboarding_status
-      : null;
-  } catch {
-    return null;
-  }
-}
-
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -81,14 +67,18 @@ export function middleware(req: NextRequest) {
   if (pathname === "/") {
     const accessToken = req.cookies.get("scp_access")?.value;
     if (accessToken && !isTokenExpired(accessToken)) {
-      const onboardingStatus = req.cookies.get(ONBOARDING_STATUS_COOKIE)?.value ?? getOnboardingStatus(accessToken);
-      if (!onboardingStatus || onboardingStatus === "incomplete") {
+      const cookieStatus = req.cookies.get(ONBOARDING_STATUS_COOKIE)?.value;
+      // Cookie absent: JWT doesn't carry onboarding_status, so sync from DB first
+      if (!cookieStatus) {
+        return NextResponse.redirect(new URL("/api/auth/sync?next=/", req.url));
+      }
+      if (cookieStatus === "incomplete") {
         return NextResponse.redirect(new URL("/onboarding/profile", req.url));
       }
-      if (onboardingStatus === "profile_complete") {
+      if (cookieStatus === "profile_complete") {
         return NextResponse.redirect(new URL("/onboarding/children", req.url));
       }
-      if (onboardingStatus === "consent_complete") {
+      if (cookieStatus === "consent_complete") {
         return NextResponse.redirect(new URL("/onboarding/consent", req.url));
       }
       return NextResponse.redirect(new URL("/dashboard", req.url));
@@ -111,14 +101,20 @@ export function middleware(req: NextRequest) {
   const isOnboardingPath = ONBOARDING_PATHS.some((p) => pathname.startsWith(p));
   const isOnboardingAllowedApi = ONBOARDING_ALLOWED_API.some((p) => pathname === p || pathname.startsWith(p + "/"));
   if (!isOnboardingPath && !isOnboardingAllowedApi) {
-    const onboardingStatus = req.cookies.get(ONBOARDING_STATUS_COOKIE)?.value ?? getOnboardingStatus(accessToken);
-    if (!onboardingStatus || onboardingStatus === "incomplete") {
+    const cookieStatus = req.cookies.get(ONBOARDING_STATUS_COOKIE)?.value;
+    // Cookie absent: sync from DB before deciding where to send the user
+    if (!cookieStatus) {
+      const syncUrl = new URL("/api/auth/sync", req.url);
+      syncUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(syncUrl);
+    }
+    if (cookieStatus === "incomplete") {
       return NextResponse.redirect(new URL("/onboarding/profile", req.url));
     }
-    if (onboardingStatus === "profile_complete") {
+    if (cookieStatus === "profile_complete") {
       return NextResponse.redirect(new URL("/onboarding/children", req.url));
     }
-    if (onboardingStatus === "consent_complete") {
+    if (cookieStatus === "consent_complete") {
       return NextResponse.redirect(new URL("/onboarding/consent", req.url));
     }
   }
