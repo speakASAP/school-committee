@@ -1,13 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
-const { mockGetCurrentUser, mockCreatePaymentIntent, mockWriteAuditEvent, mockGenerateVs, mockGenerateQr } =
+const { mockGetCurrentUser, mockCreatePaymentIntent, mockWriteAuditEvent, mockGenerateVs, mockGenerateQr, mockDb } =
   vi.hoisted(() => ({
     mockGetCurrentUser: vi.fn(),
     mockCreatePaymentIntent: vi.fn(),
     mockWriteAuditEvent: vi.fn(),
     mockGenerateVs: vi.fn(),
     mockGenerateQr: vi.fn(),
+    mockDb: {
+      profile: { findUnique: vi.fn() },
+      child: { findMany: vi.fn() },
+    },
   }));
 
 vi.mock("@/lib/auth/get-current-user", () => ({ getCurrentUser: mockGetCurrentUser }));
@@ -16,12 +20,14 @@ vi.mock("@/lib/db/audit", () => ({ writeAuditEvent: mockWriteAuditEvent }));
 vi.mock("@/lib/payments/variable-symbol", () => ({ generateVariableSymbol: mockGenerateVs }));
 vi.mock("@/lib/payments/qr-generator", () => ({
   generateQrPayload: mockGenerateQr,
+  buildPaymentMessage: vi.fn().mockReturnValue("Příspěvek ŠV 2025/26"),
   validateAmount: vi.fn(),
 }));
+vi.mock("@/lib/db/client", () => ({ db: mockDb }));
 
 import { POST } from "@/app/api/payments/qr/route";
 
-const parentUser = { id: "u-1", email: "parent@test.com", roles: ["parent"] };
+const parentUser = { id: "u-1", email: "parent@test.com", roles: ["parent"], approvalStatus: "approved" };
 
 const mockIntent = {
   id: "pi-1",
@@ -52,6 +58,8 @@ beforeEach(() => {
   process.env.PAYMENT_ACCOUNT_NUMBER = "123456789";
   process.env.PAYMENT_BANK_CODE = "0100";
   process.env.PAYMENT_ACCOUNT_IBAN = "CZ6508000000192000145399";
+  mockDb.profile.findUnique.mockResolvedValue({ lastName: "Novák" });
+  mockDb.child.findMany.mockResolvedValue([{ firstName: "Adam" }]);
 });
 
 describe("POST /api/payments/qr", () => {

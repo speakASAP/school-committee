@@ -1,11 +1,41 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
+
 interface QrResult {
   paymentIntentId: string;
   variableSymbol: string;
   amountCzk: number;
   qrString: string;
   expiresAt: string;
+}
+
+interface PaymentStatus {
+  paid: boolean;
+  schoolYear: string;
+  paidAt?: string;
+  amountCzk?: number;
+}
+
+function PaidBanner({ status }: { status: PaymentStatus }) {
+  return (
+    <div className="text-center space-y-4">
+      <div className="bg-green-50 border border-green-200 rounded-2xl p-6 space-y-2">
+        <div className="text-4xl">✅</div>
+        <p className="font-bold text-green-800 text-lg">Příspěvek zaplacen</p>
+        <p className="text-green-700 text-sm">
+          Školní rok <strong>{status.schoolYear}</strong> — {status.amountCzk ?? 500} Kč
+        </p>
+        {status.paidAt && (
+          <p className="text-green-600 text-xs">
+            Potvrzeno {new Date(status.paidAt).toLocaleDateString("cs-CZ")}
+          </p>
+        )}
+      </div>
+      <p className="text-xs text-gray-400">
+        Děkujeme za váš příspěvek školnímu výboru.
+      </p>
+    </div>
+  );
 }
 
 function QrGenerator() {
@@ -89,7 +119,7 @@ function QrGenerator() {
   );
 }
 
-function AuthGate({ authed }: { authed: boolean | null }) {
+function AuthGate({ authed, paymentStatus }: { authed: boolean | null; paymentStatus: PaymentStatus | null }) {
   if (authed === null) return <p className="text-sm text-gray-400 text-center">Načítám…</p>;
 
   if (!authed) {
@@ -114,17 +144,27 @@ function AuthGate({ authed }: { authed: boolean | null }) {
     );
   }
 
+  if (paymentStatus?.paid) {
+    return <PaidBanner status={paymentStatus} />;
+  }
+
   return <QrGenerator />;
 }
 
 function PaymentsContent() {
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setAuthed(!!d?.user))
       .catch(() => setAuthed(false));
+
+    fetch("/api/payments/status")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setPaymentStatus(d); })
+      .catch(() => null);
   }, []);
 
   return (
@@ -224,7 +264,7 @@ function PaymentsContent() {
           <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
             <h2 className="text-xl font-bold text-gray-900 text-center mb-6">Zaplatit 500 Kč</h2>
             <Suspense fallback={<p className="text-sm text-gray-400 text-center">Načítám…</p>}>
-              <AuthGate authed={authed} />
+              <AuthGate authed={authed} paymentStatus={paymentStatus} />
             </Suspense>
           </div>
         </div>

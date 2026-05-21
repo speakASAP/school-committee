@@ -42,6 +42,13 @@ interface Me {
   rejectionReason: string | null;
 }
 
+interface PaymentStatus {
+  paid: boolean;
+  schoolYear: string;
+  paidAt?: string;
+  amountCzk?: number;
+}
+
 const PARTICIPATION_LABELS: Record<string, string> = {
   financial: "Finanční příspěvek",
   labor: "Dobrovolnická práce",
@@ -61,6 +68,7 @@ export default function AccountPage() {
   const [children, setChildren] = useState<Child[]>([]);
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
 
   // Avatar state
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -182,10 +190,16 @@ export default function AccountPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [meRes, profileRes] = await Promise.all([
+      const [meRes, profileRes, statusRes] = await Promise.all([
         fetch("/api/auth/me"),
         fetch("/api/profile"),
+        fetch("/api/payments/status"),
       ]);
+
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        setPaymentStatus(statusData);
+      }
       const meData = await meRes.json();
       setMe(meData.user ?? null);
 
@@ -546,6 +560,23 @@ export default function AccountPage() {
               <dd className="font-medium text-gray-900">{LANGUAGE_LABELS[profile.language] ?? profile.language}</dd>
               <dt className="text-gray-500">Způsob účasti</dt>
               <dd className="font-medium text-gray-900">{PARTICIPATION_LABELS[profile.participationType] ?? profile.participationType}</dd>
+              <dt className="text-gray-500">Příspěvek {paymentStatus?.schoolYear}</dt>
+              <dd>
+                {paymentStatus?.paid ? (
+                  <span className="inline-flex items-center gap-1 text-green-700 font-semibold">
+                    ✓ Zaplaceno
+                    {paymentStatus.paidAt && (
+                      <span className="text-xs font-normal text-green-600 ml-1">
+                        ({new Date(paymentStatus.paidAt).toLocaleDateString("cs-CZ")})
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  <a href="/payments" className="text-blue-600 hover:underline font-medium">
+                    Nezaplaceno — zaplatit →
+                  </a>
+                )}
+              </dd>
             </dl>
           )
         )}

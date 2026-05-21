@@ -10,13 +10,25 @@ interface User {
   rejectionReason?: string | null;
 }
 
+interface PaymentStatus {
+  paid: boolean;
+  schoolYear: string;
+  paidAt?: string;
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((d) => setUser(d.user ?? null))
+      .catch(() => null);
+
+    fetch("/api/payments/status")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setPaymentStatus(d); })
       .catch(() => null);
   }, []);
 
@@ -69,11 +81,22 @@ export default function DashboardPage() {
           href="/payments"
           className="block bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
         >
-          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg mb-3">
-            💳
+          <div className="flex items-start justify-between mb-3">
+            <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg">
+              💳
+            </div>
+            {paymentStatus?.paid && (
+              <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                Zaplaceno {paymentStatus.schoolYear}
+              </span>
+            )}
           </div>
           <h2 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Platby</h2>
-          <p className="text-sm text-gray-500 mt-1">Vygenerujte QR platbu pro příspěvky škole</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {paymentStatus?.paid
+              ? "Příspěvek za tento školní rok byl potvrzen."
+              : "Vygenerujte QR platbu pro příspěvky škole"}
+          </p>
         </Link>
 
         <Link

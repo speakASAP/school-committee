@@ -3,6 +3,36 @@ import { db } from "@/lib/db/client";
 import { NotFoundError } from "@/types/errors";
 import { buildPage, resolveLimit, type PageParams, type PageResult } from "@/lib/db/pagination";
 
+export interface PaymentYearStatus {
+  paid: boolean;
+  paidAt?: string;
+  amountCzk?: number;
+}
+
+// Returns whether the user has a paid/reconciled payment intent whose MSG
+// contains the given schoolYear string (e.g. "2025/26").
+export async function getPaymentStatusForYear(
+  userId: string,
+  schoolYear: string,
+): Promise<PaymentYearStatus> {
+  const intent = await db.paymentIntent.findFirst({
+    where: {
+      userId,
+      status: { in: ["paid", "reconciled", "manually_corrected"] },
+      message: { contains: schoolYear },
+    },
+    orderBy: { paidAt: "desc" },
+    select: { paidAt: true, amountCzk: true },
+  });
+
+  if (!intent) return { paid: false };
+  return {
+    paid: true,
+    paidAt: intent.paidAt?.toISOString(),
+    amountCzk: intent.amountCzk,
+  };
+}
+
 export interface CreatePaymentIntentInput {
   schoolId: string;
   userId: string;
