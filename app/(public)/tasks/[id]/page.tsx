@@ -49,6 +49,7 @@ const PRIORITY_LABEL: Record<string, string> = {
 };
 
 const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
+const COMMITTEE_ROLES = new Set(["committee", "admin"]);
 
 function TaskDetail() {
   const { id } = useParams<{ id: string }>();
@@ -56,6 +57,7 @@ function TaskDetail() {
   const [task, setTask] = useState<Task | null>(null);
   const [authed, setAuthed] = useState(false);
   const [isStaff, setIsStaff] = useState(false);
+  const [isCommittee, setIsCommittee] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +94,7 @@ function TaskDetail() {
       setAuthed(!!sessionData.user);
       const roles: string[] = sessionData.user?.roles ?? [];
       setIsStaff(roles.some((r: string) => STAFF_ROLES.has(r)));
+      setIsCommittee(roles.some((r: string) => COMMITTEE_ROLES.has(r)));
     }).catch(() => setError("Chyba sítě"))
       .finally(() => setLoading(false));
   }, [id]);
@@ -331,7 +334,7 @@ function TaskDetail() {
                         {actionLoading ? "…" : "Přijmout úkol"}
                       </button>
                     )}
-                    {(task.status === "reserved" || task.status === "claimed") && (
+                    {isCommittee && (task.status === "reserved" || task.status === "claimed") && (
                       <button
                         onClick={complete}
                         disabled={actionLoading}

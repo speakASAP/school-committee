@@ -26,12 +26,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       throw new AppError("VALIDATION_ERROR", "ID nájemce a školy jsou povinná", 400);
     }
 
+    const COMMITTEE_ROLES = new Set(["committee", "admin"]);
+    if (!user.roles?.some((r: string) => COMMITTEE_ROLES.has(r))) {
+      throw new AppError("FORBIDDEN", "Pouze výbor může označit úkol jako dokončený", 403);
+    }
+
     const task = await getTask(taskId);
 
-    // Only the assignee can submit completion
-    if (task.assignedTo !== user.id) {
-      throw new AppError("FORBIDDEN", "Splnění úkolu může odeslat pouze přiřazený dobrovolník", 403);
-    }
     if (task.status !== "reserved") {
       throw new AppError("VALIDATION_ERROR", "Úkol musí být ve stavu 'rezervováno' pro odeslání splnění", 400);
     }

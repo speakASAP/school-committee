@@ -68,6 +68,7 @@ model Profile {
   userId             String    @id @map("user_id") @db.Uuid
   tenantId           String    @map("tenant_id") @db.Uuid
   schoolId           String    @map("school_id") @db.Uuid
+  email              String?
   firstName          String    @map("first_name")
   lastName           String    @map("last_name")
   phone              String?

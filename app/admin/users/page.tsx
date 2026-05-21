@@ -1,10 +1,12 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 const ROLES = ["parent", "committee", "teacher", "school_staff", "admin"] as const;
 
 interface UserRow {
   userId: string;
+  email: string | null;
   firstName: string;
   lastName: string;
   phone: string | null;
@@ -25,6 +27,7 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export default function UsersPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -145,7 +148,9 @@ export default function UsersPage() {
 
   const filtered = users.filter((u) => {
     const name = `${u.firstName} ${u.lastName}`.toLowerCase();
-    if (search && !name.includes(search.toLowerCase())) return false;
+    const email = (u.email ?? "").toLowerCase();
+    const q = search.toLowerCase();
+    if (search && !name.includes(q) && !email.includes(q)) return false;
     if (filterRole !== "all" && !u.roles.includes(filterRole)) return false;
     if (filterActive === "active" && !u.isActive) return false;
     if (filterActive === "inactive" && u.isActive) return false;
@@ -167,10 +172,10 @@ export default function UsersPage() {
       <div className="flex flex-wrap gap-3">
         <input
           type="text"
-          placeholder="Search by name…"
+          placeholder="Search by name or email…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border rounded px-3 py-1.5 text-sm w-48"
+          className="border rounded px-3 py-1.5 text-sm w-56"
         />
         <select
           value={filterRole}
@@ -207,7 +212,7 @@ export default function UsersPage() {
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">Name</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600">Name / Email</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Roles</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Type</th>
                 <th className="px-4 py-3 text-left font-medium text-gray-600">Status</th>
@@ -226,21 +231,27 @@ export default function UsersPage() {
               {filtered.map((user) => (
                 <tr
                   key={user.userId}
-                  className={user.isActive ? "" : "opacity-50 bg-gray-50"}
+                  onClick={() => router.push(`/admin/users/${user.userId}`)}
+                  className={`cursor-pointer hover:bg-blue-50 transition-colors ${user.isActive ? "" : "opacity-50 bg-gray-50"}`}
                 >
-                  <td className="px-4 py-3 font-medium">
-                    {user.firstName} {user.lastName}
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-gray-900">
+                      {user.firstName} {user.lastName}
+                    </div>
+                    {user.email && (
+                      <div className="text-xs text-gray-500 mt-0.5">{user.email}</div>
+                    )}
                     {feedback?.id === user.userId && (
                       <span
-                        className={`ml-2 text-xs ${feedback.ok ? "text-green-600" : "text-red-600"}`}
+                        className={`text-xs ${feedback.ok ? "text-green-600" : "text-red-600"}`}
                       >
                         {feedback.msg}
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-wrap gap-1">
-                      {user.roles.map((r) => (
+                      {[...user.roles].sort().map((r) => (
                         <span
                           key={r}
                           className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[r] ?? "bg-gray-100 text-gray-700"}`}
@@ -273,7 +284,7 @@ export default function UsersPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-600">{user.participationType}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => toggleActive(user)}
                       disabled={actionLoading === `active-${user.userId}`}
@@ -289,7 +300,7 @@ export default function UsersPage() {
                   <td className="px-4 py-3 text-gray-500">
                     {new Date(user.createdAt).toLocaleDateString("cs-CZ")}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => setConfirmDelete(user)}
                       disabled={!!actionLoading}

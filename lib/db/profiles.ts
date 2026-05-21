@@ -18,6 +18,7 @@ export async function upsertProfile(
       userId,
       tenantId: data.tenantId!,
       schoolId: data.schoolId!,
+      email: data.email,
       firstName: data.firstName!,
       lastName: data.lastName!,
       phone: data.phone,
@@ -27,6 +28,7 @@ export async function upsertProfile(
       approvalStatus: data.approvalStatus ?? "pending",
     },
     update: {
+      email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
       phone: data.phone,

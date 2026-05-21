@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
     const profile = await upsertProfile(user.id, {
       tenantId,
       schoolId,
+      email: user.email,
       firstName: body.firstName,
       lastName: body.lastName,
       phone: body.phone,

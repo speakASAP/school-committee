@@ -60,7 +60,7 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Authenticated users hitting the landing page: route by onboarding status

@@ -4,6 +4,7 @@ export interface UserRow {
   userId: string;
   tenantId: string;
   schoolId: string | null;
+  email: string | null;
   firstName: string;
   lastName: string;
   phone: string | null;
@@ -51,6 +52,7 @@ export async function listUsers(tenantId: string, schoolId?: string): Promise<Us
     userId: p.userId,
     tenantId: p.tenantId,
     schoolId: p.schoolId,
+    email: p.email ?? null,
     firstName: p.firstName,
     lastName: p.lastName,
     phone: p.phone,
