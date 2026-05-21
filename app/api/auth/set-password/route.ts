@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("VALIDATION_ERROR", "Invalid JSON", 400), requestId),
+      toErrorResponse(new AppError("VALIDATION_ERROR", "Neplatný formát JSON", 400), requestId),
       { status: 400 },
     );
   }
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       error_code: "VALIDATION_ERROR",
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("VALIDATION_ERROR", "Password must be at least 6 characters", 400), requestId),
+      toErrorResponse(new AppError("VALIDATION_ERROR", "Heslo musí mít alespoň 6 znaků", 400), requestId),
       { status: 400 },
     );
   }
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       error_code: "UNAUTHENTICATED",
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("UNAUTHENTICATED", "Not authenticated", 401), requestId),
+      toErrorResponse(new AppError("UNAUTHENTICATED", "Uživatel není přihlášen", 401), requestId),
       { status: 401 },
     );
   }
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       error_code: "MISCONFIGURATION",
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Auth service not configured", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Autentizační služba není nakonfigurována", 500), requestId),
       { status: 500 },
     );
   }
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

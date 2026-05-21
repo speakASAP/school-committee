@@ -17,13 +17,13 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   try {
     const user = await getCurrentUser(requestId);
     if (!user.roles.some((r) => STAFF_ROLES.has(r))) {
-      throw new AppError("FORBIDDEN", "Insufficient role", 403);
+      throw new AppError("FORBIDDEN", "Nedostatečná oprávnění", 403);
     }
 
     const tenantId = process.env.DEFAULT_TENANT_ID ?? "";
     const schoolId = process.env.DEFAULT_SCHOOL_ID ?? "";
     if (!tenantId || !schoolId) {
-      throw new AppError("INTERNAL_ERROR", "Server misconfiguration", 500);
+      throw new AppError("INTERNAL_ERROR", "Chybná konfigurace serveru", 500);
     }
 
     await deleteTask(id, user.id, { tenantId, schoolId, requestId });
@@ -45,7 +45,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }
@@ -59,24 +59,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const user = await getCurrentUser(requestId);
     if (!user.roles.some((r) => STAFF_ROLES.has(r))) {
-      throw new AppError("FORBIDDEN", "Insufficient role", 403);
+      throw new AppError("FORBIDDEN", "Nedostatečná oprávnění", 403);
     }
 
     let body: { title?: string; description?: string; priority?: string; deadline?: string | null };
     try {
       body = await req.json() as typeof body;
     } catch {
-      throw new AppError("VALIDATION_ERROR", "Invalid JSON body", 400);
+      throw new AppError("VALIDATION_ERROR", "Neplatné tělo požadavku", 400);
     }
 
-    if (!body.title?.trim()) throw new AppError("VALIDATION_ERROR", "title is required", 400);
-    if (!body.description?.trim()) throw new AppError("VALIDATION_ERROR", "description is required", 400);
-    if (!body.priority) throw new AppError("VALIDATION_ERROR", "priority is required", 400);
+    if (!body.title?.trim()) throw new AppError("VALIDATION_ERROR", "Název úkolu je povinný", 400);
+    if (!body.description?.trim()) throw new AppError("VALIDATION_ERROR", "Popis úkolu je povinný", 400);
+    if (!body.priority) throw new AppError("VALIDATION_ERROR", "Priorita úkolu je povinná", 400);
 
     const tenantId = process.env.DEFAULT_TENANT_ID ?? "";
     const schoolId = process.env.DEFAULT_SCHOOL_ID ?? "";
     if (!tenantId || !schoolId) {
-      throw new AppError("INTERNAL_ERROR", "Server misconfiguration", 500);
+      throw new AppError("INTERNAL_ERROR", "Chybná konfigurace serveru", 500);
     }
 
     const task = await updateTask({
@@ -108,7 +108,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }
@@ -126,7 +126,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const task = await getTaskDetail(id);
 
     if (task.status === "draft" && !isStaff) {
-      throw new AppError("NOT_FOUND", "Task not found", 404);
+      throw new AppError("NOT_FOUND", "Úkol nenalezen", 404);
     }
 
     const media = await getTaskMedia(id);
@@ -144,8 +144,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
       isClaimed: task.assignedTo !== null,
-      // Only expose assignee details to authenticated users
       assigneeName: authed ? task.assigneeName : null,
+      assigneeAvatarUrl: authed ? task.assigneeAvatarUrl : null,
       startedAt: authed ? task.startedAt : null,
       finishedAt: authed ? task.finishedAt : null,
       photos: mediaUrls.photos,
@@ -172,7 +172,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

@@ -23,17 +23,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID || "";
 
     if (!tenantId || !schoolId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId and schoolId are required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce a školy jsou povinná", 400);
     }
 
     const task = await getTask(taskId);
 
     // Only the assignee can submit completion
     if (task.assignedTo !== user.id) {
-      throw new AppError("FORBIDDEN", "Only the task assignee can submit completion", 403);
+      throw new AppError("FORBIDDEN", "Splnění úkolu může odeslat pouze přiřazený dobrovolník", 403);
     }
     if (task.status !== "reserved") {
-      throw new AppError("VALIDATION_ERROR", "Task must be in reserved status to submit completion", 400);
+      throw new AppError("VALIDATION_ERROR", "Úkol musí být ve stavu 'rezervováno' pro odeslání splnění", 400);
     }
 
     const updated = await db.task.update({
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

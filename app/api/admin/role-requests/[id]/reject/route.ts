@@ -18,18 +18,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const body = await req.json() as { tenantId?: string; schoolId?: string; reason?: string };
     if (!body.tenantId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
     }
     if (!body.reason?.trim()) {
-      throw new AppError("VALIDATION_ERROR", "A rejection reason is required", 400);
+      throw new AppError("VALIDATION_ERROR", "Důvod zamítnutí je povinný", 400);
     }
 
     const upgradeRequest = await db.roleUpgradeRequest.findUnique({ where: { id } });
     if (!upgradeRequest) {
-      throw new AppError("NOT_FOUND", "Role upgrade request not found", 404);
+      throw new AppError("NOT_FOUND", "Žádost o změnu role nenalezena", 404);
     }
     if (upgradeRequest.status !== "pending") {
-      throw new AppError("CONFLICT", "Request is no longer pending", 409);
+      throw new AppError("CONFLICT", "Žádost již není ve stavu čekající", 409);
     }
 
     await db.$transaction(async (tx) => {
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

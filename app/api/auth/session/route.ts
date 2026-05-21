@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("VALIDATION_ERROR", "Invalid JSON", 400), requestId),
+      toErrorResponse(new AppError("VALIDATION_ERROR", "Neplatný formát JSON", 400), requestId),
       { status: 400 },
     );
   }
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       error_code: "VALIDATION_ERROR",
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("VALIDATION_ERROR", "accessToken and refreshToken required", 400), requestId),
+      toErrorResponse(new AppError("VALIDATION_ERROR", "Přístupový token a obnovovací token jsou povinné", 400), requestId),
       { status: 400 },
     );
   }
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Failed to set session", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Nepodařilo se nastavit relaci", 500), requestId),
       { status: 500 },
     );
   }

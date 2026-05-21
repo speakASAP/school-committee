@@ -18,7 +18,7 @@ function getAccountConfig() {
   const bankCode = process.env.PAYMENT_BANK_CODE;
 
   if (!accountNumber || !bankCode) {
-    throw new AppError("INTERNAL_ERROR", "Payment account not configured", 500);
+    throw new AppError("INTERNAL_ERROR", "Platební účet není nakonfigurován", 500);
   }
   return { iban, accountNumber, bankCode };
 }
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       body.schoolId = process.env.DEFAULT_SCHOOL_ID ?? "";
     }
     if (!body.schoolId) {
-      throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
     }
 
     let account: ReturnType<typeof getAccountConfig>;
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

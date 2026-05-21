@@ -20,18 +20,18 @@ export async function PUT(req: NextRequest) {
     const body = (await req.json()) as { children: ChildInput[] };
 
     if (!Array.isArray(body.children) || body.children.length === 0) {
-      throw new AppError("VALIDATION_ERROR", "At least one child is required", 400);
+      throw new AppError("VALIDATION_ERROR", "Je vyžadováno alespoň jedno dítě", 400);
     }
 
     for (const child of body.children) {
       if (!child.firstName?.trim()) {
-        throw new AppError("VALIDATION_ERROR", "Each child must have a firstName", 400);
+        throw new AppError("VALIDATION_ERROR", "Každé dítě musí mít křestní jméno", 400);
       }
       if (!child.lastName?.trim()) {
-        throw new AppError("VALIDATION_ERROR", "Each child must have a lastName", 400);
+        throw new AppError("VALIDATION_ERROR", "Každé dítě musí mít příjmení", 400);
       }
       if (!child.classId) {
-        throw new AppError("VALIDATION_ERROR", "Each child must have a classId", 400);
+        throw new AppError("VALIDATION_ERROR", "Každé dítě musí mít přiřazenou třídu", 400);
       }
     }
 
@@ -84,6 +84,6 @@ export async function PUT(req: NextRequest) {
       route: ROUTE,
       error_message: err instanceof Error ? err.message : String(err),
     });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

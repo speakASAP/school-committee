@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface ClassOption {
   id: string;
@@ -30,6 +31,7 @@ interface Profile {
   rejectionReason: string | null;
   schoolId: string;
   tenantId: string;
+  avatarUrl: string | null;
 }
 
 interface Me {
@@ -60,6 +62,11 @@ export default function AccountPage() {
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Avatar state
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+
   // Profile edit state
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", phone: "", language: "cs", participationType: "financial" });
@@ -89,6 +96,88 @@ export default function AccountPage() {
   const [upgradeSaving, setUpgradeSaving] = useState(false);
   const [upgradeError, setUpgradeError] = useState<string | null>(null);
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
+
+  async function uploadAvatar(file: File) {
+    setAvatarUploading(true);
+    setAvatarError(null);
+    try {
+      // Map MIME type to our custom avatar content type
+      const mimeToAvatarType: Record<string, string> = {
+        "image/jpeg": "avatar/jpeg",
+        "image/png": "avatar/png",
+        "image/webp": "avatar/webp",
+      };
+      const avatarContentType = mimeToAvatarType[file.type];
+      if (!avatarContentType) {
+        setAvatarError("Podporované formáty: JPG, PNG, WEBP");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setAvatarError("Fotka je příliš velká (max 5 MB)");
+        return;
+      }
+
+      // Get presigned upload URL
+      const urlRes = await fetch("/api/storage/upload-url/media", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ contentType: avatarContentType, sizeBytes: file.size }),
+      });
+      if (!urlRes.ok) {
+        const d = await urlRes.json();
+        setAvatarError(d.error?.message ?? "Chyba získání URL");
+        return;
+      }
+      const { uploadUrl, fileKey } = await urlRes.json() as { uploadUrl: string; fileKey: string };
+
+      // Upload to MinIO
+      const uploadRes = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "content-type": file.type },
+      });
+      if (!uploadRes.ok) {
+        setAvatarError("Nahrání selhalo");
+        return;
+      }
+
+      // Save fileKey to profile
+      const saveRes = await fetch("/api/profile/avatar", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ fileKey }),
+      });
+      if (!saveRes.ok) {
+        const d = await saveRes.json();
+        setAvatarError(d.error?.message ?? "Uložení selhalo");
+        return;
+      }
+      const { avatarUrl } = await saveRes.json() as { avatarUrl: string };
+      setProfile((p) => p ? { ...p, avatarUrl } : p);
+    } catch {
+      setAvatarError("Chyba sítě. Zkuste to prosím znovu.");
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
+
+  async function deleteAvatar() {
+    setAvatarUploading(true);
+    setAvatarError(null);
+    try {
+      const res = await fetch("/api/profile/avatar", { method: "DELETE" });
+      if (!res.ok) {
+        const d = await res.json();
+        setAvatarError(d.error?.message ?? "Smazání selhalo");
+        return;
+      }
+      setProfile((p) => p ? { ...p, avatarUrl: null } : p);
+    } catch {
+      setAvatarError("Chyba sítě. Zkuste to prosím znovu.");
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -276,15 +365,63 @@ export default function AccountPage() {
   return (
     <div className="max-w-2xl mx-auto py-8 space-y-6">
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <h1 className="text-2xl font-extrabold text-gray-900">Můj profil</h1>
-        {me && <p className="text-sm text-gray-500 mt-1">{me.email}</p>}
-        {me?.roles && me.roles.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {me.roles.map((r) => (
-              <span key={r} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{r}</span>
-            ))}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <UserAvatar
+              avatarUrl={profile?.avatarUrl}
+              firstName={profile?.firstName ?? me?.email?.charAt(0) ?? "?"}
+              lastName={profile?.lastName ?? ""}
+              size="lg"
+            />
+            {avatarUploading && (
+              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                <span className="text-white text-xs">…</span>
+              </div>
+            )}
           </div>
-        )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-extrabold text-gray-900">Můj profil</h1>
+            {me && <p className="text-sm text-gray-500 mt-0.5">{me.email}</p>}
+            {me?.roles && me.roles.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {me.roles.map((r) => (
+                  <span key={r} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">{r}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Avatar controls */}
+        <div className="mt-3 flex items-center gap-3">
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) uploadAvatar(file);
+              e.target.value = "";
+            }}
+          />
+          <button
+            onClick={() => avatarInputRef.current?.click()}
+            disabled={avatarUploading}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+          >
+            {profile?.avatarUrl ? "Změnit fotku" : "Nahrát fotku"}
+          </button>
+          {profile?.avatarUrl && (
+            <button
+              onClick={deleteAvatar}
+              disabled={avatarUploading}
+              className="text-sm text-red-500 hover:text-red-700 disabled:opacity-50"
+            >
+              Odstranit
+            </button>
+          )}
+        </div>
+        {avatarError && <p className="text-xs text-red-600 mt-1">{avatarError}</p>}
       </div>
 
       {/* Approval status banner */}

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID || "";
 
     if (!tenantId || !schoolId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId and schoolId are required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce a školy jsou povinná", 400);
     }
 
     const task = await claimTask(taskId, user.id, {
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

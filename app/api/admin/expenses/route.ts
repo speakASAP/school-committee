@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const actor = await getCurrentUser(requestId);
 
     if (!actor.roles.includes("committee") && !actor.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Expense creation requires committee or admin role", 403);
+      throw new AppError("FORBIDDEN", "Vytváření výdajů vyžaduje roli výboru nebo administrátora", 403);
     }
 
     const body = await req.json() as {
@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
       tenantId?: string;
     };
 
-    if (!body.schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
-    if (!body.title?.trim()) throw new AppError("VALIDATION_ERROR", "title is required", 400);
-    if (!body.category) throw new AppError("VALIDATION_ERROR", "category is required", 400);
+    if (!body.schoolId) throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
+    if (!body.title?.trim()) throw new AppError("VALIDATION_ERROR", "Název výdaje je povinný", 400);
+    if (!body.category) throw new AppError("VALIDATION_ERROR", "Kategorie výdaje je povinná", 400);
     if (typeof body.amountCzk !== "number" || body.amountCzk <= 0) {
-      throw new AppError("VALIDATION_ERROR", "amountCzk must be a positive number", 400);
+      throw new AppError("VALIDATION_ERROR", "Částka musí být kladné číslo", 400);
     }
-    if (!body.spentAt) throw new AppError("VALIDATION_ERROR", "spentAt is required", 400);
+    if (!body.spentAt) throw new AppError("VALIDATION_ERROR", "Datum výdaje je povinné", 400);
 
     const expense = await createExpense({
       schoolId: body.schoolId,
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }
@@ -99,12 +99,12 @@ export async function GET(req: NextRequest) {
     const actor = await getCurrentUser(requestId);
 
     if (!actor.roles.includes("committee") && !actor.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Expense list requires committee or admin role", 403);
+      throw new AppError("FORBIDDEN", "Přístup k výdajům vyžaduje roli výboru nebo administrátora", 403);
     }
 
     const { searchParams } = new URL(req.url);
     const schoolId = searchParams.get("schoolId");
-    if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+    if (!schoolId) throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
 
     const result = await listExpenses(schoolId, {
       limit: searchParams.get("limit") ? Number(searchParams.get("limit")) : undefined,
@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

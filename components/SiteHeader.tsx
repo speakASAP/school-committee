@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
+import { UserAvatar } from "@/components/UserAvatar";
 
 const PUBLIC_NAV = [
   { href: "/payments", label: "Platby" },
@@ -26,6 +27,12 @@ interface Props {
   authenticated?: boolean;
 }
 
+interface UserProfile {
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+}
+
 export default function SiteHeader({ authenticated }: Props) {
   const [authed, setAuthed] = useState<boolean | null>(() => {
     if (authenticated !== undefined) return authenticated;
@@ -35,6 +42,7 @@ export default function SiteHeader({ authenticated }: Props) {
     }
     return null;
   });
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -54,6 +62,22 @@ export default function SiteHeader({ authenticated }: Props) {
         sessionStorage.setItem("authed", "0");
       });
   }, [authenticated]);
+
+  useEffect(() => {
+    if (!authed) return;
+    fetch("/api/profile")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => {
+        if (d?.profile) {
+          setUserProfile({
+            firstName: d.profile.firstName,
+            lastName: d.profile.lastName,
+            avatarUrl: d.profile.avatarUrl ?? null,
+          });
+        }
+      })
+      .catch(() => {});
+  }, [authed]);
 
   useEffect(() => {
     setOpen(false);
@@ -106,16 +130,28 @@ export default function SiteHeader({ authenticated }: Props) {
         </nav>
 
         {/* Desktop auth button */}
-        <div className="hidden sm:flex items-center min-w-[88px] justify-end">
+        <div className="hidden sm:flex items-center gap-2 min-w-[88px] justify-end">
           {authed === null ? (
             <span className="w-20 h-8 rounded-lg bg-gray-100 animate-pulse" />
           ) : authed ? (
-            <button
-              onClick={logout}
-              className="text-sm text-gray-500 hover:text-blue-700 font-medium transition-colors"
-            >
-              Odhlásit se
-            </button>
+            <>
+              {userProfile && (
+                <a href="/account" className="shrink-0">
+                  <UserAvatar
+                    avatarUrl={userProfile.avatarUrl}
+                    firstName={userProfile.firstName}
+                    lastName={userProfile.lastName}
+                    size="sm"
+                  />
+                </a>
+              )}
+              <button
+                onClick={logout}
+                className="text-sm text-gray-500 hover:text-blue-700 font-medium transition-colors"
+              >
+                Odhlásit se
+              </button>
+            </>
           ) : (
             <a
               href={`/login${pathname && pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : ""}`}
@@ -157,12 +193,24 @@ export default function SiteHeader({ authenticated }: Props) {
           ))}
           <div className="mt-1 pt-2 border-t border-gray-100">
             {authed === null ? null : authed ? (
-              <button
-                onClick={logout}
-                className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
-              >
-                Odhlásit se
-              </button>
+              <div className="flex items-center gap-3 px-3 py-2">
+                {userProfile && (
+                  <a href="/account">
+                    <UserAvatar
+                      avatarUrl={userProfile.avatarUrl}
+                      firstName={userProfile.firstName}
+                      lastName={userProfile.lastName}
+                      size="sm"
+                    />
+                  </a>
+                )}
+                <button
+                  onClick={logout}
+                  className="text-sm font-medium text-gray-500 hover:text-blue-700 transition-colors"
+                >
+                  Odhlásit se
+                </button>
+              </div>
             ) : (
               <a
                 href={`/login${pathname && pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : ""}`}

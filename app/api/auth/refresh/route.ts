@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       error_code: "UNAUTHENTICATED",
     });
     return NextResponse.json(
-      toErrorResponse(new UnauthenticatedError("No refresh token"), requestId),
+      toErrorResponse(new UnauthenticatedError("Chybí obnovovací token"), requestId),
       { status: 401 },
     );
   }
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         error_code: "UNAUTHENTICATED",
         status_code: upstream.status,
       });
-      throw new UnauthenticatedError("Refresh token invalid or expired");
+      throw new UnauthenticatedError("Obnovovací token je neplatný nebo vypršel");
     }
 
     if (!upstream.ok) {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
         status_code: upstream.status,
         upstream_body: upstreamBody,
       });
-      throw new AppError("INTERNAL_ERROR", "Auth service error", 500);
+      throw new AppError("INTERNAL_ERROR", "Chyba autentizační služby", 500);
     }
 
     const data = (await upstream.json()) as AuthRefreshResponse;
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

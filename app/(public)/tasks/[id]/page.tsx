@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
 import ReactMarkdown from "react-markdown";
+import { UserAvatar } from "@/components/UserAvatar";
 interface TaskPhoto {
   id: string;
   fileId: string;
@@ -25,6 +26,7 @@ interface Task {
   isClaimed: boolean;
   createdAt: string;
   assigneeName: string | null;
+  assigneeAvatarUrl: string | null;
   startedAt: string | null;
   finishedAt: string | null;
   photos: TaskPhoto[];
@@ -270,9 +272,11 @@ function TaskDetail() {
                 </p>
               )}
               {task.assigneeName ? (
-                <p className="text-sm text-gray-500">
-                  Řeší: <span className="font-medium text-gray-800">{task.assigneeName}</span>
-                </p>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>Řeší:</span>
+                  <UserAvatar avatarUrl={task.assigneeAvatarUrl} firstName={task.assigneeName.split(" ")[0] ?? ""} lastName={task.assigneeName.split(" ")[1] ?? ""} size="xs" />
+                  <span className="font-medium text-gray-800">{task.assigneeName}</span>
+                </div>
               ) : task.isClaimed && !authed ? (
                 <p className="text-sm text-gray-400">
                   👤 <a href="/login" className="underline hover:text-blue-600">Přihlaste se pro zobrazení řešitele</a>

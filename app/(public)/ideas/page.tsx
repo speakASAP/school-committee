@@ -9,6 +9,7 @@ interface IdeaItem {
   description: string;
   isAnonymous: boolean;
   authorId: string | null;
+  authorAvatarUrl: string | null;
   voteCount: number;
   commentCount: number;
   createdAt: string;
@@ -74,6 +75,7 @@ export default function IdeasPage() {
             description={idea.description}
             isAnonymous={idea.isAnonymous}
             authorId={idea.authorId}
+            authorAvatarUrl={idea.authorAvatarUrl}
             voteCount={idea.voteCount}
             commentCount={idea.commentCount}
             createdAt={idea.createdAt}

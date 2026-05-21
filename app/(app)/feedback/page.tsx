@@ -58,13 +58,18 @@ function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [transcriptFailed, setTranscriptFailed] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [voiceHidden, setVoiceHidden] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const preRecordTextRef = useRef("");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+  useEffect(() => {
+    setVoiceSupported(voiceRecordingService.isSupported());
+  }, []);
 
   const toggleRecording = async () => {
     if (isRecording) {
@@ -73,15 +78,13 @@ function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
       if (timerRef.current) clearInterval(timerRef.current);
       const base = preRecordTextRef.current;
       if (transcript) {
-        setTranscriptFailed(false);
         setText(base.trim() ? `${base.trim()}\n\n${transcript}` : transcript);
       } else {
-        setTranscriptFailed(true);
+        setVoiceHidden(true);
         setText(base);
       }
     } else {
       try {
-        setTranscriptFailed(false);
         preRecordTextRef.current = text;
         await voiceRecordingService.startRecording((liveText) => {
           const base = preRecordTextRef.current;
@@ -137,14 +140,8 @@ function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
           placeholder="Napište svou zprávu nebo použijte hlasový vstup níže…"
         />
       </div>
-      <div>
-        {transcriptFailed ? (
-          <div className="flex items-start gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-300 rounded-lg px-4 py-3">
-            <span className="flex-1">Váš prohlížeč nepodporuje převod řeči na text — zpráva nebyla zaznamenána. Napište ji prosím ručně.</span>
-            <button type="button" onClick={() => setTranscriptFailed(false)}
-              className="ml-2 text-xs text-amber-700 hover:text-amber-900 shrink-0">Zavřít</button>
-          </div>
-        ) : (
+      {voiceSupported && !voiceHidden && (
+        <div>
           <button
             type="button"
             onClick={toggleRecording}
@@ -158,8 +155,8 @@ function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
               {isRecording ? `● Nahrávám ${fmt(recordingSeconds)} — zastavit` : "🎤 Hlasový vstup"}
             </span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
       <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-700">
         <input type="checkbox" checked={isAnonymous}
           onChange={(e) => setIsAnonymous(e.target.checked)} />
@@ -270,6 +267,12 @@ function FeedbackContent() {
   const [tab, setTab] = useState<"new" | "history">("new");
   const [refreshKey, setRefreshKey] = useState(0);
   const [justSubmitted, setJustSubmitted] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  const scrollToForm = () => {
+    setTab("new");
+    formRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const handleSubmitted = useCallback(() => {
     setJustSubmitted(true);
@@ -302,16 +305,21 @@ function FeedbackContent() {
               { icon: "🔒", title: "Anonymní podání", desc: "Zprávu lze odeslat anonymně — vaše identita zůstane skryta." },
               { icon: "📣", title: "Rychlá odezva", desc: "Výbor odpovídá zpravidla do 5 pracovních dnů." },
             ].map((c) => (
-              <div key={c.title} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-2">
+              <button
+                key={c.title}
+                type="button"
+                onClick={scrollToForm}
+                className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col gap-2 text-left hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
+              >
                 <div className="text-3xl">{c.icon}</div>
                 <p className="font-semibold text-gray-900">{c.title}</p>
                 <p className="text-sm text-gray-500">{c.desc}</p>
-              </div>
+              </button>
             ))}
           </div>
 
           {/* FORM */}
-          <div className="max-w-lg mx-auto">
+          <div className="max-w-lg mx-auto" ref={formRef}>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="flex border-b border-gray-100">
                 {(["new", "history"] as const).map((t) => (

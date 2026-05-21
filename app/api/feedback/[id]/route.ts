@@ -21,11 +21,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const user = await getCurrentUser(requestId);
 
     if (!user.roles.includes("committee") && !user.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Moderation access requires committee or admin role", 403);
+      throw new AppError("FORBIDDEN", "Přístup k moderování vyžaduje roli výboru nebo administrátora", 403);
     }
 
     const item = await db.feedbackItem.findUnique({ where: { id } });
-    if (!item) throw new AppError("NOT_FOUND", "Feedback item not found", 404);
+    if (!item) throw new AppError("NOT_FOUND", "Zpětná vazba nenalezena", 404);
 
     // Never expose userId for anonymous feedback — to anyone
     const safeItem = {
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }
@@ -68,13 +68,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const user = await getCurrentUser(requestId);
 
     if (!user.roles.includes("committee") && !user.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Moderation access requires committee or admin role", 403);
+      throw new AppError("FORBIDDEN", "Přístup k moderování vyžaduje roli výboru nebo administrátora", 403);
     }
 
     const body = await req.json() as { status?: string; tenantId?: string; schoolId?: string };
 
     if (!body.status || !ALLOWED_MODERATE_STATUSES.includes(body.status)) {
-      throw new AppError("VALIDATION_ERROR", `status must be one of: ${ALLOWED_MODERATE_STATUSES.join(", ")}`, 400);
+      throw new AppError("VALIDATION_ERROR", `Stav musí být jeden z: ${ALLOWED_MODERATE_STATUSES.join(", ")}`, 400);
     }
 
     const updated = await moderateFeedback(id, user.id, body.status);
@@ -119,7 +119,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }
@@ -134,11 +134,11 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const user = await getCurrentUser(requestId);
 
     if (!user.roles.includes("committee") && !user.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Moderation access requires committee or admin role", 403);
+      throw new AppError("FORBIDDEN", "Přístup k moderování vyžaduje roli výboru nebo administrátora", 403);
     }
 
     const item = await db.feedbackItem.findUnique({ where: { id } });
-    if (!item) throw new AppError("NOT_FOUND", "Feedback item not found", 404);
+    if (!item) throw new AppError("NOT_FOUND", "Zpětná vazba nenalezena", 404);
 
     await db.feedbackItem.delete({ where: { id } });
     await writeAuditEvent({
@@ -172,7 +172,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

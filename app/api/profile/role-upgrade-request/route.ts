@@ -20,13 +20,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json() as { requestedRole?: string; reason?: string; tenantId?: string; schoolId?: string };
 
     if (!body.requestedRole || !ALLOWED_UPGRADE_ROLES.includes(body.requestedRole)) {
-      throw new AppError("VALIDATION_ERROR", `requestedRole must be one of: ${ALLOWED_UPGRADE_ROLES.join(", ")}`, 400);
+      throw new AppError("VALIDATION_ERROR", `Požadovaná role musí být jedna z: ${ALLOWED_UPGRADE_ROLES.join(", ")}`, 400);
     }
     if (!body.tenantId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
     }
     if (!body.schoolId) {
-      throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
     }
 
     // Block duplicate pending request
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       where: { userId: user.id, requestedRole: body.requestedRole, status: "pending" },
     });
     if (existing) {
-      throw new AppError("CONFLICT", "A pending request for this role already exists", 409);
+      throw new AppError("CONFLICT", "Čekající žádost pro tuto roli již existuje", 409);
     }
 
     const request = await db.roleUpgradeRequest.create({
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

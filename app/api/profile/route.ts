@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { db } from "@/lib/db/client";
 import { getProfile } from "@/lib/db/profiles";
 import { writeAuditEvent } from "@/lib/db/audit";
+import { getAvatarUrl } from "@/lib/storage/media-urls";
 import { toErrorResponse, AppError, NotFoundError } from "@/types/errors";
 
 const ROUTE = "/api/profile";
@@ -24,6 +25,8 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
+    const avatarUrl = await getAvatarUrl(profile.avatarFileKey ?? null, requestId);
+
     return NextResponse.json({
       profile: {
         userId: profile.userId,
@@ -36,6 +39,7 @@ export async function GET(req: NextRequest) {
         rejectionReason: profile.rejectionReason ?? null,
         schoolId: profile.schoolId,
         tenantId: profile.tenantId,
+        avatarUrl,
       },
       children: children.map((c) => ({
         id: c.id,
@@ -50,7 +54,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     if (err instanceof NotFoundError) {
-      return NextResponse.json(toErrorResponse(new AppError("NOT_FOUND", "Profile not found", 404), requestId), { status: 404 });
+      return NextResponse.json(toErrorResponse(new AppError("NOT_FOUND", "Profil nenalezen", 404), requestId), { status: 404 });
     }
     if (err instanceof AppError) {
       logger.error("profile GET: error", { request_id: requestId, route: ROUTE, error_code: err.code });
@@ -61,7 +65,7 @@ export async function GET(req: NextRequest) {
       route: ROUTE,
       error_message: err instanceof Error ? err.message : String(err),
     });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }
 
@@ -80,16 +84,16 @@ export async function PATCH(req: NextRequest) {
     };
 
     if (body.firstName !== undefined && !body.firstName.trim()) {
-      throw new AppError("VALIDATION_ERROR", "firstName cannot be empty", 400);
+      throw new AppError("VALIDATION_ERROR", "Křestní jméno nesmí být prázdné", 400);
     }
     if (body.lastName !== undefined && !body.lastName.trim()) {
-      throw new AppError("VALIDATION_ERROR", "lastName cannot be empty", 400);
+      throw new AppError("VALIDATION_ERROR", "Příjmení nesmí být prázdné", 400);
     }
     if (body.language !== undefined && !["cs", "en", "ru", "uk"].includes(body.language)) {
-      throw new AppError("VALIDATION_ERROR", "language must be cs, en, ru, or uk", 400);
+      throw new AppError("VALIDATION_ERROR", "Jazyk musí být cs, en, ru nebo uk", 400);
     }
     if (body.participationType !== undefined && !["financial", "labor", "mixed"].includes(body.participationType)) {
-      throw new AppError("VALIDATION_ERROR", "participationType must be financial, labor, or mixed", 400);
+      throw new AppError("VALIDATION_ERROR", "Typ účasti musí být finanční, pracovní nebo kombinovaný", 400);
     }
 
     const existing = await getProfile(user.id);
@@ -163,6 +167,6 @@ export async function PATCH(req: NextRequest) {
       route: ROUTE,
       error_message: err instanceof Error ? err.message : String(err),
     });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

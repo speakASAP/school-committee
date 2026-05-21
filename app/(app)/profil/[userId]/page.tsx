@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect, use } from "react";
 import { AchievementList } from "@/components/gamification/AchievementList";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface ProfileData {
   userId: string;
   firstName: string;
   lastName: string;
+  avatarUrl: string | null;
   joinedAt: string;
   roles: string[];
   achievements: { key: string; tier: string; labelCs: string; awardedAt: string }[];
@@ -45,14 +47,19 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
   return (
     <main className="max-w-xl mx-auto px-4 py-8">
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{profile.firstName} {profile.lastName}</h1>
-        <p className="text-sm text-gray-400 mt-1">
-          Člen od {new Date(profile.joinedAt).toLocaleDateString("cs-CZ")}
-        </p>
+        <div className="flex items-center gap-4 mb-3">
+          <UserAvatar avatarUrl={profile.avatarUrl} firstName={profile.firstName} lastName={profile.lastName} size="lg" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{profile.firstName} {profile.lastName}</h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              Člen od {new Date(profile.joinedAt).toLocaleDateString("cs-CZ")}
+            </p>
+          </div>
+        </div>
 
-        {profile.roles.filter((r) => r !== "parent").length > 0 && (
+        {profile.roles.filter((r: string) => r !== "parent").length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
-            {profile.roles.filter((r) => r !== "parent").map((r) => (
+            {profile.roles.filter((r: string) => r !== "parent").map((r: string) => (
               <span key={r} className="rounded-full bg-blue-50 text-blue-700 px-3 py-0.5 text-xs font-medium border border-blue-200">
                 {ROLE_LABEL[r] ?? r}
               </span>

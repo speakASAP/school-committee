@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("VALIDATION_ERROR", "Invalid JSON", 400), requestId),
+      toErrorResponse(new AppError("VALIDATION_ERROR", "Neplatný formát JSON", 400), requestId),
       { status: 400 },
     );
   }
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       error_code: "VALIDATION_ERROR",
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("VALIDATION_ERROR", "email and password required", 400), requestId),
+      toErrorResponse(new AppError("VALIDATION_ERROR", "E-mail a heslo jsou povinné", 400), requestId),
       { status: 400 },
     );
   }
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       error_code: "MISCONFIGURATION",
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Auth service not configured", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Autentizační služba není nakonfigurována", 500), requestId),
       { status: 500 },
     );
   }
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
         error_code: "UNAUTHENTICATED",
         status_code: upstream.status,
       });
-      throw new UnauthenticatedError("Invalid credentials");
+      throw new UnauthenticatedError("Neplatné přihlašovací údaje");
     }
 
     if (!upstream.ok) {
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
         status_code: upstream.status,
         upstream_body: upstreamBody,
       });
-      throw new AppError("INTERNAL_ERROR", "Auth service error", 500);
+      throw new AppError("INTERNAL_ERROR", "Chyba autentizační služby", 500);
     }
 
     const data = (await upstream.json()) as AuthLoginResponse;
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

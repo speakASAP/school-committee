@@ -16,7 +16,7 @@ const PLATFORM_ROLES = new Set<string>([
 export async function getCurrentUser(requestId?: string): Promise<CurrentUser> {
   const token = await getAccessToken();
   if (!token) {
-    throw new UnauthenticatedError("No session");
+    throw new UnauthenticatedError("Uživatel není přihlášen");
   }
   const validated = await validateToken(token, requestId);
 

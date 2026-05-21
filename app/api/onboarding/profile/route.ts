@@ -27,29 +27,29 @@ export async function POST(req: NextRequest) {
     const schoolId = body.schoolId || DEFAULT_SCHOOL_ID;
 
     if (!tenantId || !schoolId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId and schoolId are not configured", 500);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce a školy nejsou nakonfigurována", 500);
     }
     if (!body.firstName || !body.lastName) {
-      throw new AppError("VALIDATION_ERROR", "firstName and lastName are required", 400);
+      throw new AppError("VALIDATION_ERROR", "Křestní jméno a příjmení jsou povinné", 400);
     }
     if (!body.participationType) {
-      throw new AppError("VALIDATION_ERROR", "participationType is required", 400);
+      throw new AppError("VALIDATION_ERROR", "Typ účasti je povinný", 400);
     }
     if (!["financial", "labor", "mixed"].includes(body.participationType)) {
-      throw new AppError("VALIDATION_ERROR", "participationType must be financial, labor, or mixed", 400);
+      throw new AppError("VALIDATION_ERROR", "Typ účasti musí být finanční, pracovní nebo kombinovaný", 400);
     }
     if (!body.language) {
-      throw new AppError("VALIDATION_ERROR", "language is required", 400);
+      throw new AppError("VALIDATION_ERROR", "Jazyk je povinný", 400);
     }
     if (!["cs", "en", "ru", "uk"].includes(body.language)) {
-      throw new AppError("VALIDATION_ERROR", "language must be cs, en, ru, or uk", 400);
+      throw new AppError("VALIDATION_ERROR", "Jazyk musí být cs, en, ru nebo uk", 400);
     }
 
     // Block unverified users — auth-microservice validates token; if getCurrentUser succeeds, token is valid.
     // Platform-level: check if existing profile has onboarding_status = complete → redirect
     const existing = await getProfile(user.id).catch(() => null);
     if (existing?.onboardingStatus === "complete") {
-      throw new ForbiddenError("Onboarding already complete");
+      throw new ForbiddenError("Registrace je již dokončena");
     }
 
     const profile = await upsertProfile(user.id, {
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

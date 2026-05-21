@@ -17,16 +17,16 @@ export async function PATCH(
   try {
     const actor = await getCurrentUser(requestId);
     if (!actor.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Admin role required", 403);
+      throw new AppError("FORBIDDEN", "Tato akce vyžaduje roli administrátora", 403);
     }
 
     const body = await req.json() as { action?: string; tenantId?: string; schoolId?: string };
 
     if (!body.action || !["activate", "deactivate"].includes(body.action)) {
-      throw new AppError("VALIDATION_ERROR", "action must be 'activate' or 'deactivate'", 400);
+      throw new AppError("VALIDATION_ERROR", "Akce musí být 'activate' nebo 'deactivate'", 400);
     }
     if (!body.tenantId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
     }
 
     const isActive = body.action === "activate";
@@ -70,7 +70,7 @@ export async function PATCH(
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }
@@ -87,13 +87,13 @@ export async function DELETE(
   try {
     const actor = await getCurrentUser(requestId);
     if (!actor.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Admin role required", 403);
+      throw new AppError("FORBIDDEN", "Tato akce vyžaduje roli administrátora", 403);
     }
 
     const body = await req.json() as { tenantId?: string; schoolId?: string };
 
     if (!body.tenantId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
     }
 
     await deleteUserFromApp(targetUserId, body.tenantId);
@@ -135,7 +135,7 @@ export async function DELETE(
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

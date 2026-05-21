@@ -151,7 +151,7 @@ export async function getIdeaById(id: string): Promise<IdeaWithCounts> {
   });
 
   if (!idea || idea.status === "deleted") {
-    throw new AppError("NOT_FOUND", "Idea not found", 404);
+    throw new AppError("NOT_FOUND", "Nápad nenalezen", 404);
   }
 
   return {
@@ -184,7 +184,7 @@ export async function softDeleteIdea(
   await db.$transaction(async (tx) => {
     const existing = await tx.idea.findUnique({ where: { id }, select: { status: true } });
     if (!existing || existing.status === "deleted") {
-      throw new AppError("NOT_FOUND", "Idea not found", 404);
+      throw new AppError("NOT_FOUND", "Nápad nenalezen", 404);
     }
 
     await tx.idea.update({
@@ -213,10 +213,10 @@ export async function toggleIdeaVote(
 ): Promise<{ voted: boolean; voteCount: number }> {
   const idea = await db.idea.findUnique({ where: { id: ideaId }, select: { id: true, submittedBy: true, status: true } });
   if (!idea || idea.status === "deleted") {
-    throw new AppError("NOT_FOUND", "Idea not found", 404);
+    throw new AppError("NOT_FOUND", "Nápad nenalezen", 404);
   }
   if (idea.submittedBy === userId) {
-    throw new AppError("FORBIDDEN", "Cannot vote on your own idea", 403);
+    throw new AppError("FORBIDDEN", "Nelze hlasovat pro vlastní nápad", 403);
   }
 
   let voted = false;

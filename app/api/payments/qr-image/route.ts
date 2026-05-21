@@ -17,11 +17,11 @@ export async function GET(req: NextRequest) {
     const qrString = searchParams.get("q");
 
     if (!qrString) {
-      throw new AppError("VALIDATION_ERROR", "q parameter is required", 400);
+      throw new AppError("VALIDATION_ERROR", "Parametr q je povinný", 400);
     }
 
     if (qrString.length > 512) {
-      throw new AppError("VALIDATION_ERROR", "q parameter too long", 400);
+      throw new AppError("VALIDATION_ERROR", "Parametr q je příliš dlouhý", 400);
     }
 
     const pngBuffer = await QRCode.toBuffer(qrString, {
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

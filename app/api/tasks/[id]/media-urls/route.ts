@@ -18,7 +18,7 @@ export async function GET(
   try {
     const user = await getCurrentUser(requestId);
     if (!user.roles.some((r) => ALLOWED_ROLES.has(r))) {
-      throw new AppError("FORBIDDEN", "Insufficient role", 403);
+      throw new AppError("FORBIDDEN", "Nedostatečná oprávnění", 403);
     }
 
     const media = await getTaskMedia(taskId);
@@ -32,6 +32,6 @@ export async function GET(
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error(`${ROUTE}: unexpected error`, { request_id: requestId, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

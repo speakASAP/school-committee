@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const schoolId = searchParams.get("schoolId") || process.env.DEFAULT_SCHOOL_ID;
-    if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+    if (!schoolId) throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
 
     const user = await tryGetCurrentUser(requestId);
 
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error("events GET: unexpected error", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }
 
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     requireApproved(user);
 
     if (!user.roles.some((r) => STAFF_ROLES.includes(r))) {
-      throw new AppError("FORBIDDEN", "Only committee, teacher, school_staff, or admin can create events", 403);
+      throw new AppError("FORBIDDEN", "Události mohou vytvářet pouze výbor, učitelé, správci školy nebo administrátoři", 403);
     }
 
     const body = await req.json() as {
@@ -65,15 +65,15 @@ export async function POST(req: NextRequest) {
     };
 
     const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID;
-    if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
-    if (!body.title?.trim()) throw new AppError("VALIDATION_ERROR", "title is required", 400);
-    if (!body.startsAt) throw new AppError("VALIDATION_ERROR", "startsAt is required", 400);
+    if (!schoolId) throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
+    if (!body.title?.trim()) throw new AppError("VALIDATION_ERROR", "Název události je povinný", 400);
+    if (!body.startsAt) throw new AppError("VALIDATION_ERROR", "Datum začátku události je povinné", 400);
 
     const startsAt = new Date(body.startsAt);
-    if (isNaN(startsAt.getTime())) throw new AppError("VALIDATION_ERROR", "startsAt must be a valid ISO date", 400);
+    if (isNaN(startsAt.getTime())) throw new AppError("VALIDATION_ERROR", "Datum začátku musí být platné datum ve formátu ISO", 400);
 
     const endsAt = body.endsAt ? new Date(body.endsAt) : undefined;
-    if (endsAt && isNaN(endsAt.getTime())) throw new AppError("VALIDATION_ERROR", "endsAt must be a valid ISO date", 400);
+    if (endsAt && isNaN(endsAt.getTime())) throw new AppError("VALIDATION_ERROR", "Datum konce musí být platné datum ve formátu ISO", 400);
 
     const tenantId = process.env.DEFAULT_TENANT_ID ?? schoolId;
 
@@ -106,6 +106,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error("events POST: unexpected error", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

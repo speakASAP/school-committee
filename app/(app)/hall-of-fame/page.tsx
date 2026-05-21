@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { BadgeIcon } from "@/components/gamification/BadgeIcon";
+import { UserAvatar } from "@/components/UserAvatar";
 
 const KNOWN_TIERS: Record<string, string> = {
   role_committee: "gold", role_teacher: "silver",
@@ -40,6 +41,7 @@ interface HofEntry {
   userId: string;
   firstName: string;
   lastName: string;
+  avatarUrl: string | null;
   score: number;
   achievementKeys: string[];
 }
@@ -69,9 +71,10 @@ export default function HallOfFamePage() {
             href={`/profil/${e.userId}`}
             className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 hover:shadow-md transition-shadow"
           >
-            <span className="text-xl font-bold w-8 text-center">
+            <span className="text-xl font-bold w-8 text-center shrink-0">
               {e.rank <= 3 ? RANK_MEDAL[e.rank - 1] : `#${e.rank}`}
             </span>
+            <UserAvatar avatarUrl={e.avatarUrl} firstName={e.firstName} lastName={e.lastName} size="sm" />
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900">{e.firstName} {e.lastName}</p>
               <div className="flex flex-wrap gap-1 mt-1">

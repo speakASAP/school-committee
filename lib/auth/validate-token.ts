@@ -22,7 +22,7 @@ export async function validateToken(
     });
 
     if (res.status === 401 || res.status === 403) {
-      throw new UnauthenticatedError("Invalid or expired token");
+      throw new UnauthenticatedError("Neplatný nebo vypršelý token");
     }
 
     if (!res.ok) {
@@ -30,7 +30,7 @@ export async function validateToken(
         request_id: requestId,
         status_code: res.status,
       });
-      throw new UnauthenticatedError("Token validation failed");
+      throw new UnauthenticatedError("Ověření tokenu selhalo");
     }
 
     const raw = (await res.json()) as { user?: AuthValidateResponse } | AuthValidateResponse;
@@ -38,7 +38,7 @@ export async function validateToken(
     const data: AuthValidateResponse = "user" in raw && raw.user ? raw.user : raw as AuthValidateResponse;
 
     if (!data.isActive) {
-      throw new UnauthenticatedError("Account is inactive");
+      throw new UnauthenticatedError("Účet je neaktivní");
     }
 
     return data;
@@ -48,13 +48,13 @@ export async function validateToken(
       logger.error("auth-microservice validate timed out", {
         request_id: requestId,
       });
-      throw new UnauthenticatedError("Auth service timeout");
+      throw new UnauthenticatedError("Autentizační služba neodpovídá");
     }
     logger.error("auth-microservice validate error", {
       request_id: requestId,
       error_code: (err as Error).message,
     });
-    throw new UnauthenticatedError("Token validation failed");
+    throw new UnauthenticatedError("Ověření tokenu selhalo");
   } finally {
     clearTimeout(timer);
   }

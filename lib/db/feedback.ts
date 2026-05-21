@@ -57,7 +57,7 @@ export async function moderateFeedback(
   status: string,
 ): Promise<FeedbackItem> {
   const item = await db.feedbackItem.findUnique({ where: { id } });
-  if (!item) throw new NotFoundError("Feedback item not found");
+  if (!item) throw new NotFoundError("Zpětná vazba nenalezena");
   return db.feedbackItem.update({
     where: { id },
     data: { status, moderatedBy: moderatorId },

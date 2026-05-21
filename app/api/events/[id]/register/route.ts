@@ -18,7 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     requireApproved(user);
 
     const event = await getEvent(eventId);
-    if (!event) throw new AppError("NOT_FOUND", "Event not found", 404);
+    if (!event) throw new AppError("NOT_FOUND", "Událost nenalezena", 404);
 
     // Check capacity
     if (event.capacity !== null) {
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         const { db } = await import("@/lib/db/client");
         const count = await db.eventRegistration.count({ where: { eventId, status: "registered" } });
         if (count >= event.capacity) {
-          throw new AppError("FORBIDDEN", "Event is at full capacity", 403);
+          throw new AppError("FORBIDDEN", "Událost je plně obsazena", 403);
         }
       }
     }
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error("events/register POST: unexpected error", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }
 
@@ -64,7 +64,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     requireApproved(user);
 
     const event = await getEvent(eventId);
-    if (!event) throw new AppError("NOT_FOUND", "Event not found", 404);
+    if (!event) throw new AppError("NOT_FOUND", "Událost nenalezena", 404);
 
     await cancelEventRegistration(eventId, user.id);
 
@@ -85,6 +85,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error("events/register DELETE: unexpected error", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

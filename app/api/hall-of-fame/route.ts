@@ -4,6 +4,7 @@ import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { db } from "@/lib/db/client";
 import { Prisma } from "@prisma/client";
+import { getAvatarUrl } from "@/lib/storage/media-urls";
 import { toErrorResponse, AppError } from "@/types/errors";
 
 const ROUTE = "/api/hall-of-fame";
@@ -32,21 +33,23 @@ export async function GET(req: NextRequest) {
     const userIds = top20Raw.map((r) => r.userId);
     const profiles = await db.profile.findMany({
       where: { userId: { in: userIds } },
-      select: { userId: true, firstName: true, lastName: true },
+      select: { userId: true, firstName: true, lastName: true, avatarFileKey: true },
     });
     const profileMap = new Map(profiles.map((p) => [p.userId, p]));
 
-    const result = top20Raw.map((u, i) => {
+    const result = await Promise.all(top20Raw.map(async (u, i) => {
       const profile = profileMap.get(u.userId);
+      const avatarUrl = await getAvatarUrl(profile?.avatarFileKey ?? null, requestId);
       return {
         rank: i + 1,
         userId: u.userId,
         firstName: profile?.firstName ?? "",
         lastName: profile?.lastName ?? "",
+        avatarUrl,
         score: Number(u.score),
         achievementKeys: u.achievementKeys,
       };
-    });
+    }));
 
     const response = NextResponse.json({ items: result }, { status: 200 });
     response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
@@ -56,6 +59,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error("hall-of-fame GET: unexpected", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

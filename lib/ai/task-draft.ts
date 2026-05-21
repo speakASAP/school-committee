@@ -36,7 +36,7 @@ export async function callTaskDraftAI(
     });
   } catch (err) {
     if (err instanceof Error && err.name === "TimeoutError") {
-      throw new AppError("UPSTREAM_TIMEOUT", "AI service timed out", 504);
+      throw new AppError("UPSTREAM_TIMEOUT", "Časový limit AI služby vypršel", 504);
     }
     throw new AppError("AI_DRAFT_FAILED", `AI service unreachable: ${String(err)}`, 502);
   }
@@ -52,7 +52,7 @@ export async function callTaskDraftAI(
     typeof json.description !== "string" ||
     !["low", "normal", "high"].includes(json.priority as string)
   ) {
-    throw new AppError("AI_DRAFT_FAILED", "AI response missing required fields", 500);
+    throw new AppError("AI_DRAFT_FAILED", "Odpověď AI neobsahuje povinná pole", 500);
   }
   return {
     title: json.title as string,

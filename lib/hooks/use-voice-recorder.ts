@@ -48,7 +48,7 @@ export function useVoiceRecorder(): VoiceRecorderResult {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      setErrorMsg("Microphone access denied");
+      setErrorMsg("Přístup k mikrofonu byl odepřen");
       setState("error");
       return;
     }
@@ -81,7 +81,7 @@ export function useVoiceRecorder(): VoiceRecorderResult {
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ contentType: mimeType, sizeBytes: blob.size }),
         });
-        if (!urlRes.ok) throw new Error("Failed to get upload URL");
+        if (!urlRes.ok) throw new Error("Nepodařilo se získat URL pro nahrání");
         const { uploadUrl, fileKey: key } = (await urlRes.json()) as { uploadUrl: string; fileKey: string };
 
         // Upload directly to MinIO
@@ -90,12 +90,12 @@ export function useVoiceRecorder(): VoiceRecorderResult {
           headers: { "content-type": mimeType },
           body: blob,
         });
-        if (!upload.ok) throw new Error("Upload failed");
+        if (!upload.ok) throw new Error("Nahrávání selhalo");
 
         setFileKey(key);
         setState("done");
       } catch (err) {
-        setErrorMsg(err instanceof Error ? err.message : "Upload failed");
+        setErrorMsg(err instanceof Error ? err.message : "Nahrávání selhalo");
         setState("error");
       }
     };

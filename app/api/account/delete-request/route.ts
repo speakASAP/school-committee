@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as { tenantId?: string; schoolId?: string; reason?: string };
     const tenantId = body.tenantId || process.env.DEFAULT_TENANT_ID || "";
     const schoolId = body.schoolId || process.env.DEFAULT_SCHOOL_ID;
-    if (!tenantId) throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+    if (!tenantId) throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
     await writeAuditEvent({
       tenantId,
       schoolId,
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

@@ -18,16 +18,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const actor = await getCurrentUser(requestId);
 
     if (!actor.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Role assignment requires admin role", 403);
+      throw new AppError("FORBIDDEN", "Přiřazení rolí vyžaduje roli administrátora", 403);
     }
 
     const body = await req.json() as { role?: string; tenantId?: string; schoolId?: string; action?: "assign" | "revoke" };
 
     if (!body.role || !ALLOWED_ROLES.includes(body.role)) {
-      throw new AppError("VALIDATION_ERROR", `role must be one of: ${ALLOWED_ROLES.join(", ")}`, 400);
+      throw new AppError("VALIDATION_ERROR", `Role musí být jedna z: ${ALLOWED_ROLES.join(", ")}`, 400);
     }
     if (!body.tenantId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
     }
 
     const action = body.action ?? "assign";
@@ -38,7 +38,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         where: { role: "admin", tenantId: body.tenantId, revokedAt: null },
       });
       if (adminCount <= 1) {
-        throw new AppError("VALIDATION_ERROR", "Cannot remove the last admin", 400);
+        throw new AppError("VALIDATION_ERROR", "Nelze odebrat posledního administrátora", 400);
       }
     }
 
@@ -100,7 +100,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

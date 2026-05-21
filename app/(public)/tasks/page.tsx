@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { UserAvatar } from "@/components/UserAvatar";
 interface Task {
   id: string;
   title: string;
@@ -12,6 +13,7 @@ interface Task {
   deadline: string | null;
   isClaimed: boolean;
   assigneeName: string | null;
+  assigneeAvatarUrl: string | null;
 }
 
 const PRIORITY_BADGE: Record<string, string> = {
@@ -167,7 +169,10 @@ function TaskList() {
                       <p className="font-semibold text-gray-900">{task.title}</p>
                       <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{task.description}</p>
                       {task.assigneeName && (
-                        <p className="text-xs text-blue-600 mt-1">👤 {task.assigneeName}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <UserAvatar avatarUrl={task.assigneeAvatarUrl} firstName={task.assigneeName.split(" ")[0] ?? ""} lastName={task.assigneeName.split(" ")[1] ?? ""} size="xs" />
+                          <p className="text-xs text-blue-600">{task.assigneeName}</p>
+                        </div>
                       )}
                       {task.isClaimed && !task.assigneeName && !authed && (
                         <p className="text-xs text-gray-400 mt-1">

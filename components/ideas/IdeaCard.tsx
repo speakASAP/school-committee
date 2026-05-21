@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { VoteButton } from "./VoteButton";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface IdeaCardProps {
   id: string;
@@ -8,6 +9,7 @@ interface IdeaCardProps {
   isAnonymous: boolean;
   authorId: string | null;
   authorName?: string;
+  authorAvatarUrl?: string | null;
   voteCount: number;
   commentCount: number;
   createdAt: string;
@@ -17,7 +19,7 @@ interface IdeaCardProps {
 }
 
 export function IdeaCard({
-  id, title, description, isAnonymous, authorId: _authorId, authorName,
+  id, title, description, isAnonymous, authorId: _authorId, authorName, authorAvatarUrl,
   voteCount, commentCount, createdAt, hasVoted, isOwnIdea, isAuthenticated,
 }: IdeaCardProps) {
   const displayAuthor = isAnonymous ? "Anonymní" : (authorName ?? "Rodič");
@@ -30,7 +32,12 @@ export function IdeaCard({
       </Link>
       <p className="text-sm text-gray-600 line-clamp-2 mb-3">{description}</p>
       <div className="flex items-center justify-between text-xs text-gray-400">
-        <span>{displayAuthor} · {new Date(createdAt).toLocaleDateString("cs-CZ")}</span>
+        <div className="flex items-center gap-1.5">
+          {!isAnonymous && authorName && (
+            <UserAvatar avatarUrl={authorAvatarUrl} firstName={authorName.split(" ")[0] ?? ""} lastName={authorName.split(" ")[1] ?? ""} size="xs" />
+          )}
+          <span>{displayAuthor} · {new Date(createdAt).toLocaleDateString("cs-CZ")}</span>
+        </div>
         <div className="flex items-center gap-3">
           <Link href={`/ideas/${id}#comments`} className="hover:text-blue-600">
             💬 {commentCount}

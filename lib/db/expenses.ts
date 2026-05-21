@@ -50,6 +50,6 @@ export async function listExpenses(
 
 export async function getExpense(id: string): Promise<Expense> {
   const expense = await db.expense.findUnique({ where: { id } });
-  if (!expense) throw new NotFoundError("Expense not found");
+  if (!expense) throw new NotFoundError("Výdaj nenalezen");
   return expense;
 }

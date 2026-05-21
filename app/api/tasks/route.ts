@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const schoolId = searchParams.get("schoolId") || process.env.DEFAULT_SCHOOL_ID;
 
     if (!schoolId) {
-      throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
     }
 
     const result = await listTasks({
@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
       status: task.status,
       createdAt: task.createdAt,
       isClaimed: task.assignedTo !== null,
-      // Only expose assignee name to authenticated users
       assigneeName: authed ? task.assigneeName : null,
+      assigneeAvatarUrl: authed ? task.assigneeAvatarUrl : null,
     }));
 
     return NextResponse.json({ items: safeItems, nextCursor: result.nextCursor }, { status: 200 });
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

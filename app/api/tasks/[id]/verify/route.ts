@@ -20,18 +20,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const user = await getCurrentUser(requestId);
     requireApproved(user);
     if (!user.roles.some((r) => STAFF_ROLES.has(r))) {
-      throw new AppError("FORBIDDEN", "Staff role required", 403);
+      throw new AppError("FORBIDDEN", "Tato akce vyžaduje roli pracovníka školy", 403);
     }
 
     const tenantId = process.env.DEFAULT_TENANT_ID ?? "";
     const schoolId = process.env.DEFAULT_SCHOOL_ID ?? "";
     if (!tenantId || !schoolId) {
-      throw new AppError("INTERNAL_ERROR", "Server misconfiguration", 500);
+      throw new AppError("INTERNAL_ERROR", "Chybná konfigurace serveru", 500);
     }
 
     const task = await getTask(taskId);
     if (task.status !== "completed") {
-      throw new AppError("VALIDATION_ERROR", "Task must be in completed status to verify", 400);
+      throw new AppError("VALIDATION_ERROR", "Úkol musí být ve stavu 'splněno' pro ověření", 400);
     }
 
     const updated = await db.$transaction(async (tx) => {
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

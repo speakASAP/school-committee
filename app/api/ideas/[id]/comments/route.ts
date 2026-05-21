@@ -33,7 +33,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error("comments GET: unexpected", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }
 
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const user = await getCurrentUser(requestId);
     const { id: ideaId } = await params;
     const body = await req.json() as { body?: string };
-    if (!body.body?.trim()) throw new AppError("VALIDATION_ERROR", "body is required", 400);
+    if (!body.body?.trim()) throw new AppError("VALIDATION_ERROR", "Text komentáře je povinný", 400);
 
     const schoolId = process.env.DEFAULT_SCHOOL_ID ?? "";
     const tenantId = process.env.DEFAULT_TENANT_ID ?? schoolId;
@@ -58,6 +58,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error("comments POST: unexpected", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

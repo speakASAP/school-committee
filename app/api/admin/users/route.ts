@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   try {
     const actor = await getCurrentUser(requestId);
     if (!actor.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Admin role required", 403);
+      throw new AppError("FORBIDDEN", "Tato akce vyžaduje roli administrátora", 403);
     }
 
     const { searchParams } = new URL(req.url);
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     const schoolId = searchParams.get("schoolId") ?? undefined;
 
     if (!tenantId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
     }
 
     const users = await listUsers(tenantId, schoolId);
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

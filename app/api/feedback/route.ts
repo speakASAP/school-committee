@@ -27,13 +27,13 @@ export async function POST(req: NextRequest) {
       body.schoolId = process.env.DEFAULT_SCHOOL_ID ?? "";
     }
     if (!body.schoolId) {
-      throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
     }
     if (!body.type || !ALLOWED_TYPES.includes(body.type)) {
-      throw new AppError("VALIDATION_ERROR", `type must be one of: ${ALLOWED_TYPES.join(", ")}`, 400);
+      throw new AppError("VALIDATION_ERROR", `Typ musí být jeden z: ${ALLOWED_TYPES.join(", ")}`, 400);
     }
     if (!body.text?.trim()) {
-      throw new AppError("VALIDATION_ERROR", "text is required", 400);
+      throw new AppError("VALIDATION_ERROR", "Text zpětné vazby je povinný", 400);
     }
 
     const isAnonymous = body.isAnonymous ?? false;
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     // Named submission requires authentication and approval
     if (!isAnonymous && !user) {
-      throw new AppError("UNAUTHENTICATED", "Authentication required for named feedback", 401);
+      throw new AppError("UNAUTHENTICATED", "Pro nepřihlášené uživatele je zpětná vazba anonymní", 401);
     }
     if (!isAnonymous && user) {
       requireApproved(user);
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }
@@ -104,13 +104,13 @@ export async function GET(req: NextRequest) {
   try {
     const user = await tryGetCurrentUser(requestId);
     if (!user) {
-      throw new AppError("UNAUTHENTICATED", "Authentication required", 401);
+      throw new AppError("UNAUTHENTICATED", "Pro tuto akci je nutné přihlášení", 401);
     }
 
     const { searchParams } = new URL(req.url);
     const schoolId = searchParams.get("schoolId") || process.env.DEFAULT_SCHOOL_ID;
     if (!schoolId) {
-      throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
     }
 
     const result = await listFeedback(schoolId, {
@@ -146,7 +146,7 @@ export async function GET(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

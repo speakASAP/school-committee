@@ -18,15 +18,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
 
     const body = await req.json() as { tenantId?: string; schoolId?: string };
     if (!body.tenantId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
     }
 
     const profile = await db.profile.findUnique({ where: { userId: targetUserId } });
     if (!profile) {
-      throw new AppError("NOT_FOUND", "User profile not found", 404);
+      throw new AppError("NOT_FOUND", "Profil uživatele nenalezen", 404);
     }
     if (profile.approvalStatus === "approved") {
-      throw new AppError("CONFLICT", "User is already approved", 409);
+      throw new AppError("CONFLICT", "Uživatel je již schválen", 409);
     }
 
     await db.$transaction(async (tx) => {
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

@@ -61,7 +61,7 @@ export default function ApprovalsPage() {
       });
       if (!res.ok) {
         const body = await res.json();
-        setError(body.error?.message ?? "Failed to approve");
+        setError(body.error?.message ?? "Schválení se nezdařilo");
         return;
       }
       setUsers((u) => u.filter((user) => user.userId !== userId));
@@ -83,7 +83,7 @@ export default function ApprovalsPage() {
       });
       if (!res.ok) {
         const body = await res.json();
-        setError(body.error?.message ?? "Failed to reject");
+        setError(body.error?.message ?? "Zamítnutí se nezdařilo");
         return;
       }
       setUsers((u) => u.filter((user) => user.userId !== userId));
@@ -97,35 +97,35 @@ export default function ApprovalsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">User Approvals</h1>
+      <h1 className="text-2xl font-bold mb-4">Schvalování uživatelů</h1>
 
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setTab("pending")}
           className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === "pending" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"}`}
         >
-          Pending
+          Čekající
         </button>
         <button
           onClick={() => setTab("all")}
           className={`px-4 py-2 rounded-lg text-sm font-medium ${tab === "all" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"}`}
         >
-          All Users
+          Všichni uživatelé
         </button>
       </div>
 
       {loading ? (
-        <p className="text-gray-500 text-sm">Loading...</p>
+        <p className="text-gray-500 text-sm">Načítám…</p>
       ) : users.length === 0 ? (
-        <p className="text-gray-500 text-sm">No users found.</p>
+        <p className="text-gray-500 text-sm">Žádní uživatelé nenalezeni.</p>
       ) : (
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b text-left text-gray-500">
-              <th className="py-2 pr-4">Name</th>
-              <th className="py-2 pr-4">Registered</th>
-              <th className="py-2 pr-4">Children</th>
-              <th className="py-2">Actions</th>
+              <th className="py-2 pr-4">Jméno</th>
+              <th className="py-2 pr-4">Registrace</th>
+              <th className="py-2 pr-4">Děti</th>
+              <th className="py-2">Akce</th>
             </tr>
           </thead>
           <tbody>
@@ -146,20 +146,20 @@ export default function ApprovalsPage() {
                         disabled={actionLoading}
                         className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50"
                       >
-                        Approve
+                        Schválit
                       </button>
                       <button
                         onClick={() => { setSelected(u); setRejectModal(true); }}
                         disabled={actionLoading}
                         className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 disabled:opacity-50"
                       >
-                        Reject
+                        Zamítnout
                       </button>
                     </>
                   )}
                   {u.approvalStatus !== "pending" && (
                     <span className={`text-xs font-medium ${u.approvalStatus === "approved" ? "text-green-600" : "text-red-600"}`}>
-                      {u.approvalStatus}
+                      {u.approvalStatus === "approved" ? "Schváleno" : "Zamítnuto"}
                     </span>
                   )}
                 </td>
@@ -176,11 +176,11 @@ export default function ApprovalsPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setSelected(null)}>
           <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 space-y-4" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold">{selected.firstName} {selected.lastName}</h2>
-            <p className="text-sm text-gray-500">Registered: {new Date(selected.createdAt).toLocaleDateString("cs-CZ")}</p>
+            <p className="text-sm text-gray-500">Registrace: {new Date(selected.createdAt).toLocaleDateString("cs-CZ")}</p>
             <div>
-              <p className="text-sm font-medium mb-2">Children:</p>
+              <p className="text-sm font-medium mb-2">Děti:</p>
               {selected.children.length === 0 ? (
-                <p className="text-sm text-gray-400">No children listed.</p>
+                <p className="text-sm text-gray-400">Žádné děti nebyly uvedeny.</p>
               ) : (
                 <ul className="space-y-1">
                   {selected.children.map((c) => (
@@ -200,14 +200,14 @@ export default function ApprovalsPage() {
                   disabled={actionLoading}
                   className="flex-1 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-50"
                 >
-                  Approve
+                  Schválit
                 </button>
                 <button
                   onClick={() => setRejectModal(true)}
                   disabled={actionLoading}
                   className="flex-1 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 disabled:opacity-50"
                 >
-                  Reject
+                  Zamítnout
                 </button>
               </div>
             )}
@@ -219,11 +219,11 @@ export default function ApprovalsPage() {
       {rejectModal && selected && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 space-y-4">
-            <h2 className="text-lg font-bold">Reject {selected.firstName} {selected.lastName}</h2>
-            <p className="text-sm text-gray-500">Please provide a reason that will be shown to the user.</p>
+            <h2 className="text-lg font-bold">Zamítnout {selected.firstName} {selected.lastName}</h2>
+            <p className="text-sm text-gray-500">Uveďte důvod, který bude zobrazen uživateli.</p>
             <textarea
               className="w-full border rounded-lg px-3 py-2 text-sm h-24 resize-none"
-              placeholder="e.g. We could not verify your child's enrollment. Please contact the school office."
+              placeholder="Např. Nepodařilo se nám ověřit zápis vašeho dítěte. Kontaktujte prosím školní kancelář."
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
             />
@@ -232,14 +232,14 @@ export default function ApprovalsPage() {
                 onClick={() => { setRejectModal(false); setRejectReason(""); }}
                 className="flex-1 py-2 border rounded-xl text-sm"
               >
-                Cancel
+                Zrušit
               </button>
               <button
                 onClick={() => reject(selected.userId)}
                 disabled={actionLoading || !rejectReason.trim()}
                 className="flex-1 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 disabled:opacity-50"
               >
-                {actionLoading ? "Rejecting..." : "Reject"}
+                {actionLoading ? "Zamítám…" : "Zamítnout"}
               </button>
             </div>
           </div>

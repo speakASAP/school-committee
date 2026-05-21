@@ -17,7 +17,7 @@ export async function POST(
   try {
     const user = await getCurrentUser(requestId);
     if (!user.roles.some((r) => ALLOWED_ROLES.has(r))) {
-      throw new AppError("FORBIDDEN", "Insufficient role", 403);
+      throw new AppError("FORBIDDEN", "Nedostatečná oprávnění", 403);
     }
 
     let body: { title?: string; description?: string; priority?: string; deadline?: string; tenantId?: string; schoolId?: string } = {};
@@ -25,13 +25,13 @@ export async function POST(
       const text = await req.text();
       if (text) body = JSON.parse(text) as typeof body;
     } catch {
-      throw new AppError("VALIDATION_ERROR", "Invalid JSON body", 400);
+      throw new AppError("VALIDATION_ERROR", "Neplatné tělo požadavku", 400);
     }
 
     const tenantId = body.tenantId ?? process.env.DEFAULT_TENANT_ID ?? "";
     const schoolId = body.schoolId ?? process.env.DEFAULT_SCHOOL_ID ?? "";
-    if (!tenantId) throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
-    if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+    if (!tenantId) throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
+    if (!schoolId) throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
 
     // If title/description not provided, fetch from existing task
     let title = body.title;
@@ -71,7 +71,7 @@ export async function POST(
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

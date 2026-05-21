@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { db } from "@/lib/db/client";
+import { getAvatarUrl } from "@/lib/storage/media-urls";
 import { toErrorResponse, AppError } from "@/types/errors";
 
 const ROUTE = "/api/profile/[userId]";
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
       await Promise.all([
         db.profile.findUnique({
           where: { userId },
-          select: { firstName: true, lastName: true, createdAt: true },
+          select: { firstName: true, lastName: true, createdAt: true, avatarFileKey: true },
         }),
         db.userAchievement.findMany({
           where: { userId },
@@ -30,8 +31,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
         db.taskStatusEvent.count({ where: { actorUserId: userId, newStatus: "completed" } }),
       ]);
 
-    if (!profile) throw new AppError("NOT_FOUND", "User not found", 404);
+    if (!profile) throw new AppError("NOT_FOUND", "Uživatel nenalezen", 404);
 
+    const avatarUrl = await getAvatarUrl(profile.avatarFileKey ?? null, requestId);
     const earnedKeys = userAchievements.map((a) => a.achievementKey);
     const allAchievements = earnedKeys.length > 0
       ? await db.achievement.findMany({ where: { key: { in: earnedKeys } }, select: { key: true, tier: true, labelCs: true } })
@@ -53,6 +55,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
       userId,
       firstName: profile.firstName,
       lastName: profile.lastName,
+      avatarUrl,
       joinedAt: profile.createdAt,
       roles: roles.map((r) => r.role),
       achievements: enrichedAchievements,
@@ -68,6 +71,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error("profile GET: unexpected", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

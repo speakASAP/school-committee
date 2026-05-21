@@ -15,23 +15,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const actor = await getCurrentUser(requestId);
 
     if (!actor.roles.includes("committee") && !actor.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Payment confirmation requires committee or admin role", 403);
+      throw new AppError("FORBIDDEN", "Potvrzení platby vyžaduje roli výboru nebo administrátora", 403);
     }
 
     const body = await req.json() as { reference?: string; tenantId?: string };
 
     const tenantId = body.tenantId || process.env.DEFAULT_TENANT_ID || process.env.DEFAULT_SCHOOL_ID;
     if (!tenantId) {
-      throw new AppError("INTERNAL_ERROR", "DEFAULT_TENANT_ID not configured", 500);
+      throw new AppError("INTERNAL_ERROR", "Výchozí ID nájemce není nakonfigurováno", 500);
     }
     const reference = body.reference?.trim() || "manual";
 
     const pi = await db.paymentIntent.findUnique({ where: { id: paymentIntentId } });
-    if (!pi) throw new AppError("NOT_FOUND", "Payment intent not found", 404);
+    if (!pi) throw new AppError("NOT_FOUND", "Platební záměr nenalezen", 404);
 
     // Payment records are immutable once paid
     if (pi.status === "paid") {
-      throw new AppError("CONFLICT", "Payment is already confirmed", 409);
+      throw new AppError("CONFLICT", "Platba je již potvrzena", 409);
     }
 
     const updated = await db.paymentIntent.update({
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

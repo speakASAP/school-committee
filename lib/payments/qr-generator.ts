@@ -14,7 +14,7 @@ export interface QrGeneratorInput {
 
 export function validateAmount(amountCzk: number): void {
   if (!Number.isInteger(amountCzk) || amountCzk <= 0) {
-    throw new AppError("VALIDATION_ERROR", "Amount must be a positive integer in CZK", 400);
+    throw new AppError("VALIDATION_ERROR", "Částka musí být kladné celé číslo v CZK", 400);
   }
   if (amountCzk > MAX_AMOUNT_CZK) {
     throw new AppError(

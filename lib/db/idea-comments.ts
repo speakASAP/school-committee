@@ -52,7 +52,7 @@ export async function createIdeaComment(
 ): Promise<CommentWithLikes> {
   const idea = await db.idea.findUnique({ where: { id: ideaId }, select: { status: true } });
   if (!idea || idea.status === "deleted") {
-    throw new AppError("NOT_FOUND", "Idea not found", 404);
+    throw new AppError("NOT_FOUND", "Nápad nenalezen", 404);
   }
 
   const comment = await db.$transaction(async (tx) => {
@@ -97,9 +97,9 @@ export async function toggleCommentLike(
     where: { id: commentId },
     select: { id: true, userId: true },
   });
-  if (!comment) throw new AppError("NOT_FOUND", "Comment not found", 404);
+  if (!comment) throw new AppError("NOT_FOUND", "Komentář nenalezen", 404);
   if (comment.userId === userId) {
-    throw new AppError("FORBIDDEN", "Cannot like your own comment", 403);
+    throw new AppError("FORBIDDEN", "Nelze lajkovat vlastní komentář", 403);
   }
 
   let liked = false;

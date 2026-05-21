@@ -19,6 +19,9 @@ const ALLOWED_TYPES: Record<string, { ext: string; prefix: string; maxMb: number
   "idea/mp4":  { ext: "mp4", prefix: "ideas/videos", maxMb: 50 },
   "idea/wav":  { ext: "wav", prefix: "ideas/audio",  maxMb: 10 },
   "idea/webm": { ext: "webm", prefix: "ideas/audio", maxMb: 10 },
+  "avatar/jpeg": { ext: "jpg",  prefix: "profiles/avatars", maxMb: 5 },
+  "avatar/png":  { ext: "png",  prefix: "profiles/avatars", maxMb: 5 },
+  "avatar/webp": { ext: "webp", prefix: "profiles/avatars", maxMb: 5 },
 };
 
 const ALLOWED_ROLES = new Set(["parent", "committee", "teacher", "school_staff", "admin"]);
@@ -29,19 +32,19 @@ export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser(requestId);
     if (!user.roles.some((r) => ALLOWED_ROLES.has(r))) {
-      throw new AppError("FORBIDDEN", "Insufficient role", 403);
+      throw new AppError("FORBIDDEN", "Nedostatečná oprávnění", 403);
     }
 
     let body: { contentType?: string; sizeBytes?: number };
     try {
       body = await req.json() as typeof body;
     } catch {
-      throw new AppError("VALIDATION_ERROR", "Invalid JSON body", 400);
+      throw new AppError("VALIDATION_ERROR", "Neplatné tělo požadavku", 400);
     }
 
     const typeConfig = body.contentType ? ALLOWED_TYPES[body.contentType] : undefined;
     if (!typeConfig) {
-      throw new AppError("VALIDATION_ERROR", `contentType must be one of: ${Object.keys(ALLOWED_TYPES).join(", ")}`, 400);
+      throw new AppError("VALIDATION_ERROR", `Typ obsahu musí být jeden z: ${Object.keys(ALLOWED_TYPES).join(", ")}`, 400);
     }
 
     const maxBytes = typeConfig.maxMb * 1024 * 1024;
@@ -66,6 +69,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error(`${ROUTE}: unexpected error`, { request_id: requestId, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

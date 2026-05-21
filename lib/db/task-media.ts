@@ -40,7 +40,7 @@ export async function createTaskDraft(params: CreateTaskDraftParams): Promise<Ta
     if (params.deadline) {
       const d = new Date(params.deadline);
       if (isNaN(d.getTime())) {
-        throw new AppError("VALIDATION_ERROR", "Invalid deadline date", 400);
+        throw new AppError("VALIDATION_ERROR", "Neplatné datum termínu", 400);
       }
     }
 
@@ -127,13 +127,13 @@ export interface PublishTaskParams {
 export async function publishTask(params: PublishTaskParams): Promise<Task> {
   return db.$transaction(async (tx) => {
     const task = await tx.task.findUnique({ where: { id: params.taskId } });
-    if (!task) throw new AppError("NOT_FOUND", "Task not found", 404);
-    if (task.status !== "draft") throw new AppError("CONFLICT", "Task is not a draft", 409);
+    if (!task) throw new AppError("NOT_FOUND", "Úkol nenalezen", 404);
+    if (task.status !== "draft") throw new AppError("CONFLICT", "Úkol není ve stavu konceptu", 409);
 
     if (params.deadline) {
       const d = new Date(params.deadline);
       if (isNaN(d.getTime())) {
-        throw new AppError("VALIDATION_ERROR", "Invalid deadline date", 400);
+        throw new AppError("VALIDATION_ERROR", "Neplatné datum termínu", 400);
       }
     }
 

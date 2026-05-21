@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as { contentType?: string; sizeBytes?: number };
 
     if (!body.contentType || !ALLOWED_TYPES[body.contentType]) {
-      throw new AppError("VALIDATION_ERROR", `contentType must be one of: ${Object.keys(ALLOWED_TYPES).join(", ")}`, 400);
+      throw new AppError("VALIDATION_ERROR", `Typ obsahu musí být jeden z: ${Object.keys(ALLOWED_TYPES).join(", ")}`, 400);
     }
     if (typeof body.sizeBytes === "number" && body.sizeBytes > MAX_SIZE_BYTES) {
       throw new AppError("VALIDATION_ERROR", `File too large (max ${MAX_SIZE_BYTES / 1024 / 1024} MB)`, 400);
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

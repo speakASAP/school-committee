@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const schoolId = searchParams.get("schoolId");
-    if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+    if (!schoolId) throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
 
     const [collectedAgg, spentAgg, expenses, completedTaskCount] = await Promise.all([
       db.paymentIntent.aggregate({
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

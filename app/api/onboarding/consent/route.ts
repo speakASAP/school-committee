@@ -57,25 +57,25 @@ export async function POST(req: NextRequest) {
     const schoolId = profile?.schoolId ?? DEFAULT_SCHOOL_ID;
 
     if (!tenantId || !schoolId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId and schoolId are not configured", 500);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce a školy nejsou nakonfigurována", 500);
     }
 
     const { consent } = body;
 
     if (!consent) {
-      throw new AppError("VALIDATION_ERROR", "consent is required", 400);
+      throw new AppError("VALIDATION_ERROR", "Souhlas je povinný", 400);
     }
     if (!consent.termsAccepted) {
-      throw new AppError("VALIDATION_ERROR", "Terms must be accepted", 400);
+      throw new AppError("VALIDATION_ERROR", "Musíte přijmout podmínky používání", 400);
     }
     if (!consent.privacyPolicyAccepted) {
-      throw new AppError("VALIDATION_ERROR", "Privacy policy must be accepted", 400);
+      throw new AppError("VALIDATION_ERROR", "Musíte přijmout zásady ochrany osobních údajů", 400);
     }
     if (!consent.parentCommitteeParticipation) {
-      throw new AppError("VALIDATION_ERROR", "Parent committee participation consent is required", 400);
+      throw new AppError("VALIDATION_ERROR", "Souhlas s účastí v rodičovském výboru je povinný", 400);
     }
     if (!consent.version) {
-      throw new AppError("VALIDATION_ERROR", "Consent version is required", 400);
+      throw new AppError("VALIDATION_ERROR", "Verze souhlasu je povinná", 400);
     }
 
     const timestamp = new Date().toISOString();
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

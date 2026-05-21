@@ -32,7 +32,7 @@ export async function createPaymentIntent(
 
 export async function getPaymentIntent(id: string): Promise<PaymentIntent> {
   const pi = await db.paymentIntent.findUnique({ where: { id } });
-  if (!pi) throw new NotFoundError("Payment intent not found");
+  if (!pi) throw new NotFoundError("Platební záměr nenalezen");
   return pi;
 }
 

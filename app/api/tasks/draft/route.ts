@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const user = await getCurrentUser(requestId);
     requireApproved(user);
     if (!user.roles.some((r) => ALLOWED_ROLES.has(r))) {
-      throw new AppError("FORBIDDEN", "Insufficient role", 403);
+      throw new AppError("FORBIDDEN", "Nedostatečná oprávnění", 403);
     }
 
     const body = await req.json() as {
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     };
 
     const schoolId = body.schoolId ?? process.env.DEFAULT_SCHOOL_ID ?? "";
-    if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
+    if (!schoolId) throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
     if (!body.audioFileId && !body.videoFileIds?.length && !body.textNote) {
       return NextResponse.json(
         { error: { code: "VALIDATION_ERROR", message: "Provide at least one of: audioFileId, videoFileIds, textNote", requestId } },
@@ -109,6 +109,6 @@ export async function POST(req: NextRequest) {
       request_id: requestId,
       error_message: err instanceof Error ? err.message : String(err),
     });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }

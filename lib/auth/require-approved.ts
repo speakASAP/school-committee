@@ -5,7 +5,7 @@ export function requireApproved(user: CurrentUser): void {
   if (user.approvalStatus !== "approved") {
     throw new AppError(
       "ACCOUNT_PENDING_APPROVAL",
-      "Your account is awaiting approval by school staff.",
+      "Váš účet čeká na schválení správcem školy.",
       403,
     );
   }

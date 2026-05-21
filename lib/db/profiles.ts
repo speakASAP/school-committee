@@ -4,7 +4,7 @@ import { NotFoundError } from "@/types/errors";
 
 export async function getProfile(userId: string): Promise<Profile> {
   const profile = await db.profile.findUnique({ where: { userId } });
-  if (!profile) throw new NotFoundError("Profile not found");
+  if (!profile) throw new NotFoundError("Profil nenalezen");
   return profile;
 }
 

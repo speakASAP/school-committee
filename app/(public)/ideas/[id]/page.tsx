@@ -3,6 +3,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { VoteButton } from "@/components/ideas/VoteButton";
 import { CommentThread } from "@/components/ideas/CommentThread";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface Idea {
   id: string;
@@ -10,6 +11,7 @@ interface Idea {
   description: string;
   isAnonymous: boolean;
   authorId: string | null;
+  authorAvatarUrl: string | null;
   voteCount: number;
   commentCount: number;
   createdAt: string;
@@ -66,9 +68,12 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
       <Link href="/ideas" className="text-sm text-blue-600 hover:underline mb-4 inline-block">← Zpět na nápady</Link>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-2">{idea.title}</h1>
-      <p className="text-xs text-gray-400 mb-4">
-        {displayAuthor} · {new Date(idea.createdAt).toLocaleDateString("cs-CZ")}
-      </p>
+      <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
+        {!idea.isAnonymous && isAuthenticated && authorName && (
+          <UserAvatar avatarUrl={idea.authorAvatarUrl} firstName={authorName.split(" ")[0] ?? ""} lastName={authorName.split(" ")[1] ?? ""} size="xs" />
+        )}
+        <span>{displayAuthor} · {new Date(idea.createdAt).toLocaleDateString("cs-CZ")}</span>
+      </div>
 
       <p className="text-gray-700 mb-4 whitespace-pre-wrap">{idea.description}</p>
 

@@ -30,18 +30,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ type
     const actor = await getCurrentUser(requestId);
 
     if (!actor.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "CSV exports require admin role", 403);
+      throw new AppError("FORBIDDEN", "Export CSV vyžaduje roli administrátora", 403);
     }
 
     if (!ALLOWED_EXPORT_TYPES.includes(type as ExportType)) {
-      throw new AppError("VALIDATION_ERROR", `type must be one of: ${ALLOWED_EXPORT_TYPES.join(", ")}`, 400);
+      throw new AppError("VALIDATION_ERROR", `Typ exportu musí být jeden z: ${ALLOWED_EXPORT_TYPES.join(", ")}`, 400);
     }
 
     const { searchParams } = new URL(req.url);
     const schoolId = searchParams.get("schoolId") || process.env.DEFAULT_SCHOOL_ID;
     const tenantId = searchParams.get("tenantId") || process.env.DEFAULT_TENANT_ID || schoolId;
-    if (!schoolId) throw new AppError("VALIDATION_ERROR", "schoolId is required", 400);
-    if (!tenantId) throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+    if (!schoolId) throw new AppError("VALIDATION_ERROR", "ID školy je povinné", 400);
+    if (!tenantId) throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
 
     let csv = "";
     let recordCount = 0;
@@ -105,7 +105,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ type
       error_name: err instanceof Error ? err.name : undefined,
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

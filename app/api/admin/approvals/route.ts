@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     const statusFilter = searchParams.get("status") ?? "pending";
 
     if (!tenantId) {
-      throw new AppError("VALIDATION_ERROR", "tenantId is required", 400);
+      throw new AppError("VALIDATION_ERROR", "ID nájemce je povinné", 400);
     }
 
     const profiles = await db.profile.findMany({
@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
       error_message: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json(
-      toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId),
+      toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId),
       { status: 500 },
     );
   }

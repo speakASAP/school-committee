@@ -3,6 +3,7 @@ import { db } from "@/lib/db/client";
 import { AppError, NotFoundError } from "@/types/errors";
 import { writeAuditEvent, type AuditEventInput } from "@/lib/db/audit";
 import { buildPage, resolveLimit, type PageParams, type PageResult } from "@/lib/db/pagination";
+import { getAvatarUrl } from "@/lib/storage/media-urls";
 
 export interface ListTasksParams extends PageParams {
   schoolId: string;
@@ -14,6 +15,7 @@ export interface ListTasksParams extends PageParams {
 
 export interface TaskWithAssignee extends Task {
   assigneeName: string | null;
+  assigneeAvatarUrl: string | null;
 }
 
 const STAFF_ROLES = new Set(['committee', 'teacher', 'school_staff', 'admin']);
@@ -38,14 +40,18 @@ export async function listTasks(params: ListTasksParams): Promise<PageResult<Tas
   const enriched: TaskWithAssignee[] = await Promise.all(
     rows.map(async (task) => {
       let assigneeName: string | null = null;
+      let assigneeAvatarUrl: string | null = null;
       if (task.assignedTo) {
         const profile = await db.profile.findUnique({
           where: { userId: task.assignedTo },
-          select: { firstName: true },
+          select: { firstName: true, avatarFileKey: true },
         });
-        if (profile) assigneeName = profile.firstName;
+        if (profile) {
+          assigneeName = profile.firstName;
+          assigneeAvatarUrl = await getAvatarUrl(profile.avatarFileKey ?? null, "tasks-list");
+        }
       }
-      return { ...task, assigneeName };
+      return { ...task, assigneeName, assigneeAvatarUrl };
     })
   );
 
@@ -54,12 +60,13 @@ export async function listTasks(params: ListTasksParams): Promise<PageResult<Tas
 
 export async function getTask(id: string): Promise<Task> {
   const task = await db.task.findUnique({ where: { id } });
-  if (!task) throw new NotFoundError("Task not found");
+  if (!task) throw new NotFoundError("Úkol nenalezen");
   return task;
 }
 
 export interface TaskDetail extends Task {
   assigneeName: string | null;
+  assigneeAvatarUrl: string | null;
   startedAt: Date | null;
   finishedAt: Date | null;
 }
@@ -69,15 +76,19 @@ export async function getTaskDetail(id: string): Promise<TaskDetail> {
     where: { id },
     include: { statusEvents: { orderBy: { createdAt: "asc" } } },
   });
-  if (!task) throw new NotFoundError("Task not found");
+  if (!task) throw new NotFoundError("Úkol nenalezen");
 
   let assigneeName: string | null = null;
+  let assigneeAvatarUrl: string | null = null;
   if (task.assignedTo) {
     const profile = await db.profile.findUnique({
       where: { userId: task.assignedTo },
-      select: { firstName: true },
+      select: { firstName: true, avatarFileKey: true },
     });
-    if (profile) assigneeName = profile.firstName;
+    if (profile) {
+      assigneeName = profile.firstName;
+      assigneeAvatarUrl = await getAvatarUrl(profile.avatarFileKey ?? null, "task-detail");
+    }
   }
 
   const claimedEvent = task.statusEvents.find(
@@ -91,6 +102,7 @@ export async function getTaskDetail(id: string): Promise<TaskDetail> {
   return {
     ...taskBase,
     assigneeName,
+    assigneeAvatarUrl,
     startedAt: claimedEvent?.createdAt ?? null,
     finishedAt: completedEvent?.createdAt ?? null,
   };
@@ -115,7 +127,7 @@ export async function deleteTask(
 ): Promise<void> {
   await db.$transaction(async (tx) => {
     const task = await tx.task.findUnique({ where: { id: taskId } });
-    if (!task) throw new NotFoundError("Task not found");
+    if (!task) throw new NotFoundError("Úkol nenalezen");
 
     // Delete child records first (Prisma does not cascade automatically without onDelete)
     await tx.taskStatusEvent.deleteMany({ where: { taskId } });
@@ -154,12 +166,12 @@ export interface UpdateTaskParams {
 export async function updateTask(params: UpdateTaskParams): Promise<Task> {
   return db.$transaction(async (tx) => {
     const task = await tx.task.findUnique({ where: { id: params.taskId } });
-    if (!task) throw new NotFoundError("Task not found");
+    if (!task) throw new NotFoundError("Úkol nenalezen");
 
     if (params.deadline !== undefined && params.deadline !== null) {
       const d = new Date(params.deadline);
       if (isNaN(d.getTime())) {
-        throw new AppError("VALIDATION_ERROR", "Invalid deadline date", 400);
+        throw new AppError("VALIDATION_ERROR", "Neplatné datum termínu", 400);
       }
     }
 
@@ -202,10 +214,10 @@ export async function claimTask(
     `;
 
     const task = rows[0];
-    if (!task) throw new NotFoundError("Task not found");
+    if (!task) throw new NotFoundError("Úkol nenalezen");
 
     if (task.status !== "open") {
-      throw new AppError("TASK_ALREADY_CLAIMED", "Task is no longer open", 409);
+      throw new AppError("TASK_ALREADY_CLAIMED", "Úkol již není volný", 409);
     }
 
     const updated = await tx.task.update({

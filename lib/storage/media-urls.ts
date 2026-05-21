@@ -6,6 +6,22 @@ import type { TaskMediaResult } from "@/lib/db/task-media";
 
 const PRESIGN_TTL = 3600; // 1 hour
 
+export async function getAvatarUrl(avatarFileKey: string | null, requestId: string): Promise<string | null> {
+  if (!avatarFileKey) return null;
+  try {
+    const client = getPresignClient();
+    const command = new GetObjectCommand({ Bucket: STORAGE_BUCKET, Key: avatarFileKey });
+    return await getSignedUrl(client, command, { expiresIn: PRESIGN_TTL });
+  } catch (err) {
+    logger.error("media-urls: avatar presign failed", {
+      request_id: requestId,
+      avatar_file_key: avatarFileKey,
+      error_message: err instanceof Error ? err.message : String(err),
+    });
+    return null;
+  }
+}
+
 export interface MediaWithUrl {
   id: string;
   fileId: string;

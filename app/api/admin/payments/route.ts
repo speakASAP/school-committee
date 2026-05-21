@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const actor = await getCurrentUser(requestId);
 
     if (!actor.roles.includes("committee") && !actor.roles.includes("admin")) {
-      throw new AppError("FORBIDDEN", "Payment list requires committee or admin role", 403);
+      throw new AppError("FORBIDDEN", "Přístup k platbám vyžaduje roli výboru nebo administrátora", 403);
     }
 
     const schoolId = process.env.DEFAULT_SCHOOL_ID;
@@ -62,6 +62,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(toErrorResponse(err, requestId), { status: err.statusCode });
     }
     logger.error("admin/payments GET: unexpected", { request_id: requestId, route: ROUTE, error_message: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Unexpected error", 500), requestId), { status: 500 });
+    return NextResponse.json(toErrorResponse(new AppError("INTERNAL_ERROR", "Neočekávaná chyba", 500), requestId), { status: 500 });
   }
 }
