@@ -4,7 +4,7 @@ import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { upsertProfile, getProfile } from "@/lib/db/profiles";
 import { writeAuditEvent } from "@/lib/db/audit";
-import { toErrorResponse, AppError, ForbiddenError } from "@/types/errors";
+import { toErrorResponse, AppError } from "@/types/errors";
 import type { OnboardingProfileRequest } from "@/types/onboarding";
 import { awardBadgesForUser } from "@/lib/gamification/award-badges";
 import { setOnboardingStatusCookie } from "@/lib/auth/session";
@@ -45,11 +45,10 @@ export async function POST(req: NextRequest) {
       throw new AppError("VALIDATION_ERROR", "Jazyk musí být cs, en, ru nebo uk", 400);
     }
 
-    // Block unverified users — auth-microservice validates token; if getCurrentUser succeeds, token is valid.
-    // Platform-level: check if existing profile has onboarding_status = complete → redirect
+    // If onboarding already complete, tell the client to go to dashboard instead of erroring
     const existing = await getProfile(user.id).catch(() => null);
     if (existing?.onboardingStatus === "complete") {
-      throw new ForbiddenError("Registrace je již dokončena");
+      return NextResponse.json({ alreadyComplete: true, redirectTo: "/dashboard" }, { status: 200 });
     }
 
     const profile = await upsertProfile(user.id, {

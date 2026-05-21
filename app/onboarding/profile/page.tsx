@@ -36,6 +36,7 @@ function ProfileForm() {
       });
       const body = await res.json();
       if (!res.ok) { setError(body.error?.message ?? "Nepodařilo se uložit profil"); return; }
+      if (body.alreadyComplete) { router.replace(body.redirectTo ?? "/dashboard"); return; }
       router.replace("/onboarding/children");
     } catch {
       setError("Chyba sítě. Zkuste to prosím znovu.");

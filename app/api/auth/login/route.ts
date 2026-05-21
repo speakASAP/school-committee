@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setAuthCookies } from "@/lib/auth/session";
+import { setAuthCookies, setOnboardingStatusCookie } from "@/lib/auth/session";
 import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import type { AuthLoginResponse } from "@/types/auth";
 import { toErrorResponse, UnauthenticatedError, AppError } from "@/types/errors";
+import { validateToken } from "@/lib/auth/validate-token";
+import { db } from "@/lib/db/client";
 
 const AUTH_SERVICE_BASE_URL = process.env.AUTH_SERVICE_BASE_URL ?? "";
 const ROUTE = "/api/auth/login";
@@ -86,13 +88,27 @@ export async function POST(req: NextRequest) {
     const user = data.data?.user ?? (data as any).user;
     await setAuthCookies(accessToken, refreshToken);
 
+    // Sync onboarding status cookie so middleware can route correctly
+    let onboardingStatus = "incomplete";
+    try {
+      const validated = await validateToken(accessToken, requestId);
+      const profile = await db.profile.findUnique({
+        where: { userId: validated.id },
+        select: { onboardingStatus: true },
+      });
+      onboardingStatus = profile?.onboardingStatus ?? "incomplete";
+      await setOnboardingStatusCookie(onboardingStatus);
+    } catch {
+      // Non-fatal — middleware will re-check on next request
+    }
+
     logger.info("login: user logged in", {
       request_id: requestId,
       route: ROUTE,
     });
 
     return NextResponse.json(
-      { user: { id: user.id, email: user.email } },
+      { user: { id: user.id, email: user.email }, onboardingStatus },
       { status: 200 },
     );
   } catch (err) {

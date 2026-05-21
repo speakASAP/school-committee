@@ -19,6 +19,18 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [magicSent, setMagicSent] = useState(false);
 
+  function routeByOnboardingStatus(status: string | null | undefined, fallback: string) {
+    if (!status || status === "incomplete") {
+      router.replace("/onboarding/profile");
+    } else if (status === "profile_complete") {
+      router.replace("/onboarding/children");
+    } else if (status === "consent_complete") {
+      router.replace("/onboarding/consent");
+    } else {
+      router.replace(fallback);
+    }
+  }
+
   async function submitPassword(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -34,7 +46,8 @@ function LoginForm() {
         setError(body.error?.message ?? "Přihlášení selhalo");
         return;
       }
-      router.replace(next);
+      const body = await res.json();
+      routeByOnboardingStatus(body.onboardingStatus, next);
     } catch {
       setError("Chyba sítě. Zkuste to prosím znovu.");
     } finally {
