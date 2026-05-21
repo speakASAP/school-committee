@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     const userIds = top20Raw.map((r) => r.userId);
     const profiles = await db.profile.findMany({
       where: { userId: { in: userIds } },
-      select: { userId: true, firstName: true, lastName: true, avatarFileKey: true },
+      select: { userId: true, titleBefore: true, titleAfter: true, firstName: true, lastName: true, avatarFileKey: true },
     });
     const profileMap = new Map(profiles.map((p) => [p.userId, p]));
 
@@ -43,6 +43,8 @@ export async function GET(req: NextRequest) {
       return {
         rank: i + 1,
         userId: u.userId,
+        titleBefore: profile?.titleBefore ?? null,
+        titleAfter: profile?.titleAfter ?? null,
         firstName: profile?.firstName ?? "",
         lastName: profile?.lastName ?? "",
         avatarUrl,

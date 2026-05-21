@@ -40,8 +40,8 @@ const STATUS_BADGE: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   draft: "koncept",
   open: "otevřený",
-  reserved: "přijatý",
-  claimed: "přijatý",
+  reserved: "zaplánováno",
+  claimed: "probíhá",
   completed: "dokončený",
   verified: "ověřený",
 };

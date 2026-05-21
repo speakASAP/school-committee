@@ -5,8 +5,11 @@ import { UserAvatar } from "@/components/UserAvatar";
 
 interface ProfileData {
   userId: string;
+  titleBefore: string | null;
+  titleAfter: string | null;
   firstName: string;
   lastName: string;
+  bio: string | null;
   avatarUrl: string | null;
   joinedAt: string;
   roles: string[];
@@ -50,7 +53,9 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
         <div className="flex items-center gap-4 mb-3">
           <UserAvatar avatarUrl={profile.avatarUrl} firstName={profile.firstName} lastName={profile.lastName} size="lg" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{profile.firstName} {profile.lastName}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {[profile.titleBefore, profile.firstName, profile.lastName, profile.titleAfter].filter(Boolean).join(" ")}
+            </h1>
             <p className="text-sm text-gray-400 mt-0.5">
               Člen od {new Date(profile.joinedAt).toLocaleDateString("cs-CZ")}
             </p>
@@ -65,6 +70,10 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
               </span>
             ))}
           </div>
+        )}
+
+        {profile.bio && (
+          <p className="mt-4 text-sm text-gray-600 whitespace-pre-line leading-relaxed">{profile.bio}</p>
         )}
       </div>
 

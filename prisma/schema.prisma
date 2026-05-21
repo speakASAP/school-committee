@@ -69,8 +69,11 @@ model Profile {
   tenantId           String    @map("tenant_id") @db.Uuid
   schoolId           String    @map("school_id") @db.Uuid
   email              String?
+  titleBefore        String?   @map("title_before")
+  titleAfter         String?   @map("title_after")
   firstName          String    @map("first_name")
   lastName           String    @map("last_name")
+  bio                String?
   phone              String?
   language           String    @default("cs")
   participationType  String    @map("participation_type")

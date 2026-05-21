@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       throw new AppError("FORBIDDEN", "Nedostatečná oprávnění", 403);
     }
 
-    let body: { title?: string; description?: string; priority?: string; deadline?: string | null };
+    let body: { title?: string; description?: string; priority?: string; deadline?: string | null; status?: string; assignedTo?: string | null };
     try {
       body = await req.json() as typeof body;
     } catch {
@@ -88,6 +88,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       description: body.description,
       priority: body.priority,
       deadline: body.deadline,
+      status: body.status,
+      assignedTo: body.assignedTo,
       requestId,
     });
 
@@ -144,6 +146,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
       isClaimed: task.assignedTo !== null,
+      assignedTo: isStaff ? task.assignedTo : null,
       assigneeName: authed ? task.assigneeName : null,
       assigneeAvatarUrl: authed ? task.assigneeAvatarUrl : null,
       startedAt: authed ? task.startedAt : null,

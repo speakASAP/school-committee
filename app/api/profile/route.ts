@@ -30,8 +30,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       profile: {
         userId: profile.userId,
+        titleBefore: profile.titleBefore ?? null,
+        titleAfter: profile.titleAfter ?? null,
         firstName: profile.firstName,
         lastName: profile.lastName,
+        bio: profile.bio ?? null,
         phone: profile.phone ?? null,
         language: profile.language,
         participationType: profile.participationType,
@@ -76,8 +79,11 @@ export async function PATCH(req: NextRequest) {
     const user = await getCurrentUser(requestId);
 
     const body = (await req.json()) as {
+      titleBefore?: string;
+      titleAfter?: string;
       firstName?: string;
       lastName?: string;
+      bio?: string;
       phone?: string;
       language?: string;
       participationType?: string;
@@ -95,6 +101,9 @@ export async function PATCH(req: NextRequest) {
     if (body.participationType !== undefined && !["financial", "labor", "mixed"].includes(body.participationType)) {
       throw new AppError("VALIDATION_ERROR", "Typ účasti musí být finanční, pracovní nebo kombinovaný", 400);
     }
+    if (body.bio !== undefined && body.bio.length > 1000) {
+      throw new AppError("VALIDATION_ERROR", "Bio nesmí překročit 1000 znaků", 400);
+    }
 
     const existing = await getProfile(user.id);
 
@@ -106,8 +115,11 @@ export async function PATCH(req: NextRequest) {
     const profile = await db.profile.update({
       where: { userId: user.id },
       data: {
+        ...(body.titleBefore !== undefined ? { titleBefore: body.titleBefore?.trim() || null } : {}),
+        ...(body.titleAfter !== undefined ? { titleAfter: body.titleAfter?.trim() || null } : {}),
         ...(body.firstName ? { firstName: body.firstName.trim() } : {}),
         ...(body.lastName ? { lastName: body.lastName.trim() } : {}),
+        ...(body.bio !== undefined ? { bio: body.bio?.trim() || null } : {}),
         ...(body.phone !== undefined ? { phone: body.phone?.trim() || null } : {}),
         ...(body.language ? { language: body.language } : {}),
         ...(body.participationType ? { participationType: body.participationType } : {}),
@@ -148,8 +160,11 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({
       profile: {
+        titleBefore: profile.titleBefore ?? null,
+        titleAfter: profile.titleAfter ?? null,
         firstName: profile.firstName,
         lastName: profile.lastName,
+        bio: profile.bio ?? null,
         phone: profile.phone ?? null,
         language: profile.language,
         participationType: profile.participationType,

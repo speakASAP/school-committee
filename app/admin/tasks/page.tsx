@@ -10,12 +10,21 @@ interface Task {
   deadline: string | null;
   createdAt: string;
   assigneeName: string | null;
+  assignedTo: string | null;
+}
+
+interface UserOption {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  titleBefore: string | null;
+  titleAfter: string | null;
 }
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Koncept",
   open: "Otevřený",
-  reserved: "Probíhá",
+  reserved: "Zaplánováno",
   claimed: "Probíhá",
   completed: "Dokončený",
   verified: "Ověřený",
@@ -27,6 +36,8 @@ const PRIORITY_LABEL: Record<string, string> = {
   low: "nízká",
 };
 
+const ALL_STATUSES = ["draft", "open", "reserved", "claimed", "completed", "verified"];
+
 function canApprove(status: string) {
   return status === "draft" || status === "completed";
 }
@@ -37,10 +48,15 @@ function approveLabel(status: string) {
   return "";
 }
 
+function formatUserName(u: UserOption) {
+  return [u.titleBefore, u.firstName, u.lastName, u.titleAfter].filter(Boolean).join(" ");
+}
+
 export default function AdminTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [users, setUsers] = useState<UserOption[]>([]);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -50,18 +66,36 @@ export default function AdminTasksPage() {
   const [editDescription, setEditDescription] = useState("");
   const [editPriority, setEditPriority] = useState("normal");
   const [editDeadline, setEditDeadline] = useState("");
+  const [editStatus, setEditStatus] = useState("open");
+  const [editAssignedTo, setEditAssignedTo] = useState<string>("");
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/tasks?limit=200")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) setError(d.error.message);
-        else setTasks(d.items ?? []);
-      })
-      .catch(() => setError("Chyba sítě"))
-      .finally(() => setLoading(false));
+    // Load tasks and current user (for tenantId to fetch users)
+    Promise.all([
+      fetch("/api/tasks?limit=200").then((r) => r.json()),
+      fetch("/api/auth/me").then((r) => r.json()),
+    ]).then(([tasksData, meData]) => {
+      if (tasksData.error) setError(tasksData.error.message);
+      else setTasks(tasksData.items ?? []);
+
+      const tenantId = meData.user?.tenantId ?? "";
+      if (tenantId) {
+        fetch(`/api/admin/users?tenantId=${tenantId}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.users) {
+              setUsers(
+                (d.users as UserOption[]).sort((a, b) =>
+                  `${a.lastName}${a.firstName}`.localeCompare(`${b.lastName}${b.firstName}`, "cs"),
+                ),
+              );
+            }
+          })
+          .catch(() => {});
+      }
+    }).catch(() => setError("Chyba sítě")).finally(() => setLoading(false));
   }, []);
 
   function startEdit(task: Task) {
@@ -70,10 +104,15 @@ export default function AdminTasksPage() {
     setEditDescription("");
     setEditPriority(task.priority);
     setEditDeadline(task.deadline ? task.deadline.split("T")[0] : "");
+    setEditStatus(task.status);
+    setEditAssignedTo(task.assignedTo ?? "");
     setSaveError(null);
     fetch(`/api/tasks/${task.id}`)
       .then((r) => r.json())
-      .then((d) => { if (d.task?.description) setEditDescription(d.task.description); })
+      .then((d) => {
+        if (d.task?.description) setEditDescription(d.task.description);
+        if (d.task?.assignedTo !== undefined) setEditAssignedTo(d.task.assignedTo ?? "");
+      })
       .catch(() => {});
   }
 
@@ -89,6 +128,8 @@ export default function AdminTasksPage() {
           description: editDescription,
           priority: editPriority,
           deadline: editDeadline || null,
+          status: editStatus,
+          assignedTo: editAssignedTo || null,
         }),
       });
       if (!res.ok) {
@@ -96,10 +137,21 @@ export default function AdminTasksPage() {
         setSaveError(body.error?.message ?? "Uložení selhalo");
         return;
       }
+      const assigneeName = editAssignedTo
+        ? (users.find((u) => u.userId === editAssignedTo)?.firstName ?? null)
+        : null;
       setTasks((prev) =>
         prev.map((t) =>
           t.id === taskId
-            ? { ...t, title: editTitle, priority: editPriority, deadline: editDeadline || null }
+            ? {
+                ...t,
+                title: editTitle,
+                priority: editPriority,
+                deadline: editDeadline || null,
+                status: editStatus,
+                assignedTo: editAssignedTo || null,
+                assigneeName,
+              }
             : t,
         ),
       );
@@ -246,7 +298,7 @@ export default function AdminTasksPage() {
                 {editingId === task.id && (
                   <tr key={`${task.id}-edit`}>
                     <td colSpan={6} className="py-3 px-2 bg-yellow-50 border-b border-yellow-100">
-                      <div className="space-y-2 max-w-xl">
+                      <div className="space-y-2 max-w-2xl">
                         {saveError && <p className="text-xs text-red-600">{saveError}</p>}
                         <div className="flex gap-2 flex-wrap">
                           <div className="flex-1 min-w-48">
@@ -277,6 +329,35 @@ export default function AdminTasksPage() {
                               value={editDeadline}
                               onChange={(e) => setEditDeadline(e.target.value)}
                             />
+                          </div>
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-0.5">Stav</label>
+                            <select
+                              className="border border-gray-200 rounded px-2 py-1 text-sm"
+                              value={editStatus}
+                              onChange={(e) => setEditStatus(e.target.value)}
+                            >
+                              {ALL_STATUSES.map((s) => (
+                                <option key={s} value={s}>{STATUS_LABEL[s] ?? s}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex-1 min-w-48">
+                            <label className="block text-xs text-gray-500 mb-0.5">Zodpovědná osoba</label>
+                            <select
+                              className="w-full border border-gray-200 rounded px-2 py-1 text-sm"
+                              value={editAssignedTo}
+                              onChange={(e) => setEditAssignedTo(e.target.value)}
+                            >
+                              <option value="">— nikdo —</option>
+                              {users.map((u) => (
+                                <option key={u.userId} value={u.userId}>
+                                  {formatUserName(u)}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                         <div>

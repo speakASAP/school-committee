@@ -39,6 +39,8 @@ const RANK_MEDAL = ["🥇", "🥈", "🥉"];
 interface HofEntry {
   rank: number;
   userId: string;
+  titleBefore: string | null;
+  titleAfter: string | null;
   firstName: string;
   lastName: string;
   avatarUrl: string | null;
@@ -76,7 +78,9 @@ export default function HallOfFamePage() {
             </span>
             <UserAvatar avatarUrl={e.avatarUrl} firstName={e.firstName} lastName={e.lastName} size="sm" />
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900">{e.firstName} {e.lastName}</p>
+              <p className="font-medium text-gray-900">
+                {[e.titleBefore, e.firstName, e.lastName, e.titleAfter].filter(Boolean).join(" ")}
+              </p>
               <div className="flex flex-wrap gap-1 mt-1">
                 {e.achievementKeys.slice(0, 5).map((k) => (
                   <BadgeIcon key={k} achievementKey={k} tier={tierOf(k)} labelCs={KNOWN_LABELS[k] ?? k} size="sm" />

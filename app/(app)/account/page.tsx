@@ -22,8 +22,11 @@ interface Child {
 
 interface Profile {
   userId: string;
+  titleBefore: string | null;
+  titleAfter: string | null;
   firstName: string;
   lastName: string;
+  bio: string | null;
   phone: string | null;
   language: string;
   participationType: string;
@@ -77,7 +80,7 @@ export default function AccountPage() {
 
   // Profile edit state
   const [editingProfile, setEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", phone: "", language: "cs", participationType: "financial" });
+  const [profileForm, setProfileForm] = useState({ titleBefore: "", titleAfter: "", firstName: "", lastName: "", bio: "", phone: "", language: "cs", participationType: "financial" });
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState(false);
@@ -139,13 +142,20 @@ export default function AccountPage() {
       const { uploadUrl, fileKey } = await urlRes.json() as { uploadUrl: string; fileKey: string };
 
       // Upload to MinIO
-      const uploadRes = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "content-type": file.type },
-      });
+      let uploadRes: Response;
+      try {
+        uploadRes = await fetch(uploadUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "content-type": file.type },
+        });
+      } catch (err) {
+        setAvatarError("Nahrávání selhalo (síť): " + (err instanceof Error ? err.message : String(err)));
+        return;
+      }
       if (!uploadRes.ok) {
-        setAvatarError("Nahrání selhalo");
+        const body = await uploadRes.text();
+        setAvatarError(`Nahrávání selhalo (${uploadRes.status}): ${body.slice(0, 200)}`);
         return;
       }
 
@@ -162,8 +172,8 @@ export default function AccountPage() {
       }
       const { avatarUrl } = await saveRes.json() as { avatarUrl: string };
       setProfile((p) => p ? { ...p, avatarUrl } : p);
-    } catch {
-      setAvatarError("Chyba sítě. Zkuste to prosím znovu.");
+    } catch (err) {
+      setAvatarError("Chyba sítě. Zkuste to prosím znovu. (" + (err instanceof Error ? err.message : String(err)) + ")");
     } finally {
       setAvatarUploading(false);
     }
@@ -208,8 +218,11 @@ export default function AccountPage() {
         setProfile(profileData.profile);
         setChildren(profileData.children ?? []);
         setProfileForm({
+          titleBefore: profileData.profile.titleBefore ?? "",
+          titleAfter: profileData.profile.titleAfter ?? "",
           firstName: profileData.profile.firstName,
           lastName: profileData.profile.lastName,
+          bio: profileData.profile.bio ?? "",
           phone: profileData.profile.phone ?? "",
           language: profileData.profile.language,
           participationType: profileData.profile.participationType,
@@ -387,6 +400,7 @@ export default function AccountPage() {
               lastName={profile?.lastName ?? ""}
               size="lg"
             />
+
             {avatarUploading && (
               <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
                 <span className="text-white text-xs">…</span>
@@ -483,6 +497,26 @@ export default function AccountPage() {
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Titul před jménem</label>
+                <input
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={profileForm.titleBefore}
+                  onChange={(e) => setProfileForm((f) => ({ ...f, titleBefore: e.target.value }))}
+                  placeholder="Ing., Mgr., MUDr., …"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Titul za jménem</label>
+                <input
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={profileForm.titleAfter}
+                  onChange={(e) => setProfileForm((f) => ({ ...f, titleAfter: e.target.value }))}
+                  placeholder="Ph.D., MBA, …"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Jméno *</label>
                 <input
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -498,6 +532,18 @@ export default function AccountPage() {
                   onChange={(e) => setProfileForm((f) => ({ ...f, lastName: e.target.value }))}
                 />
               </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">O mně</label>
+              <textarea
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                rows={3}
+                value={profileForm.bio}
+                onChange={(e) => setProfileForm((f) => ({ ...f, bio: e.target.value }))}
+                placeholder="Čím se zabývám, jak mohu pomoci výboru, kontaktní preference…"
+                maxLength={1000}
+              />
+              <p className="text-xs text-gray-400 mt-0.5 text-right">{profileForm.bio.length}/1000</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Telefon</label>
@@ -553,13 +599,23 @@ export default function AccountPage() {
           profile && (
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <dt className="text-gray-500">Jméno</dt>
-              <dd className="font-medium text-gray-900">{profile.firstName} {profile.lastName}</dd>
+              <dd className="font-medium text-gray-900">
+                {[profile.titleBefore, profile.firstName, profile.lastName, profile.titleAfter].filter(Boolean).join(" ")}
+              </dd>
+              <dt className="text-gray-500">E-mail</dt>
+              <dd className="font-medium text-gray-900">{me?.email ?? "—"}</dd>
               <dt className="text-gray-500">Telefon</dt>
               <dd className="font-medium text-gray-900">{profile.phone ?? "—"}</dd>
               <dt className="text-gray-500">Jazyk</dt>
               <dd className="font-medium text-gray-900">{LANGUAGE_LABELS[profile.language] ?? profile.language}</dd>
               <dt className="text-gray-500">Způsob účasti</dt>
               <dd className="font-medium text-gray-900">{PARTICIPATION_LABELS[profile.participationType] ?? profile.participationType}</dd>
+              {profile.bio && (
+                <>
+                  <dt className="text-gray-500">O mně</dt>
+                  <dd className="font-medium text-gray-900 whitespace-pre-line">{profile.bio}</dd>
+                </>
+              )}
               <dt className="text-gray-500">Příspěvek {paymentStatus?.schoolYear}</dt>
               <dd>
                 {paymentStatus?.paid ? (

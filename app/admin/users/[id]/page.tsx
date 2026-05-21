@@ -15,9 +15,14 @@ const ROLE_COLORS: Record<string, string> = {
 
 interface UserDetail {
   userId: string;
+  tenantId: string;
+  schoolId: string | null;
   email: string | null;
+  titleBefore: string | null;
+  titleAfter: string | null;
   firstName: string;
   lastName: string;
+  bio: string | null;
   phone: string | null;
   language: string;
   participationType: string;
@@ -149,7 +154,9 @@ export default function UserDetailPage() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{user.firstName} {user.lastName}</h1>
+            <h1 className="text-xl font-bold text-gray-900">
+              {[user.titleBefore, user.firstName, user.lastName, user.titleAfter].filter(Boolean).join(" ")}
+            </h1>
             {user.email && <p className="text-sm text-gray-500 mt-0.5">{user.email}</p>}
           </div>
           <button
@@ -168,6 +175,24 @@ export default function UserDetailPage() {
         )}
 
         <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+          <div className="col-span-2">
+            <dt className="text-gray-400 text-xs uppercase tracking-wide">E-mail</dt>
+            <dd className="text-gray-800 mt-0.5">{user.email ?? "—"}</dd>
+          </div>
+          {(user.titleBefore || user.titleAfter) && (
+            <div className="col-span-2">
+              <dt className="text-gray-400 text-xs uppercase tracking-wide">Tituly</dt>
+              <dd className="text-gray-800 mt-0.5">
+                {[user.titleBefore && `před: ${user.titleBefore}`, user.titleAfter && `za: ${user.titleAfter}`].filter(Boolean).join("  ·  ")}
+              </dd>
+            </div>
+          )}
+          {user.bio && (
+            <div className="col-span-2">
+              <dt className="text-gray-400 text-xs uppercase tracking-wide">O mně</dt>
+              <dd className="text-gray-800 mt-0.5 whitespace-pre-line">{user.bio}</dd>
+            </div>
+          )}
           <div>
             <dt className="text-gray-400 text-xs uppercase tracking-wide">Telefon</dt>
             <dd className="text-gray-800 mt-0.5">{user.phone ?? "—"}</dd>
@@ -199,7 +224,19 @@ export default function UserDetailPage() {
             <dd className="text-gray-800 mt-0.5">{new Date(user.createdAt).toLocaleDateString("cs-CZ")}</dd>
           </div>
           <div>
-            <dt className="text-gray-400 text-xs uppercase tracking-wide">ID</dt>
+            <dt className="text-gray-400 text-xs uppercase tracking-wide">Aktualizován</dt>
+            <dd className="text-gray-800 mt-0.5">{new Date(user.updatedAt).toLocaleDateString("cs-CZ")}</dd>
+          </div>
+          <div>
+            <dt className="text-gray-400 text-xs uppercase tracking-wide">Škola ID</dt>
+            <dd className="text-gray-500 mt-0.5 font-mono text-xs break-all">{user.schoolId ?? "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-gray-400 text-xs uppercase tracking-wide">Tenant ID</dt>
+            <dd className="text-gray-500 mt-0.5 font-mono text-xs break-all">{user.tenantId ?? "—"}</dd>
+          </div>
+          <div className="col-span-2">
+            <dt className="text-gray-400 text-xs uppercase tracking-wide">User ID</dt>
             <dd className="text-gray-500 mt-0.5 font-mono text-xs break-all">{user.userId}</dd>
           </div>
         </dl>

@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { Suspense } from "react";
 import ReactMarkdown from "react-markdown";
 import { UserAvatar } from "@/components/UserAvatar";
+
 interface TaskPhoto {
   id: string;
   fileId: string;
@@ -24,6 +25,7 @@ interface Task {
   status: string;
   deadline: string | null;
   isClaimed: boolean;
+  assignedTo: string | null;
   createdAt: string;
   assigneeName: string | null;
   assigneeAvatarUrl: string | null;
@@ -33,10 +35,18 @@ interface Task {
   videos: TaskVideo[];
 }
 
+interface UserOption {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  titleBefore: string | null;
+  titleAfter: string | null;
+}
+
 const STATUS_LABEL: Record<string, string> = {
   draft: "Koncept",
   open: "Otevřený",
-  reserved: "Probíhá",
+  reserved: "Zaplánováno",
   claimed: "Probíhá",
   completed: "Dokončený — čeká na ověření",
   verified: "Ověřený",
@@ -48,8 +58,14 @@ const PRIORITY_LABEL: Record<string, string> = {
   low: "nízká",
 };
 
+const ALL_STATUSES = ["draft", "open", "reserved", "claimed", "completed", "verified"];
+
 const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
 const COMMITTEE_ROLES = new Set(["committee", "admin"]);
+
+function formatUserName(u: UserOption) {
+  return [u.titleBefore, u.firstName, u.lastName, u.titleAfter].filter(Boolean).join(" ");
+}
 
 function TaskDetail() {
   const { id } = useParams<{ id: string }>();
@@ -62,12 +78,15 @@ function TaskDetail() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [users, setUsers] = useState<UserOption[]>([]);
 
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editPriority, setEditPriority] = useState("normal");
   const [editDeadline, setEditDeadline] = useState("");
+  const [editStatus, setEditStatus] = useState("open");
+  const [editAssignedTo, setEditAssignedTo] = useState("");
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -77,24 +96,44 @@ function TaskDetail() {
       fetch("/api/auth/me").then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
     ]).then(([taskData, sessionData]: [
       { error?: { message: string }; task?: Task },
-      { user?: { roles?: string[] } }
+      { user?: { roles?: string[]; tenantId?: string } }
     ]) => {
       if (taskData.error) setError(taskData.error.message);
       else {
         const t = taskData.task;
         if (t) { t.photos = t.photos ?? []; t.videos = t.videos ?? []; }
         setTask(t ?? null);
-        if (taskData.task) {
-          setEditTitle(taskData.task.title);
-          setEditDescription(taskData.task.description);
-          setEditPriority(taskData.task.priority);
-          setEditDeadline(taskData.task.deadline ? taskData.task.deadline.split("T")[0] : "");
+        if (t) {
+          setEditTitle(t.title);
+          setEditDescription(t.description);
+          setEditPriority(t.priority);
+          setEditDeadline(t.deadline ? t.deadline.split("T")[0] : "");
+          setEditStatus(t.status);
+          setEditAssignedTo(t.assignedTo ?? "");
         }
       }
       setAuthed(!!sessionData.user);
       const roles: string[] = sessionData.user?.roles ?? [];
-      setIsStaff(roles.some((r: string) => STAFF_ROLES.has(r)));
+      const staff = roles.some((r: string) => STAFF_ROLES.has(r));
+      setIsStaff(staff);
       setIsCommittee(roles.some((r: string) => COMMITTEE_ROLES.has(r)));
+
+      // Load users list for staff assignee dropdown
+      const tenantId = sessionData.user?.tenantId ?? "";
+      if (staff && tenantId) {
+        fetch(`/api/admin/users?tenantId=${tenantId}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.users) {
+              setUsers(
+                (d.users as UserOption[]).sort((a, b) =>
+                  `${a.lastName}${a.firstName}`.localeCompare(`${b.lastName}${b.firstName}`, "cs"),
+                ),
+              );
+            }
+          })
+          .catch(() => {});
+      }
     }).catch(() => setError("Chyba sítě"))
       .finally(() => setLoading(false));
   }, [id]);
@@ -151,6 +190,8 @@ function TaskDetail() {
           description: editDescription,
           priority: editPriority,
           deadline: editDeadline || null,
+          status: editStatus,
+          assignedTo: editAssignedTo || null,
         }),
       });
       if (res.status === 401) { window.location.href = `/login?next=/tasks/${id}`; return; }
@@ -159,7 +200,22 @@ function TaskDetail() {
         setSaveError(body.error?.message ?? "Uložení selhalo");
         return;
       }
-      setTask((t) => t ? { ...t, title: editTitle, description: editDescription, priority: editPriority, deadline: editDeadline || null } : t);
+      const assigneeUser = editAssignedTo ? users.find((u) => u.userId === editAssignedTo) : null;
+      const assigneeName = assigneeUser ? assigneeUser.firstName : null;
+      setTask((t) => t
+        ? {
+            ...t,
+            title: editTitle,
+            description: editDescription,
+            priority: editPriority,
+            deadline: editDeadline || null,
+            status: editStatus,
+            assignedTo: editAssignedTo || null,
+            isClaimed: !!editAssignedTo,
+            assigneeName,
+          }
+        : t,
+      );
       setEditing(false);
     } catch {
       setSaveError("Chyba sítě");
@@ -405,7 +461,36 @@ function TaskDetail() {
                         onChange={(e) => setEditDeadline(e.target.value)}
                       />
                     </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Stav</label>
+                      <select
+                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                        value={editStatus}
+                        onChange={(e) => setEditStatus(e.target.value)}
+                      >
+                        {ALL_STATUSES.map((s) => (
+                          <option key={s} value={s}>{STATUS_LABEL[s] ?? s}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
+                  {users.length > 0 && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Zodpovědná osoba</label>
+                      <select
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                        value={editAssignedTo}
+                        onChange={(e) => setEditAssignedTo(e.target.value)}
+                      >
+                        <option value="">— nikdo —</option>
+                        {users.map((u) => (
+                          <option key={u.userId} value={u.userId}>
+                            {formatUserName(u)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <button
                     onClick={saveEdit}
                     disabled={saveLoading || !editTitle.trim() || !editDescription.trim()}

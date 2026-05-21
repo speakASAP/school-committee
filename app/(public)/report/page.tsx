@@ -25,8 +25,8 @@ interface ReportData {
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   completed: { label: "Dokončeno", bg: "bg-green-100", text: "text-green-700", dot: "bg-green-500" },
   verified:  { label: "Ověřeno",   bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-500" },
-  reserved:  { label: "Probíhá",   bg: "bg-blue-100",   text: "text-blue-700",   dot: "bg-blue-500" },
-  claimed:   { label: "Probíhá",   bg: "bg-blue-100",   text: "text-blue-700",   dot: "bg-blue-500" },
+  reserved:  { label: "Zaplánováno", bg: "bg-blue-100",   text: "text-blue-700",   dot: "bg-blue-500" },
+  claimed:   { label: "Probíhá",    bg: "bg-blue-100",   text: "text-blue-700",   dot: "bg-blue-500" },
   open:      { label: "Plánováno", bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
 };
 

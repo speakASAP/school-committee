@@ -151,6 +151,8 @@ export async function deleteTask(
   });
 }
 
+const VALID_STATUSES = new Set(["draft", "open", "reserved", "claimed", "completed", "verified"]);
+
 export interface UpdateTaskParams {
   taskId: string;
   actorUserId: string;
@@ -160,6 +162,8 @@ export interface UpdateTaskParams {
   description: string;
   priority: string;
   deadline?: string | null;
+  status?: string;
+  assignedTo?: string | null;
   requestId?: string;
 }
 
@@ -175,6 +179,10 @@ export async function updateTask(params: UpdateTaskParams): Promise<Task> {
       }
     }
 
+    if (params.status !== undefined && !VALID_STATUSES.has(params.status)) {
+      throw new AppError("VALIDATION_ERROR", "Neplatný stav úkolu", 400);
+    }
+
     const updated = await tx.task.update({
       where: { id: params.taskId },
       data: {
@@ -182,6 +190,8 @@ export async function updateTask(params: UpdateTaskParams): Promise<Task> {
         description: params.description,
         priority: params.priority,
         deadline: params.deadline ? new Date(params.deadline) : params.deadline === null ? null : undefined,
+        ...(params.status !== undefined ? { status: params.status } : {}),
+        ...(params.assignedTo !== undefined ? { assignedTo: params.assignedTo } : {}),
       },
     });
 

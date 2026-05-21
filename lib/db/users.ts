@@ -5,8 +5,11 @@ export interface UserRow {
   tenantId: string;
   schoolId: string | null;
   email: string | null;
+  titleBefore: string | null;
+  titleAfter: string | null;
   firstName: string;
   lastName: string;
+  bio: string | null;
   phone: string | null;
   language: string;
   participationType: string;
@@ -53,8 +56,11 @@ export async function listUsers(tenantId: string, schoolId?: string): Promise<Us
     tenantId: p.tenantId,
     schoolId: p.schoolId,
     email: p.email ?? null,
+    titleBefore: p.titleBefore ?? null,
+    titleAfter: p.titleAfter ?? null,
     firstName: p.firstName,
     lastName: p.lastName,
+    bio: p.bio ?? null,
     phone: p.phone,
     language: p.language,
     participationType: p.participationType,
@@ -84,12 +90,22 @@ export async function deleteUserFromApp(
   tenantId: string,
 ): Promise<void> {
   await db.$transaction([
+    // Revoke all roles
     db.userRole.updateMany({
       where: { userId, tenantId, revokedAt: null },
       data: { revokedAt: new Date() },
     }),
-    db.profile.delete({
-      where: { userId },
-    }),
+    // Remove gamification (causes hall-of-fame ghost entries)
+    db.userAchievement.deleteMany({ where: { userId } }),
+    // Remove social/activity data
+    db.ideaCommentLike.deleteMany({ where: { userId } }),
+    db.ideaComment.deleteMany({ where: { userId } }),
+    db.ideaVote.deleteMany({ where: { userId } }),
+    db.taskComment.deleteMany({ where: { userId } }),
+    db.eventRegistration.deleteMany({ where: { userId } }),
+    db.roleUpgradeRequest.deleteMany({ where: { userId } }),
+    db.child.deleteMany({ where: { parentUserId: userId } }),
+    // Delete profile last (FK anchor)
+    db.profile.delete({ where: { userId } }),
   ]);
 }

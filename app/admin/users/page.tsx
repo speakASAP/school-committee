@@ -7,8 +7,11 @@ const ROLES = ["parent", "committee", "teacher", "school_staff", "admin"] as con
 interface UserRow {
   userId: string;
   email: string | null;
+  titleBefore: string | null;
+  titleAfter: string | null;
   firstName: string;
   lastName: string;
+  bio: string | null;
   phone: string | null;
   language: string;
   participationType: string;
@@ -236,7 +239,7 @@ export default function UsersPage() {
                 >
                   <td className="px-4 py-3">
                     <div className="font-medium text-gray-900">
-                      {user.firstName} {user.lastName}
+                      {[user.titleBefore, user.firstName, user.lastName, user.titleAfter].filter(Boolean).join(" ")}
                     </div>
                     {user.email && (
                       <div className="text-xs text-gray-500 mt-0.5">{user.email}</div>

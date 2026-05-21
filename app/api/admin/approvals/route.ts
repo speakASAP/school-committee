@@ -50,8 +50,12 @@ export async function GET(req: NextRequest) {
 
     const users = profiles.map((p) => ({
       userId: p.userId,
+      titleBefore: p.titleBefore ?? null,
+      titleAfter: p.titleAfter ?? null,
       firstName: p.firstName,
       lastName: p.lastName,
+      bio: p.bio ?? null,
+      phone: p.phone ?? null,
       schoolId: p.schoolId,
       approvalStatus: p.approvalStatus,
       rejectionReason: p.rejectionReason,

@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
       await Promise.all([
         db.profile.findUnique({
           where: { userId },
-          select: { firstName: true, lastName: true, createdAt: true, avatarFileKey: true },
+          select: { titleBefore: true, titleAfter: true, firstName: true, lastName: true, bio: true, createdAt: true, avatarFileKey: true },
         }),
         db.userAchievement.findMany({
           where: { userId },
@@ -53,8 +53,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
 
     return NextResponse.json({
       userId,
+      titleBefore: profile.titleBefore ?? null,
+      titleAfter: profile.titleAfter ?? null,
       firstName: profile.firstName,
       lastName: profile.lastName,
+      bio: profile.bio ?? null,
       avatarUrl,
       joinedAt: profile.createdAt,
       roles: roles.map((r) => r.role),

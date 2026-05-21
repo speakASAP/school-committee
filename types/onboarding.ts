@@ -4,8 +4,11 @@ export type ParticipationType = "financial" | "labor" | "mixed";
 export interface OnboardingProfileRequest {
   tenantId: string;
   schoolId: string;
+  titleBefore?: string;
+  titleAfter?: string;
   firstName: string;
   lastName: string;
+  bio?: string;
   phone?: string;
   language: Language;
   participationType: ParticipationType;
