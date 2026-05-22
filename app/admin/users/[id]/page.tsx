@@ -119,6 +119,27 @@ export default function UserDetailPage() {
     }
   }
 
+  async function approveUser() {
+    if (!user) return;
+    setActionLoading("approve");
+    try {
+      const res = await fetch(`/api/admin/approvals/${id}/approve`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ tenantId, schoolId: user.schoolId }),
+      });
+      if (!res.ok) {
+        const b = await res.json();
+        showFeedback(b.error?.message ?? "Error", false);
+      } else {
+        setUser((u) => u ? { ...u, approvalStatus: "approved", roles: u.roles.includes("parent") ? u.roles : [...u.roles, "parent"] } : u);
+        showFeedback("Uživatel schválen", true);
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   async function deleteUser() {
     setConfirmDelete(false);
     setActionLoading("delete");
@@ -211,7 +232,18 @@ export default function UserDetailPage() {
           </div>
           <div>
             <dt className="text-gray-400 text-xs uppercase tracking-wide">Stav schválení</dt>
-            <dd className="text-gray-800 mt-0.5">{user.approvalStatus}</dd>
+            <dd className="flex items-center gap-2 mt-0.5">
+              <span className="text-gray-800">{user.approvalStatus}</span>
+              {user.approvalStatus === "pending" && (
+                <button
+                  onClick={approveUser}
+                  disabled={!!actionLoading}
+                  className="rounded px-2 py-0.5 text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {actionLoading === "approve" ? "Schvaluji…" : "Schválit"}
+                </button>
+              )}
+            </dd>
           </div>
           {user.rejectionReason && (
             <div className="col-span-2">
