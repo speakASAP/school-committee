@@ -32,7 +32,7 @@ export async function callTaskDraftAI(
         ...(requestId ? { "x-request-id": requestId } : {}),
       },
       body: JSON.stringify(input),
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(75_000),
     });
   } catch (err) {
     if (err instanceof Error && err.name === "TimeoutError") {

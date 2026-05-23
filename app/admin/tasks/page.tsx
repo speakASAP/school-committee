@@ -21,6 +21,17 @@ interface UserOption {
   titleAfter: string | null;
 }
 
+interface Assignee {
+  userId: string;
+  status: string;
+  acceptedAt: string;
+  completedAt: string | null;
+  firstName: string;
+  lastName: string;
+  titleBefore: string | null;
+  titleAfter: string | null;
+}
+
 const STATUS_LABEL: Record<string, string> = {
   draft: "Koncept",
   open: "Otevřený",
@@ -48,7 +59,7 @@ function approveLabel(status: string) {
   return "";
 }
 
-function formatUserName(u: UserOption) {
+function formatUserName(u: { titleBefore: string | null; firstName: string; lastName: string; titleAfter: string | null }) {
   return [u.titleBefore, u.firstName, u.lastName, u.titleAfter].filter(Boolean).join(" ");
 }
 
@@ -67,12 +78,18 @@ export default function AdminTasksPage() {
   const [editPriority, setEditPriority] = useState("normal");
   const [editDeadline, setEditDeadline] = useState("");
   const [editStatus, setEditStatus] = useState("open");
-  const [editAssignedTo, setEditAssignedTo] = useState<string>("");
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Assignees panel
+  const [assigneesTaskId, setAssigneesTaskId] = useState<string | null>(null);
+  const [assignees, setAssignees] = useState<Assignee[]>([]);
+  const [assigneesLoading, setAssigneesLoading] = useState(false);
+  const [addingUserId, setAddingUserId] = useState("");
+  const [addingLoading, setAddingLoading] = useState(false);
+  const [completingUserId, setCompletingUserId] = useState<string | null>(null);
+
   useEffect(() => {
-    // Load tasks and current user (for tenantId to fetch users)
     Promise.all([
       fetch("/api/tasks?limit=200").then((r) => r.json()),
       fetch("/api/auth/me").then((r) => r.json()),
@@ -105,13 +122,12 @@ export default function AdminTasksPage() {
     setEditPriority(task.priority);
     setEditDeadline(task.deadline ? task.deadline.split("T")[0] : "");
     setEditStatus(task.status);
-    setEditAssignedTo(task.assignedTo ?? "");
     setSaveError(null);
+    setAssigneesTaskId(null);
     fetch(`/api/tasks/${task.id}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.task?.description) setEditDescription(d.task.description);
-        if (d.task?.assignedTo !== undefined) setEditAssignedTo(d.task.assignedTo ?? "");
       })
       .catch(() => {});
   }
@@ -129,7 +145,6 @@ export default function AdminTasksPage() {
           priority: editPriority,
           deadline: editDeadline || null,
           status: editStatus,
-          assignedTo: editAssignedTo || null,
         }),
       });
       if (!res.ok) {
@@ -137,21 +152,10 @@ export default function AdminTasksPage() {
         setSaveError(body.error?.message ?? "Uložení selhalo");
         return;
       }
-      const assigneeName = editAssignedTo
-        ? (users.find((u) => u.userId === editAssignedTo)?.firstName ?? null)
-        : null;
       setTasks((prev) =>
         prev.map((t) =>
           t.id === taskId
-            ? {
-                ...t,
-                title: editTitle,
-                priority: editPriority,
-                deadline: editDeadline || null,
-                status: editStatus,
-                assignedTo: editAssignedTo || null,
-                assigneeName,
-              }
+            ? { ...t, title: editTitle, priority: editPriority, deadline: editDeadline || null, status: editStatus }
             : t,
         ),
       );
@@ -186,20 +190,12 @@ export default function AdminTasksPage() {
     if (!confirm(`${label} úkol "${task.title}"?`)) return;
     setApprovingId(task.id);
     try {
-      const url =
-        task.status === "draft"
-          ? `/api/tasks/${task.id}/publish`
-          : `/api/tasks/${task.id}/verify`;
-
+      const url = task.status === "draft" ? `/api/tasks/${task.id}/publish` : `/api/tasks/${task.id}/verify`;
       let body: Record<string, string> = {};
       if (task.status === "draft") {
         const detail = await fetch(`/api/tasks/${task.id}`).then((r) => r.json());
-        body = {
-          title: detail.task?.title ?? task.title,
-          description: detail.task?.description ?? "",
-        };
+        body = { title: detail.task?.title ?? task.title, description: detail.task?.description ?? "" };
       }
-
       const res = await fetch(url, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -211,15 +207,92 @@ export default function AdminTasksPage() {
         return;
       }
       const newStatus = task.status === "draft" ? "open" : "verified";
-      setTasks((prev) =>
-        prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
-      );
+      setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)));
     } catch {
       alert("Chyba sítě");
     } finally {
       setApprovingId(null);
     }
   }
+
+  async function openAssignees(taskId: string) {
+    if (assigneesTaskId === taskId) {
+      setAssigneesTaskId(null);
+      return;
+    }
+    setAssigneesTaskId(taskId);
+    setEditingId(null);
+    setAssigneesLoading(true);
+    setAddingUserId("");
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/assignees`);
+      const data = await res.json();
+      setAssignees(data.items ?? []);
+    } catch {
+      setAssignees([]);
+    } finally {
+      setAssigneesLoading(false);
+    }
+  }
+
+  async function addAssignee(taskId: string) {
+    if (!addingUserId) return;
+    setAddingLoading(true);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/assignees/${addingUserId}`, { method: "PUT" });
+      if (!res.ok) {
+        const b = await res.json();
+        alert(b.error?.message ?? "Chyba");
+        return;
+      }
+      // Refresh assignees list
+      const updated = await fetch(`/api/tasks/${taskId}/assignees`).then((r) => r.json());
+      setAssignees(updated.items ?? []);
+      setAddingUserId("");
+      // Update task status in list
+      const taskRes = await fetch(`/api/tasks/${taskId}`).then((r) => r.json());
+      if (taskRes.task) {
+        setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, status: taskRes.task.status } : t));
+      }
+    } catch {
+      alert("Chyba sítě");
+    } finally {
+      setAddingLoading(false);
+    }
+  }
+
+  async function markComplete(taskId: string, userId: string) {
+    setCompletingUserId(userId);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/assignees/${userId}/complete`, { method: "POST" });
+      if (!res.ok) {
+        const b = await res.json();
+        alert(b.error?.message ?? "Chyba");
+        return;
+      }
+      setAssignees((prev) =>
+        prev.map((a) =>
+          a.userId === userId ? { ...a, status: "completed", completedAt: new Date().toISOString() } : a,
+        ),
+      );
+    } catch {
+      alert("Chyba sítě");
+    } finally {
+      setCompletingUserId(null);
+    }
+  }
+
+  async function removeAssignee(taskId: string, userId: string) {
+    if (!confirm("Odebrat tohoto řešitele?")) return;
+    try {
+      await fetch(`/api/tasks/${taskId}/assignees/${userId}`, { method: "DELETE" });
+      setAssignees((prev) => prev.filter((a) => a.userId !== userId));
+    } catch {
+      alert("Chyba sítě");
+    }
+  }
+
+  const assignedUserIds = new Set(assignees.map((a) => a.userId));
 
   return (
     <div className="max-w-5xl space-y-6">
@@ -247,7 +320,6 @@ export default function AdminTasksPage() {
               <th className="pb-2 pr-3 font-medium">Stav</th>
               <th className="pb-2 pr-3 font-medium">Priorita</th>
               <th className="pb-2 pr-3 font-medium">Termín</th>
-              <th className="pb-2 pr-3 font-medium">Řeší</th>
               <th className="pb-2 font-medium">Akce</th>
             </tr>
           </thead>
@@ -265,16 +337,19 @@ export default function AdminTasksPage() {
                   <td className="py-2 pr-3 text-gray-500">
                     {task.deadline ? new Date(task.deadline).toLocaleDateString("cs-CZ") : "—"}
                   </td>
-                  <td className="py-2 pr-3 text-gray-500">{task.assigneeName ?? "—"}</td>
                   <td className="py-2">
                     <div className="flex gap-2 flex-wrap">
                       <button
-                        onClick={() =>
-                          editingId === task.id ? setEditingId(null) : startEdit(task)
-                        }
+                        onClick={() => (editingId === task.id ? setEditingId(null) : startEdit(task))}
                         className="text-yellow-600 hover:text-yellow-800 text-xs font-medium"
                       >
                         {editingId === task.id ? "Zrušit" : "Upravit"}
+                      </button>
+                      <button
+                        onClick={() => openAssignees(task.id)}
+                        className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                      >
+                        {assigneesTaskId === task.id ? "Zavřít řešitele" : "Řešitelé"}
                       </button>
                       <button
                         onClick={() => handleDelete(task.id, task.title)}
@@ -295,9 +370,11 @@ export default function AdminTasksPage() {
                     </div>
                   </td>
                 </tr>
+
+                {/* Edit panel */}
                 {editingId === task.id && (
                   <tr key={`${task.id}-edit`}>
-                    <td colSpan={6} className="py-3 px-2 bg-yellow-50 border-b border-yellow-100">
+                    <td colSpan={5} className="py-3 px-2 bg-yellow-50 border-b border-yellow-100">
                       <div className="space-y-2 max-w-2xl">
                         {saveError && <p className="text-xs text-red-600">{saveError}</p>}
                         <div className="flex gap-2 flex-wrap">
@@ -330,8 +407,6 @@ export default function AdminTasksPage() {
                               onChange={(e) => setEditDeadline(e.target.value)}
                             />
                           </div>
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
                           <div>
                             <label className="block text-xs text-gray-500 mb-0.5">Stav</label>
                             <select
@@ -341,21 +416,6 @@ export default function AdminTasksPage() {
                             >
                               {ALL_STATUSES.map((s) => (
                                 <option key={s} value={s}>{STATUS_LABEL[s] ?? s}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="flex-1 min-w-48">
-                            <label className="block text-xs text-gray-500 mb-0.5">Zodpovědná osoba</label>
-                            <select
-                              className="w-full border border-gray-200 rounded px-2 py-1 text-sm"
-                              value={editAssignedTo}
-                              onChange={(e) => setEditAssignedTo(e.target.value)}
-                            >
-                              <option value="">— nikdo —</option>
-                              {users.map((u) => (
-                                <option key={u.userId} value={u.userId}>
-                                  {formatUserName(u)}
-                                </option>
                               ))}
                             </select>
                           </div>
@@ -376,6 +436,104 @@ export default function AdminTasksPage() {
                         >
                           {saveLoading ? "Ukládám…" : "Uložit"}
                         </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+
+                {/* Assignees panel */}
+                {assigneesTaskId === task.id && (
+                  <tr key={`${task.id}-assignees`}>
+                    <td colSpan={5} className="py-3 px-2 bg-blue-50 border-b border-blue-100">
+                      <div className="max-w-2xl space-y-3">
+                        <p className="text-xs font-semibold text-blue-800">Řešitelé úkolu</p>
+
+                        {assigneesLoading && <p className="text-xs text-gray-400">Načítám…</p>}
+
+                        {!assigneesLoading && assignees.length === 0 && (
+                          <p className="text-xs text-gray-500">Žádní řešitelé.</p>
+                        )}
+
+                        {!assigneesLoading && assignees.length > 0 && (
+                          <table className="w-full text-xs border-collapse">
+                            <thead>
+                              <tr className="text-left text-gray-500 border-b border-blue-200">
+                                <th className="pb-1 pr-3 font-medium">Jméno</th>
+                                <th className="pb-1 pr-3 font-medium">Přijato</th>
+                                <th className="pb-1 pr-3 font-medium">Stav</th>
+                                <th className="pb-1 font-medium">Akce</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-blue-100">
+                              {assignees.map((a) => (
+                                <tr key={a.userId}>
+                                  <td className="py-1.5 pr-3 font-medium text-gray-900">
+                                    {formatUserName(a)}
+                                  </td>
+                                  <td className="py-1.5 pr-3 text-gray-500">
+                                    {new Date(a.acceptedAt).toLocaleDateString("cs-CZ")}
+                                  </td>
+                                  <td className="py-1.5 pr-3">
+                                    {a.status === "completed" ? (
+                                      <span className="text-green-700 font-medium">
+                                        ★★★ Splněno {a.completedAt ? new Date(a.completedAt).toLocaleDateString("cs-CZ") : ""}
+                                      </span>
+                                    ) : (
+                                      <span className="text-blue-600">Přijato</span>
+                                    )}
+                                  </td>
+                                  <td className="py-1.5">
+                                    <div className="flex gap-2">
+                                      {a.status !== "completed" && (
+                                        <button
+                                          onClick={() => markComplete(task.id, a.userId)}
+                                          disabled={completingUserId === a.userId}
+                                          className="text-green-700 hover:text-green-900 font-medium disabled:opacity-50"
+                                        >
+                                          {completingUserId === a.userId ? "…" : "Označit splněný ★★★"}
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => removeAssignee(task.id, a.userId)}
+                                        className="text-red-500 hover:text-red-700"
+                                      >
+                                        Odebrat
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+
+                        {/* Add assignee */}
+                        <div className="flex gap-2 items-end pt-1">
+                          <div className="flex-1">
+                            <label className="block text-xs text-gray-500 mb-0.5">Přidat řešitele</label>
+                            <select
+                              className="w-full border border-blue-200 rounded px-2 py-1 text-sm"
+                              value={addingUserId}
+                              onChange={(e) => setAddingUserId(e.target.value)}
+                            >
+                              <option value="">— vyberte osobu —</option>
+                              {users
+                                .filter((u) => !assignedUserIds.has(u.userId))
+                                .map((u) => (
+                                  <option key={u.userId} value={u.userId}>
+                                    {formatUserName(u)}
+                                  </option>
+                                ))}
+                            </select>
+                          </div>
+                          <button
+                            onClick={() => addAssignee(task.id)}
+                            disabled={!addingUserId || addingLoading}
+                            className="bg-blue-600 text-white rounded px-3 py-1 text-xs font-medium disabled:opacity-50"
+                          >
+                            {addingLoading ? "…" : "Přidat"}
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>

@@ -102,19 +102,19 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
         })()}
         <dl className="grid grid-cols-2 gap-4">
           <div>
-            <dt className="text-xs text-gray-500">Nápady <span className="text-yellow-400">★★</span></dt>
+            <dt className="text-xs text-gray-500">Nápady {profile.stats.ideasPosted > 0 && <span className="text-yellow-400">★★</span>}</dt>
             <dd className="text-xl font-bold text-gray-900">{profile.stats.ideasPosted}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Hlasy <span className="text-yellow-400">★★</span></dt>
+            <dt className="text-xs text-gray-500">Hlasy {profile.stats.votesCast > 0 && <span className="text-yellow-400">★★</span>}</dt>
             <dd className="text-xl font-bold text-gray-900">{profile.stats.votesCast}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Komentáře <span className="text-yellow-400">★</span></dt>
+            <dt className="text-xs text-gray-500">Komentáře {profile.stats.commentsLeft > 0 && <span className="text-yellow-400">★</span>}</dt>
             <dd className="text-xl font-bold text-gray-900">{profile.stats.commentsLeft}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Úkoly <span className="text-yellow-400">★★★</span></dt>
+            <dt className="text-xs text-gray-500">Úkoly {profile.stats.tasksCompleted > 0 && <span className="text-yellow-400">★★★</span>}</dt>
             <dd className="text-xl font-bold text-gray-900">{profile.stats.tasksCompleted}</dd>
           </div>
         </dl>

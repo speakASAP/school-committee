@@ -13,6 +13,17 @@ const ROUTE = "/api/onboarding/consent";
 const DEFAULT_TENANT_ID = process.env.DEFAULT_TENANT_ID ?? "";
 const DEFAULT_SCHOOL_ID = process.env.DEFAULT_SCHOOL_ID ?? "";
 
+async function getAutoApprove(schoolId: string): Promise<boolean> {
+  try {
+    const s = await db.schoolSetting.findUnique({
+      where: { schoolId_key: { schoolId, key: "auto_approve_users" } },
+    });
+    return s?.value === "true";
+  } catch {
+    return false;
+  }
+}
+
 async function notifyStaffPendingApproval(
   userId: string,
   name: string,
@@ -39,7 +50,6 @@ async function notifyStaffPendingApproval(
       route: ROUTE,
       error_message: err instanceof Error ? err.message : String(err),
     });
-    // Non-fatal — approval can still happen manually
   }
 }
 
@@ -51,7 +61,6 @@ export async function POST(req: NextRequest) {
 
     const body = (await req.json()) as RecordConsentRequest;
 
-    // tenantId and schoolId from profile (saved earlier) or env defaults
     const profile = await import("@/lib/db/profiles").then((m) => m.getProfile(user.id).catch(() => null));
     const tenantId = profile?.tenantId ?? DEFAULT_TENANT_ID;
     const schoolId = profile?.schoolId ?? DEFAULT_SCHOOL_ID;
@@ -79,6 +88,7 @@ export async function POST(req: NextRequest) {
     }
 
     const timestamp = new Date().toISOString();
+    const autoApprove = await getAutoApprove(schoolId);
 
     await writeAuditEvent({
       tenantId,
@@ -93,23 +103,52 @@ export async function POST(req: NextRequest) {
         parentCommitteeParticipation: consent.parentCommitteeParticipation,
         version: consent.version,
         timestamp,
+        autoApproved: autoApprove,
       },
       requestId,
     });
 
+    if (autoApprove) {
+      // Auto-approve: set approved immediately and grant parent role in one transaction
+      await db.$transaction(async (tx) => {
+        await tx.profile.update({
+          where: { userId: user.id },
+          data: {
+            onboardingStatus: "complete",
+            approvalStatus: "approved",
+            approvedAt: new Date(),
+          },
+        });
+
+        const existingRole = await tx.userRole.findFirst({
+          where: { userId: user.id, tenantId, role: "parent", revokedAt: null },
+        });
+        if (!existingRole) {
+          await tx.userRole.create({
+            data: { userId: user.id, tenantId, schoolId, role: "parent", assignedBy: user.id },
+          });
+        }
+      });
+
+      await setOnboardingStatusCookie("complete");
+
+      logger.info("onboarding/consent: auto-approved", {
+        request_id: requestId,
+        route: ROUTE,
+        user_id: user.id,
+      });
+
+      return NextResponse.json({ recorded: true, timestamp, approvalStatus: "approved" }, { status: 200 });
+    }
+
+    // Normal flow: set pending, notify staff
     await db.profile.update({
       where: { userId: user.id },
       data: { onboardingStatus: "consent_complete", approvalStatus: "pending" },
     });
     await setOnboardingStatusCookie("consent_complete");
 
-    // Fire-and-forget notification to school_staff
-    void notifyStaffPendingApproval(
-      user.id,
-      user.email,
-      user.email,
-      requestId,
-    );
+    void notifyStaffPendingApproval(user.id, user.email, user.email, requestId);
 
     logger.info("onboarding/consent: consent recorded, approval pending", {
       request_id: requestId,

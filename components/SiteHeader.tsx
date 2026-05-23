@@ -19,6 +19,7 @@ const AUTH_NAV = [
   { href: "/hall-of-fame", label: "Síň slávy" },
   { href: "/events", label: "Akce" },
   { href: "/feedback", label: "Zpětná vazba" },
+  { href: "/messages", label: "Zprávy" },
   { href: "/account", label: "Profil" },
 ];
 

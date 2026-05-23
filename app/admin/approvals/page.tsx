@@ -35,6 +35,10 @@ export default function ApprovalsPage() {
   const [tenantId, setTenantId] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [autoApprove, setAutoApprove] = useState<boolean | null>(null);
+  const [autoApproveLoading, setAutoApproveLoading] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResult, setBulkResult] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -53,6 +57,53 @@ export default function ApprovalsPage() {
           .finally(() => setLoading(false));
       });
   }, [tab]);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.ok ? r.json() : { settings: {} })
+      .then((d) => setAutoApprove(d.settings?.auto_approve_users === "true"));
+  }, []);
+
+  async function toggleAutoApprove() {
+    if (autoApprove === null) return;
+    setAutoApproveLoading(true);
+    try {
+      const newVal = !autoApprove;
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ key: "auto_approve_users", value: String(newVal) }),
+      });
+      if (res.ok) setAutoApprove(newVal);
+    } finally {
+      setAutoApproveLoading(false);
+    }
+  }
+
+  async function bulkApprove() {
+    setBulkLoading(true);
+    setBulkResult(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/approvals/bulk-approve", { method: "POST" });
+      if (!res.ok) {
+        const b = await res.json();
+        setError(b.error?.message ?? "Hromadné schválení selhalo");
+        return;
+      }
+      const { approved } = await res.json() as { approved: number };
+      setBulkResult(`Schváleno ${approved} uživatelů`);
+      if (tenantId) {
+        setLoading(true);
+        fetch(`/api/admin/approvals?tenantId=${tenantId}&status=pending`)
+          .then((r) => r.json())
+          .then((d) => setUsers(d.users ?? []))
+          .finally(() => setLoading(false));
+      }
+    } finally {
+      setBulkLoading(false);
+    }
+  }
 
   async function approve(userId: string) {
     setActionLoading(true);

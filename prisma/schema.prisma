@@ -245,8 +245,27 @@ model Task {
   statusEvents  TaskStatusEvent[]
   photos        TaskPhoto[]
   videos        TaskVideo[]
+  assignments   TaskAssignment[]
 
   @@map("tasks")
+}
+
+model TaskAssignment {
+  id          String    @id @default(uuid()) @db.Uuid
+  taskId      String    @map("task_id") @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  status      String    @default("accepted")
+  completedBy String?   @map("completed_by") @db.Uuid
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@unique([taskId, userId])
+  @@index([taskId], map: "task_assignments_task_id_idx")
+  @@index([userId], map: "task_assignments_user_id_idx")
+  @@map("task_assignments")
 }
 
 model TaskComment {
@@ -451,6 +470,26 @@ model IdeaComment {
   @@map("idea_comments")
 }
 
+model Message {
+  id               String    @id @default(uuid()) @db.Uuid
+  schoolId         String    @map("school_id") @db.Uuid
+  fromUserId       String    @map("from_user_id") @db.Uuid
+  parentId         String?   @map("parent_id") @db.Uuid
+  body             String
+  isFromCommittee  Boolean   @default(false) @map("is_from_committee")
+  readAt           DateTime? @map("read_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  parent   Message?  @relation("MessageReplies", fields: [parentId], references: [id])
+  replies  Message[] @relation("MessageReplies")
+
+  @@index([schoolId], map: "messages_school_id_idx")
+  @@index([fromUserId], map: "messages_from_user_id_idx")
+  @@index([parentId], map: "messages_parent_id_idx")
+  @@index([createdAt(sort: Desc)], map: "messages_created_at_idx")
+  @@map("messages")
+}
+
 model IdeaCommentLike {
   id        String      @id @default(uuid()) @db.Uuid
   commentId String      @map("comment_id") @db.Uuid
@@ -483,4 +522,15 @@ model UserAchievement {
 
   @@unique([userId, achievementKey])
   @@map("user_achievements")
+}
+
+model SchoolSetting {
+  id        String   @id @default(uuid()) @db.Uuid
+  schoolId  String   @map("school_id") @db.Uuid
+  key       String
+  value     String
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([schoolId, key])
+  @@map("school_settings")
 }

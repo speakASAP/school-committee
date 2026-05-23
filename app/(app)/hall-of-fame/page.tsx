@@ -27,6 +27,7 @@ const KNOWN_LABELS: Record<string, string> = {
   comment_10: "10 komentářů",
   popular_idea_10: "Oblíbený nápad (10)",
   popular_idea_50: "Oblíbený nápad (50)",
+  task_accepted: "Přijal úkol",
   task_completed: "Splněný úkol",
   task_champion_5: "5 úkolů",
   task_champion_20: "20 úkolů",

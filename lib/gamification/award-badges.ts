@@ -13,6 +13,7 @@ export async function awardBadgesForUser(userId: string): Promise<void> {
     voteCount,
     commentCount,
     taskCount,
+    taskAcceptedCount,
     roles,
     children,
     popularIdea10,
@@ -27,7 +28,8 @@ export async function awardBadgesForUser(userId: string): Promise<void> {
     db.idea.count({ where: { submittedBy: userId, status: "active", isAnonymous: true } }),
     db.ideaVote.count({ where: { userId } }),
     db.ideaComment.count({ where: { userId } }),
-    db.taskStatusEvent.count({ where: { actorUserId: userId, newStatus: "completed" } }),
+    db.taskAssignment.count({ where: { userId, status: "completed" } }),
+    db.taskAssignment.count({ where: { userId } }),
     db.userRole.findMany({ where: { userId, revokedAt: null }, select: { role: true } }),
     db.child.count({ where: { parentUserId: userId } }),
     // Raw SQL: ideas submitted by this user that have >= 10 votes
@@ -98,6 +100,7 @@ export async function awardBadgesForUser(userId: string): Promise<void> {
     popularIdea50.length > 0 ? award("popular_idea_50") : Promise.resolve(),
 
     // Tasks
+    taskAcceptedCount >= 1 ? award("task_accepted") : Promise.resolve(),
     taskCount >= 1 ? award("task_completed") : Promise.resolve(),
     taskCount >= 5 ? award("task_champion_5") : Promise.resolve(),
     taskCount >= 20 ? award("task_champion_20") : Promise.resolve(),

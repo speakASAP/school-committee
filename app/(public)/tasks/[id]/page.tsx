@@ -381,7 +381,7 @@ function TaskDetail() {
                 )}
                 {authed ? (
                   <>
-                    {task.status === "open" && (
+                    {(task.status === "open" || task.status === "reserved") && !task.isClaimed && (
                       <button
                         onClick={claim}
                         disabled={actionLoading}
@@ -389,6 +389,9 @@ function TaskDetail() {
                       >
                         {actionLoading ? "…" : "Přijmout úkol"}
                       </button>
+                    )}
+                    {task.isClaimed && (task.status === "open" || task.status === "reserved") && (
+                      <p className="text-sm text-green-700 font-medium">Úkol jste přijali ✓</p>
                     )}
                     {isCommittee && (task.status === "reserved" || task.status === "claimed") && (
                       <button
@@ -408,7 +411,7 @@ function TaskDetail() {
                     )}
                   </>
                 ) : (
-                  task.status === "open" && !task.isClaimed && (
+                  (task.status === "open" || task.status === "reserved") && (
                     <a
                       href={`/login?next=/tasks/${id}`}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-semibold transition-colors"

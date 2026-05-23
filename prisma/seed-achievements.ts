@@ -21,6 +21,7 @@ const ACHIEVEMENTS = [
   { key: "comment_10",        tier: "silver", labelCs: "Diskutér",            labelEn: "Discusser",           descriptionCs: "Napsáno 10 komentářů" },
   { key: "popular_idea_10",   tier: "silver", labelCs: "Populární nápad",     labelEn: "Popular Idea",        descriptionCs: "Nápad s 10 hlasy" },
   { key: "popular_idea_50",   tier: "gold",   labelCs: "Virální nápad",       labelEn: "Viral Idea",          descriptionCs: "Nápad s 50 hlasy" },
+  { key: "task_accepted",     tier: "bronze", labelCs: "Přijal úkol",         labelEn: "Task Accepted",       descriptionCs: "Přijat první úkol" },
   { key: "task_completed",    tier: "bronze", labelCs: "Dobrovolník",         labelEn: "Volunteer",           descriptionCs: "Splněn první úkol" },
   { key: "task_champion_5",   tier: "silver", labelCs: "Aktivní dobrovolník", labelEn: "Active Volunteer",    descriptionCs: "Splněno 5 úkolů" },
   { key: "task_champion_20",  tier: "gold",   labelCs: "Šampion úkolů",       labelEn: "Task Champion",       descriptionCs: "Splněno 20 úkolů" },

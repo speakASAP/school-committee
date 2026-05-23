@@ -134,6 +134,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const media = await getTaskMedia(id);
     const mediaUrls = await getMediaPresignedUrls(media, requestId);
 
+    // Check if current user has personally accepted this task
+    let currentUserClaimed = false;
+    if (user) {
+      const { db } = await import("@/lib/db/client");
+      const assignment = await db.taskAssignment.findUnique({
+        where: { taskId_userId: { taskId: id, userId: user.id } },
+        select: { status: true },
+      });
+      currentUserClaimed = assignment !== null;
+    }
+
     const safeTask = {
       id: task.id,
       schoolId: task.schoolId,
@@ -145,7 +156,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       status: task.status,
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
-      isClaimed: task.assignedTo !== null,
+      isClaimed: currentUserClaimed,
+      hasAnyAssignee: task.assignedTo !== null,
       assignedTo: isStaff ? task.assignedTo : null,
       assigneeName: authed ? task.assigneeName : null,
       assigneeAvatarUrl: authed ? task.assigneeAvatarUrl : null,
