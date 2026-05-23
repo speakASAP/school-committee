@@ -154,6 +154,42 @@ export default function ApprovalsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Schvalování uživatelů</h1>
 
+      {/* Auto-approve + bulk approve panel */}
+      <div className="mb-5 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="font-semibold text-sm text-amber-900">Automatické schvalování</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Noví uživatelé jsou schváleni okamžitě po registraci bez čekání na ruční kontrolu.
+            </p>
+          </div>
+          <button
+            onClick={toggleAutoApprove}
+            disabled={autoApproveLoading || autoApprove === null}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+              autoApprove ? "bg-green-500" : "bg-gray-300"
+            }`}
+            aria-label="Přepnout automatické schvalování"
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                autoApprove ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+        <div className="flex items-center gap-3 pt-2 border-t border-amber-200">
+          <button
+            onClick={bulkApprove}
+            disabled={bulkLoading}
+            className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
+          >
+            {bulkLoading ? "Schvaluji…" : "Schválit všechny čekající"}
+          </button>
+          {bulkResult && <span className="text-sm text-green-700 font-medium">{bulkResult}</span>}
+        </div>
+      </div>
+
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setTab("pending")}
