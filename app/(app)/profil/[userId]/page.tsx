@@ -83,22 +83,38 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
       </div>
 
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="font-semibold text-gray-900 mb-4">Statistiky</h2>
+        {(() => {
+          const totalStars = profile.achievements.reduce(
+            (s, a) => s + (a.tier === "gold" ? 3 : a.tier === "silver" ? 2 : 1),
+            0
+          );
+          return (
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-gray-900">Statistiky</h2>
+              <div className="text-right">
+                <p className="text-yellow-500 font-bold text-lg leading-tight">
+                  {"★".repeat(Math.min(totalStars, 10))}{totalStars > 10 ? `+${totalStars - 10}` : ""}
+                </p>
+                <p className="text-xs text-gray-400">{totalStars} hvězd celkem</p>
+              </div>
+            </div>
+          );
+        })()}
         <dl className="grid grid-cols-2 gap-4">
           <div>
-            <dt className="text-xs text-gray-500">Nápady</dt>
+            <dt className="text-xs text-gray-500">Nápady <span className="text-yellow-400">★★</span></dt>
             <dd className="text-xl font-bold text-gray-900">{profile.stats.ideasPosted}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Hlasy</dt>
+            <dt className="text-xs text-gray-500">Hlasy <span className="text-yellow-400">★★</span></dt>
             <dd className="text-xl font-bold text-gray-900">{profile.stats.votesCast}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Komentáře</dt>
+            <dt className="text-xs text-gray-500">Komentáře <span className="text-yellow-400">★</span></dt>
             <dd className="text-xl font-bold text-gray-900">{profile.stats.commentsLeft}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Úkoly</dt>
+            <dt className="text-xs text-gray-500">Úkoly <span className="text-yellow-400">★★★</span></dt>
             <dd className="text-xl font-bold text-gray-900">{profile.stats.tasksCompleted}</dd>
           </div>
         </dl>

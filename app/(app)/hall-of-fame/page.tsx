@@ -91,7 +91,10 @@ export default function HallOfFamePage() {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="font-bold text-blue-700">{e.score} b.</p>
+              <p className="font-bold text-yellow-500 text-lg leading-tight">
+                {"★".repeat(Math.min(e.score, 10))}{e.score > 10 ? `+${e.score - 10}` : ""}
+              </p>
+              <p className="text-xs text-gray-400">{e.score} hvězd</p>
             </div>
           </Link>
         ))}
