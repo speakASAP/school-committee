@@ -1,0 +1,9 @@
+[     767ms] Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at rX (https://strilkove.cz/_next/static/chunks/0qm3dlr31w_2o.js:1:47213)
+    at iu (https://strilkove.cz/_next/static/chunks/0qm3dlr31w_2o.js:1:98254)
+    at sd (https://strilkove.cz/_next/static/chunks/0qm3dlr31w_2o.js:1:138944)
+    at https://strilkove.cz/_next/static/chunks/0qm3dlr31w_2o.js:1:133830
+    at se (https://strilkove.cz/_next/static/chunks/0qm3dlr31w_2o.js:1:133931)
+    at s$ (https://strilkove.cz/_next/static/chunks/0qm3dlr31w_2o.js:1:160495)
+    at MessagePort.O (https://strilkove.cz/_next/static/chunks/0qm3dlr31w_2o.js:1:8660)
+[     921ms] [ERROR] Manifest: Line: 1, column: 1, Syntax error. @ https://strilkove.cz/manifest.json:0

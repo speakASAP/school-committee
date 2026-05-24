@@ -82,12 +82,12 @@ function LoginForm() {
             <span className="font-semibold text-gray-900">{email}</span>.
             Pokud e-mail nedorazí do pár minut, zkontrolujte složku se spamem.
           </p>
-          <button
-            onClick={() => { setSent(false); }}
+          <a
+            href="/"
             className="text-sm text-blue-600 hover:underline"
           >
-            Zadat jiný e-mail
-          </button>
+            Zpět na hlavní stránku
+          </a>
         </div>
       </div>
     );
