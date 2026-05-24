@@ -58,7 +58,7 @@ function ProfileForm() {
             <label className="block text-sm font-medium mb-1">Jméno *</label>
             <input
               required
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={form.firstName}
               onChange={(e) => set("firstName", e.target.value)}
             />
@@ -67,7 +67,7 @@ function ProfileForm() {
             <label className="block text-sm font-medium mb-1">Příjmení *</label>
             <input
               required
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={form.lastName}
               onChange={(e) => set("lastName", e.target.value)}
             />
@@ -77,7 +77,7 @@ function ProfileForm() {
           <label className="block text-sm font-medium mb-1">Telefon (nepovinné)</label>
           <input
             type="tel"
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="+420 123 456 789"
             value={form.phone}
             onChange={(e) => set("phone", e.target.value)}
@@ -87,7 +87,7 @@ function ProfileForm() {
           <label className="block text-sm font-medium mb-1">Způsob zapojení *</label>
           <select
             required
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={form.participationType}
             onChange={(e) => set("participationType", e.target.value)}
           >

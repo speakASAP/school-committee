@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 import type { OnboardingChildrenRequest, ChildInput } from "@/types/onboarding";
+import { resolveOrCreateFamily } from "@/lib/db/payments";
 
 const ROUTE = "/api/onboarding/children";
 
@@ -54,6 +55,14 @@ export async function POST(req: NextRequest) {
       ),
     );
 
+    // Resolve or create family linkage after saving children
+    let familyId: string | null = null;
+    try {
+      familyId = await resolveOrCreateFamily(user.id, body.schoolId);
+    } catch {
+      // Non-fatal — family linking is best-effort
+    }
+
     await writeAuditEvent({
       tenantId: body.tenantId,
       schoolId: body.schoolId,
@@ -61,7 +70,7 @@ export async function POST(req: NextRequest) {
       action: "onboarding.children_saved",
       entityType: "child",
       entityId: user.id,
-      metadata: { count: children.length },
+      metadata: { count: children.length, familyId },
       requestId,
     });
 
@@ -70,9 +79,13 @@ export async function POST(req: NextRequest) {
       route: ROUTE,
       user_id: user.id,
       count: children.length,
+      family_id: familyId,
     });
 
-    return NextResponse.json({ children: children.map((c) => ({ id: c.id, firstName: c.firstName, lastName: c.lastName })) }, { status: 201 });
+    return NextResponse.json({
+      children: children.map((c) => ({ id: c.id, firstName: c.firstName, lastName: c.lastName })),
+      familyId,
+    }, { status: 201 });
   } catch (err) {
     if (err instanceof AppError) {
       logger.error("onboarding/children: returning error response", {

@@ -1,6 +1,8 @@
 import type { CurrentUser, Role } from "@/types/auth";
 import { ForbiddenError, UnauthenticatedError } from "@/types/errors";
 
+// Canonical admin-level roles: ["school_staff", "committee", "admin"]
+// Sensitive ops (user management, role assignment, CSV export): ["admin"] only
 export function requireRole(user: CurrentUser | null, allowed: Role[]): CurrentUser {
   if (!user) {
     throw new UnauthenticatedError();

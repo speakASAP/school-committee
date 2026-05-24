@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { toErrorResponse, AppError } from "@/types/errors";
 import { requireApproved } from "@/lib/auth/require-approved";
+import { enhanceMessage } from "@/lib/ai/enhance-message";
 
 const ROUTE = "/api/messages";
 
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
     const user = await getCurrentUser(requestId);
     requireApproved(user);
 
-    const body = await req.json() as { body?: string };
+    const body = await req.json() as { body?: string; enhanceWithAi?: boolean };
     if (!body.body?.trim()) {
       throw new AppError("VALIDATION_ERROR", "Zpráva nesmí být prázdná", 400);
     }
@@ -23,8 +24,18 @@ export async function POST(req: NextRequest) {
     const schoolId = process.env.DEFAULT_SCHOOL_ID ?? "";
     if (!schoolId) throw new AppError("INTERNAL_ERROR", "Chybná konfigurace", 500);
 
+    let messageBody = body.body.trim();
+    if (body.enhanceWithAi) {
+      try {
+        messageBody = await enhanceMessage(messageBody, requestId);
+      } catch {
+        // Non-fatal: send original message if AI enhancement fails
+        logger.error(`${ROUTE} POST: AI enhancement failed, sending original`, { request_id: requestId });
+      }
+    }
+
     const msg = await db.message.create({
-      data: { schoolId, fromUserId: user.id, body: body.body.trim(), isFromCommittee: false },
+      data: { schoolId, fromUserId: user.id, body: messageBody, isFromCommittee: false },
     });
 
     await writeAuditEvent({

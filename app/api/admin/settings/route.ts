@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
   try {
     const user = await getCurrentUser(requestId);
-    requireRole(user, ["school_staff", "admin"]);
+    requireRole(user, ["school_staff", "committee", "admin"]);
 
     const schoolId = DEFAULT_SCHOOL_ID;
     const settings = await db.schoolSetting.findMany({ where: { schoolId } });
@@ -36,7 +36,7 @@ export async function PUT(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
   try {
     const user = await getCurrentUser(requestId);
-    requireRole(user, ["school_staff", "admin"]);
+    requireRole(user, ["school_staff", "committee", "admin"]);
 
     const body = (await req.json()) as { key: string; value: string };
     if (!ALLOWED_KEYS.has(body.key)) {

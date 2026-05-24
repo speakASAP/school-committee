@@ -16,6 +16,7 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [enhanceWithAi, setEnhanceWithAi] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function MessagesPage() {
       const res = await fetch("/api/messages", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ body: text.trim() }),
+        body: JSON.stringify({ body: text.trim(), enhanceWithAi }),
       });
       if (!res.ok) {
         const b = await res.json();
@@ -110,18 +111,33 @@ export default function MessagesPage() {
       </div>
 
       {/* Compose */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-2">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-3">
         {error && <p className="text-sm text-red-600">{error}</p>}
         <textarea
           rows={3}
           placeholder="Napište zprávu výboru…"
-          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) send();
           }}
         />
+
+        <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2 text-xs text-blue-700">
+          ℹ️ Vaše zpráva může být před odesláním upravena AI pro lepší srozumitelnost a přesvědčivost.
+        </div>
+
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={enhanceWithAi}
+            onChange={(e) => setEnhanceWithAi(e.target.checked)}
+            className="w-4 h-4 rounded accent-blue-600"
+          />
+          <span className="text-sm text-gray-700">Vylepšit zprávu pomocí AI</span>
+        </label>
+
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-400">Ctrl+Enter pro odeslání</span>
           <button

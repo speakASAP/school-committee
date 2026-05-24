@@ -1,0 +1,37 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "Spolek Střílkové" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Spolek Střílkové" [ref=e6]
+        - navigation [ref=e7]:
+          - link "Platby" [ref=e8] [cursor=pointer]:
+            - /url: /payments
+          - link "Úkoly" [ref=e9] [cursor=pointer]:
+            - /url: /tasks
+          - link "Nápady" [ref=e10] [cursor=pointer]:
+            - /url: /ideas
+          - link "Zpráva" [ref=e11] [cursor=pointer]:
+            - /url: /report
+    - main [ref=e14]:
+      - main [ref=e15]:
+        - generic [ref=e17]:
+          - heading "Nápady" [level=1] [ref=e18]
+          - paragraph [ref=e19]: Hlasujte pro nápady a přidávejte vlastní
+        - paragraph [ref=e20]: Načítám nápady...
+    - contentinfo [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - link "QR příspěvky" [ref=e24] [cursor=pointer]:
+            - /url: /payments
+          - link "Dobrovolnictví" [ref=e25] [cursor=pointer]:
+            - /url: /tasks
+          - link "Nápady" [ref=e26] [cursor=pointer]:
+            - /url: /ideas
+          - link "Transparentnost" [ref=e27] [cursor=pointer]:
+            - /url: /report
+          - link "GDPR" [ref=e28] [cursor=pointer]:
+            - /url: /gdpr
+        - paragraph [ref=e29]: © 2026 Školní výbor · strilkove.cz
+  - alert [ref=e30]

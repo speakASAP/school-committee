@@ -12,19 +12,32 @@ interface QrResult {
 interface PaymentStatus {
   paid: boolean;
   schoolYear: string;
+  semester?: string;
   paidAt?: string;
   amountCzk?: number;
+  paidByFamily?: boolean;
 }
 
 function PaidBanner({ status }: { status: PaymentStatus }) {
+  const period = status.semester
+    ? `${status.schoolYear} ${status.semester}`
+    : status.schoolYear;
+
   return (
     <div className="text-center space-y-4">
       <div className="bg-green-50 border border-green-200 rounded-2xl p-6 space-y-2">
         <div className="text-4xl">✅</div>
-        <p className="font-bold text-green-800 text-lg">Příspěvek zaplacen</p>
-        <p className="text-green-700 text-sm">
-          Školní rok <strong>{status.schoolYear}</strong> — {status.amountCzk ?? 500} Kč
+        <p className="font-bold text-green-800 text-lg">
+          {status.paidByFamily ? "Příspěvek zaplacen rodinou" : "Příspěvek zaplacen"}
         </p>
+        <p className="text-green-700 text-sm">
+          {period} — {status.amountCzk ?? 500} Kč
+        </p>
+        {status.paidByFamily && (
+          <p className="text-green-600 text-sm">
+            Platbu provedl jiný člen vaší rodiny. Nic dalšího není potřeba.
+          </p>
+        )}
         {status.paidAt && (
           <p className="text-green-600 text-xs">
             Potvrzeno {new Date(status.paidAt).toLocaleDateString("cs-CZ")}
@@ -125,21 +138,13 @@ function AuthGate({ authed, paymentStatus }: { authed: boolean | null; paymentSt
   if (!authed) {
     return (
       <div className="text-center space-y-4">
-        <p className="text-gray-600 text-sm">Pro vygenerování platebního QR kódu se prosím zaregistrujte nebo přihlaste.</p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a
-            href="/register?next=/payments"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-3 text-sm font-semibold transition-colors"
-          >
-            Zaregistrovat se →
-          </a>
-          <a
-            href="/login?next=/payments"
-            className="inline-block bg-white border border-blue-200 hover:bg-blue-50 text-blue-700 rounded-xl px-8 py-3 text-sm font-semibold transition-colors"
-          >
-            Přihlásit se
-          </a>
-        </div>
+        <p className="text-gray-600 text-sm">Pro vygenerování platebního QR kódu se prosím přihlaste.</p>
+        <a
+          href="/login?next=/payments"
+          className="inline-block bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-3 text-sm font-semibold transition-colors"
+        >
+          Přihlásit se →
+        </a>
       </div>
     );
   }
@@ -177,11 +182,11 @@ function PaymentsContent() {
             Finanční příspěvek
           </h1>
           <p className="text-gray-600 text-lg mb-6 max-w-xl mx-auto">
-            Roční příspěvek 500 Kč pomáhá škole zajišťovat lepší vzdělání a zázemí pro vaše děti.
+            Příspěvek 500 Kč za pololetí pomáhá škole zajišťovat lepší vzdělání a zázemí pro vaše děti.
           </p>
           <a href="#pay" className="inline-block bg-white border border-gray-200 rounded-2xl px-8 py-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer">
             <p className="text-4xl font-extrabold text-blue-700">500 Kč</p>
-            <p className="text-sm text-gray-500 mt-1">za školní rok</p>
+            <p className="text-sm text-gray-500 mt-1">za pololetí</p>
           </a>
         </div>
       </section>
@@ -209,24 +214,26 @@ function PaymentsContent() {
       {/* WHERE DOES MONEY GO */}
       <section className="px-4 py-12 bg-gray-50">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Kam peníze jdou?</h2>
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Kam peníze jdou?</h2>
+          <p className="text-gray-500 text-sm text-center mb-8">
+            Každá koruna zůstává ve škole a slouží přímo dětem. Výdaje zveřejňujeme ve{" "}
+            <a href="/report" className="text-blue-600 underline">výroční zprávě</a>.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { icon: "📚", title: "Učební pomůcky", pct: "40 %", desc: "Knihy, sešity, výtvarné potřeby a laboratorní vybavení.", href: "/report" },
-              { icon: "🖥️", title: "Digitální technika", pct: "25 %", desc: "Tablety, projektory a software pro moderní výuku.", href: "/report" },
-              { icon: "🏃", title: "Volnočasové aktivity", pct: "20 %", desc: "Kroužky, výlety a sportovní akce pro žáky.", href: "/tasks" },
-              { icon: "🌱", title: "Rezerva a opravy", pct: "15 %", desc: "Nečekané opravy a fond pro příští rok.", href: "/report" },
+              { icon: "🚌", title: "Výlety a exkurze", desc: "Školy v přírodě, divadelní představení, muzea a vzdělávací výjezdy pro děti." },
+              { icon: "🎨", title: "Aktivity a kroužky", desc: "Příspěvky na kroužky, sportovní turnaje a mimoškolní programy." },
+              { icon: "📚", title: "Učebnice a pomůcky", desc: "Doplňkové učebnice, pracovní listy, výtvarné a laboratorní potřeby." },
+              { icon: "🧻", title: "Hygienické potřeby", desc: "Toaletní papír, mýdlo a další základní potřeby, které škola nemůže pokrýt sama." },
+              { icon: "🏫", title: "Provozní náklady", desc: "Drobné opravy, vybavení tříd a věci, na které státní rozpočet nestačí." },
             ].map((c) => (
-              <a key={c.title} href={c.href} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex gap-4 items-start hover:shadow-md hover:border-blue-200 transition-all">
+              <div key={c.title} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex gap-4 items-start">
                 <div className="text-3xl shrink-0">{c.icon}</div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <p className="font-semibold text-gray-900">{c.title}</p>
-                    <span className="text-blue-700 font-bold text-sm shrink-0">{c.pct}</span>
-                  </div>
+                  <p className="font-semibold text-gray-900 mb-1">{c.title}</p>
                   <p className="text-sm text-gray-500">{c.desc}</p>
                 </div>
-              </a>
+              </div>
             ))}
           </div>
         </div>

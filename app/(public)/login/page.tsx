@@ -2,60 +2,26 @@
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-type Mode = "password" | "magic";
-
 function LoginForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const nextParam = searchParams.get("next") ?? "";
-  const next = nextParam && !nextParam.startsWith("/login") ? nextParam : "/dashboard";
   const emailParam = searchParams.get("email") ?? "";
   const accountDeleted = searchParams.get("deleted") === "1";
 
-  const [mode, setMode] = useState<Mode>("password");
+  // Magic link state
   const [email, setEmail] = useState(emailParam);
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [magicSent, setMagicSent] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  function routeByOnboardingStatus(status: string | null | undefined, fallback: string) {
-    if (!status || status === "incomplete") {
-      router.replace("/onboarding/profile");
-    } else if (status === "profile_complete") {
-      router.replace("/onboarding/children");
-    } else if (status === "consent_complete") {
-      router.replace("/onboarding/consent");
-    } else {
-      router.replace(fallback);
-    }
-  }
+  // Password form state
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordEmail, setPasswordEmail] = useState(emailParam);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
-  async function submitPassword(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) {
-        const body = await res.json();
-        setError(body.error?.message ?? "Přihlášení selhalo");
-        return;
-      }
-      const body = await res.json();
-      routeByOnboardingStatus(body.onboardingStatus, next);
-    } catch {
-      setError("Chyba sítě. Zkuste to prosím znovu.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function submitMagic(e: React.FormEvent) {
+  async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -70,7 +36,7 @@ function LoginForm() {
         setError(body.error?.message ?? "Nepodařilo se odeslat odkaz");
         return;
       }
-      setMagicSent(true);
+      setSent(true);
     } catch {
       setError("Chyba sítě. Zkuste to prosím znovu.");
     } finally {
@@ -78,33 +44,50 @@ function LoginForm() {
     }
   }
 
-  if (magicSent) {
+  async function handlePasswordLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordLoading(true);
+    setPasswordError(null);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: passwordEmail, password }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setPasswordError(body.error?.message ?? "Neplatné přihlašovací údaje");
+        return;
+      }
+      const onboardingStatus = body.onboardingStatus ?? "incomplete";
+      router.push(onboardingStatus === "complete" ? "/dashboard" : "/onboarding/profile");
+    } catch {
+      setPasswordError("Chyba sítě. Zkuste to prosím znovu.");
+    } finally {
+      setPasswordLoading(false);
+    }
+  }
+
+  if (sent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="w-full max-w-sm bg-white rounded-xl shadow p-8 space-y-4 text-center">
           <div className="text-4xl">📧</div>
-          <h1 className="text-xl font-bold text-gray-900">Odkaz odeslán</h1>
-          <p className="text-sm text-gray-700">
-            Odkaz byl odeslán na adresu{" "}
-            <span className="font-semibold text-gray-900">{email}</span>.
+          <h1 className="text-xl font-bold text-gray-900">Zkontrolujte svůj email</h1>
+          <p className="text-base font-semibold text-gray-900">
+            Otevřete svůj email a klikněte na odkaz, který jsme vám právě poslali.
           </p>
           <p className="text-sm text-gray-500">
-            Zkontrolujte svou e-mailovou schránku. Pokud e-mail nedorazí do pár minut, zkontrolujte složku se spamem nebo zkuste zadat e-mail znovu.
+            Odkaz byl odeslán na adresu{" "}
+            <span className="font-semibold text-gray-900">{email}</span>.
+            Pokud e-mail nedorazí do pár minut, zkontrolujte složku se spamem.
           </p>
-          <div className="flex flex-col gap-2 pt-2">
-            <button
-              onClick={() => { setMagicSent(false); }}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Zadat jiný e-mail
-            </button>
-            <button
-              onClick={() => { setMagicSent(false); setMode("password"); }}
-              className="text-sm text-gray-500 hover:underline"
-            >
-              ← Zpět na přihlášení
-            </button>
-          </div>
+          <button
+            onClick={() => { setSent(false); }}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Zadat jiný e-mail
+          </button>
         </div>
       </div>
     );
@@ -123,111 +106,80 @@ function LoginForm() {
           <p className="text-sm text-gray-500 mt-1">Platforma školního výboru</p>
         </div>
 
-        {/* Mode tabs */}
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+        {/* Primary: magic link */}
+        <form onSubmit={handleMagicLink} className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Zadejte svůj e-mail a zašleme vám jednorázový přihlašovací odkaz.
+          </p>
+          <div>
+            <label className="block text-sm font-medium mb-1">E-mail</label>
+            <input
+              type="email"
+              autoComplete="email"
+              required
+              className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="vas@email.cz"
+            />
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button
-            type="button"
-            onClick={() => { setMode("password"); setError(null); }}
-            className={`flex-1 py-2 text-sm font-medium transition-colors ${
-              mode === "password"
-                ? "bg-blue-600 text-white"
-                : "text-gray-500 hover:bg-gray-50"
-            }`}
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
           >
-            Heslo
+            {loading ? "Odesílám…" : "Odeslat přihlašovací odkaz"}
           </button>
-          <button
-            type="button"
-            onClick={() => { setMode("magic"); setError(null); }}
-            className={`flex-1 py-2 text-sm font-medium transition-colors ${
-              mode === "magic"
-                ? "bg-blue-600 text-white"
-                : "text-gray-500 hover:bg-gray-50"
-            }`}
-          >
-            Odkaz na e-mail
-          </button>
-        </div>
+        </form>
 
-        {mode === "password" ? (
-          <form onSubmit={submitPassword} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">E-mail</label>
-              <input
-                type="email"
-                autoComplete="email"
-                required
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Heslo</label>
-              <input
-                type="password"
-                autoComplete="current-password"
-                required
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? "Přihlašuji…" : "Přihlásit se"}
-            </button>
-            <p className="text-center text-sm text-gray-500">
-              Zapomněli jste heslo?{" "}
+        {/* Secondary: password login */}
+        <div className="border-t pt-4">
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="w-full text-sm text-gray-500 hover:text-gray-700 text-center"
+          >
+            {showPassword ? "Skrýt přihlášení heslem" : "Přihlásit se heslem"}
+          </button>
+
+          {showPassword && (
+            <form onSubmit={handlePasswordLogin} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">E-mail</label>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={passwordEmail}
+                  onChange={(e) => setPasswordEmail(e.target.value)}
+                  placeholder="vas@email.cz"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Heslo</label>
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+              {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
               <button
-                type="button"
-                onClick={() => { setMode("magic"); setError(null); }}
-                className="text-blue-600 hover:underline"
+                type="submit"
+                disabled={passwordLoading}
+                className="w-full bg-gray-700 text-white rounded-lg py-2 text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
               >
-                Přihlaste se bez hesla
+                {passwordLoading ? "Přihlašuji…" : "Přihlásit se heslem"}
               </button>
-            </p>
-          </form>
-        ) : (
-          <form onSubmit={submitMagic} className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Zadejte svůj e-mail a zašleme vám jednorázový přihlašovací odkaz.
-            </p>
-            <div>
-              <label className="block text-sm font-medium mb-1">E-mail</label>
-              <input
-                type="email"
-                autoComplete="email"
-                required
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? "Odesílám…" : "Odeslat přihlašovací odkaz"}
-            </button>
-            <p className="text-center text-sm text-gray-500">
-              Znáte heslo?{" "}
-              <button
-                type="button"
-                onClick={() => { setMode("password"); setError(null); }}
-                className="text-blue-600 hover:underline"
-              >
-                Přihlaste se heslem
-              </button>
-            </p>
-          </form>
-        )}
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

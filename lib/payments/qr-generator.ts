@@ -12,15 +12,23 @@ export function currentSchoolYear(): string {
   return `${startYear}/${String(startYear + 1).slice(-2)}`;
 }
 
+// Returns "1.pol." (Sep–Jan) or "2.pol." (Feb–Aug) for the current date.
+export function currentSemester(): string {
+  const month = new Date().getMonth() + 1; // 1-based
+  return month >= 9 || month === 1 ? "1.pol." : "2.pol.";
+}
+
 // Builds a Czech QR payment message ≤60 chars (SPD MSG limit).
-// Format: "Příspěvek ŠV 2025/26 Novák: Adam, Eva"
+// Format: "Příspěvek ŠV 2025/26 1.pol. Novák: Adam, Eva"
 export function buildPaymentMessage(
   parentLastName: string,
   childrenFirstNames: string[],
   schoolYear?: string,
+  semester?: string,
 ): string {
   const year = schoolYear ?? currentSchoolYear();
-  const prefix = `Příspěvek ŠV ${year}`;
+  const pol = semester ?? currentSemester();
+  const prefix = `Příspěvek ŠV ${year} ${pol}`;
   if (!parentLastName && childrenFirstNames.length === 0) return prefix.slice(0, 60);
 
   const namePart = parentLastName ? ` ${parentLastName}` : "";

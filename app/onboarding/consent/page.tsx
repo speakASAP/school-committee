@@ -125,7 +125,7 @@ export default function ConsentPage() {
               autoComplete="new-password"
               required
               minLength={6}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimálně 6 znaků"
@@ -137,7 +137,7 @@ export default function ConsentPage() {
               type="password"
               autoComplete="new-password"
               required
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
             />

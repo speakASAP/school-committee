@@ -50,7 +50,7 @@ export default function DashboardPage() {
       .catch(() => null);
   }, []);
 
-  const isAdmin = user?.roles.includes("admin") || user?.roles.includes("committee");
+  const isAdmin = user?.roles.includes("admin") || user?.roles.includes("committee") || user?.roles.includes("school_staff");
   const isPending = user?.approvalStatus === "pending";
   const isRejected = user?.approvalStatus === "rejected";
   const isApproved = !isPending && !isRejected && user !== null;

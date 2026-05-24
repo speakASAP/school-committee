@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const actor = await getCurrentUser(requestId);
-    requireRole(actor, ["school_staff", "admin"]);
+    requireRole(actor, ["school_staff", "committee", "admin"]);
 
     const { searchParams } = new URL(req.url);
     const tenantId = searchParams.get("tenantId");

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   try {
     const actor = await getCurrentUser(requestId);
-    requireRole(actor, ["school_staff", "admin"]);
+    requireRole(actor, ["school_staff", "committee", "admin"]);
 
     const body = await req.json() as { tenantId?: string; schoolId?: string };
     if (!body.tenantId) {

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 
 interface ChildForm {
@@ -25,6 +25,8 @@ function ChildrenForm() {
   const [loading, setLoading] = useState(false);
   const [schoolId, setSchoolId] = useState("");
   const [tenantId, setTenantId] = useState("");
+  const [familyMatchFound, setFamilyMatchFound] = useState(false);
+  const familyCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -51,7 +53,24 @@ function ChildrenForm() {
   }
 
   function setField(index: number, field: keyof ChildForm, value: string) {
-    setChildren((c) => c.map((child, i) => (i === index ? { ...child, [field]: value } : child)));
+    setChildren((prev) => {
+      const updated = prev.map((child, i) => (i === index ? { ...child, [field]: value } : child));
+      // Debounce family check when any child has all required fields filled
+      if (familyCheckTimer.current) clearTimeout(familyCheckTimer.current);
+      familyCheckTimer.current = setTimeout(() => {
+        const complete = updated.filter((c) => c.firstName && c.lastName && c.classId);
+        if (complete.length === 0 || !schoolId) return;
+        fetch("/api/onboarding/check-family", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ children: complete, schoolId }),
+        })
+          .then((r) => r.json())
+          .then((d) => setFamilyMatchFound(!!d.familyMatchFound))
+          .catch(() => null);
+      }, 600);
+      return updated;
+    });
   }
 
   async function submit(e: React.FormEvent) {
@@ -104,7 +123,7 @@ function ChildrenForm() {
                 <label className="block text-sm font-medium mb-1">Jméno *</label>
                 <input
                   required
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={child.firstName}
                   onChange={(e) => setField(i, "firstName", e.target.value)}
                 />
@@ -113,7 +132,7 @@ function ChildrenForm() {
                 <label className="block text-sm font-medium mb-1">Příjmení *</label>
                 <input
                   required
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={child.lastName}
                   onChange={(e) => setField(i, "lastName", e.target.value)}
                 />
@@ -123,14 +142,14 @@ function ChildrenForm() {
               <label className="block text-sm font-medium mb-1">Třída *</label>
               <select
                 required
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={child.classId}
                 onChange={(e) => setField(i, "classId", e.target.value)}
               >
                 <option value="">Vyberte třídu…</option>
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.grade} — {c.name}
+                    {c.grade === "0" ? c.name : `${c.grade} — ${c.name}`}
                   </option>
                 ))}
               </select>
@@ -138,7 +157,7 @@ function ChildrenForm() {
             <div>
               <label className="block text-sm font-medium mb-1">Poznámka (nepovinné)</label>
               <input
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-3 py-2 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="např. třídní učitelka Nováková, třída 2B"
                 value={child.notes}
                 onChange={(e) => setField(i, "notes", e.target.value)}
@@ -154,6 +173,16 @@ function ChildrenForm() {
         >
           + Přidat další dítě
         </button>
+
+        {familyMatchFound && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+            <p className="font-semibold mb-1">👨‍👩‍👧 Nalezena rodina</p>
+            <p>
+              Jiný rodič již zaregistroval dítě se stejným jménem a třídou.
+              Po uložení budete propojeni jako rodina — stačí, aby zaplatil jeden z vás.
+            </p>
+          </div>
+        )}
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 

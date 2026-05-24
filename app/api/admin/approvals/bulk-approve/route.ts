@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
   try {
     const actor = await getCurrentUser(requestId);
-    requireRole(actor, ["school_staff", "admin"]);
+    requireRole(actor, ["school_staff", "committee", "admin"]);
 
     const pending = await db.profile.findMany({
       where: { approvalStatus: "pending", onboardingStatus: "complete" },

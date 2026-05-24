@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const actor = await getCurrentUser(requestId);
-    requireRole(actor, ["school_staff", "admin"]);
+    requireRole(actor, ["school_staff", "committee", "admin"]);
 
     const statusFilter = new URL(req.url).searchParams.get("status") ?? "pending";
 

@@ -29,6 +29,7 @@ const PUBLIC_PREFIXES = [
   "/api/tasks",
   "/report",
   "/tasks",
+  "/ideas",
   "/payments",
   "/feedback",
   "/prispevky",
