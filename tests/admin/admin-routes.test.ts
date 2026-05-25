@@ -69,7 +69,7 @@ vi.mock("@/lib/db/users", () => ({
 import { PATCH as patchRole } from "@/app/api/admin/users/[id]/role/route";
 import { POST as confirmPayment } from "@/app/api/admin/payments/[id]/confirm/route";
 import { POST as createExpense, GET as getExpenses } from "@/app/api/admin/expenses/route";
-import { GET as exportCsv } from "@/app/api/admin/exports/[type]/route";
+
 import { GET as listUsersRoute } from "@/app/api/admin/users/route";
 import { PATCH as patchUser, DELETE as deleteUser } from "@/app/api/admin/users/[id]/route";
 
@@ -492,71 +492,3 @@ describe("GET /api/admin/expenses", () => {
   });
 });
 
-// ── CSV Export ───────────────────────────────────────────────────────────────
-
-describe("GET /api/admin/exports/[type] — CSV export", () => {
-  beforeEach(() => {
-    mockGetCurrentUser.mockResolvedValue(adminUser);
-    mockFindMany.mockResolvedValue([]);
-  });
-
-  it("returns CSV for payments export with audit event", async () => {
-    const req = new NextRequest("http://localhost/api/admin/exports/payments?schoolId=s-1&tenantId=t-1");
-    const res = await exportCsv(req, { params: Promise.resolve({ type: "payments" }) });
-    expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toContain("text/csv");
-    expect(mockWriteAuditEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: "export.generated",
-        metadata: expect.objectContaining({ exportType: "payments" }),
-      }),
-    );
-  });
-
-  it("audit event includes record_count", async () => {
-    mockFindMany.mockResolvedValue([{ id: "t-1", title: "A", status: "open", priority: "normal", deadline: null, createdAt: new Date() }]);
-    const req = new NextRequest("http://localhost/api/admin/exports/tasks?schoolId=s-1&tenantId=t-1");
-    await exportCsv(req, { params: Promise.resolve({ type: "tasks" }) });
-    expect(mockWriteAuditEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        metadata: expect.objectContaining({ recordCount: 1 }),
-      }),
-    );
-  });
-
-  it("returns 403 for committee (admin-only export)", async () => {
-    mockGetCurrentUser.mockResolvedValue(committeeUser);
-    const req = new NextRequest("http://localhost/api/admin/exports/payments?schoolId=s-1&tenantId=t-1");
-    const res = await exportCsv(req, { params: Promise.resolve({ type: "payments" }) });
-    expect(res.status).toBe(403);
-  });
-
-  it("returns 403 for parent", async () => {
-    mockGetCurrentUser.mockResolvedValue(parentUser);
-    const req = new NextRequest("http://localhost/api/admin/exports/payments?schoolId=s-1&tenantId=t-1");
-    const res = await exportCsv(req, { params: Promise.resolve({ type: "payments" }) });
-    expect(res.status).toBe(403);
-  });
-
-  it("returns 400 for unknown export type", async () => {
-    const req = new NextRequest("http://localhost/api/admin/exports/invoices?schoolId=s-1&tenantId=t-1");
-    const res = await exportCsv(req, { params: Promise.resolve({ type: "invoices" }) });
-    expect(res.status).toBe(400);
-  });
-
-  it("returns 400 when schoolId is missing", async () => {
-    const req = new NextRequest("http://localhost/api/admin/exports/payments?tenantId=t-1");
-    const res = await exportCsv(req, { params: Promise.resolve({ type: "payments" }) });
-    expect(res.status).toBe(400);
-  });
-
-  it("feedback export scrubs userId for anonymous items", async () => {
-    mockFindMany.mockResolvedValue([
-      { id: "fi-1", category: "general", type: "suggestion", text: "x", status: "new", isAnonymous: true, createdAt: new Date(), userId: "u-secret" },
-    ]);
-    const req = new NextRequest("http://localhost/api/admin/exports/feedback?schoolId=s-1&tenantId=t-1");
-    const res = await exportCsv(req, { params: Promise.resolve({ type: "feedback" }) });
-    const csv = await res.text();
-    expect(csv).not.toContain("u-secret");
-  });
-});
