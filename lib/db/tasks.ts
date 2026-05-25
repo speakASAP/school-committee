@@ -64,9 +64,17 @@ export async function getTask(id: string): Promise<Task> {
   return task;
 }
 
+export interface AssigneeInfo {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+}
+
 export interface TaskDetail extends Task {
   assigneeName: string | null;
   assigneeAvatarUrl: string | null;
+  assignees: AssigneeInfo[];
   startedAt: Date | null;
   finishedAt: Date | null;
 }
@@ -78,9 +86,37 @@ export async function getTaskDetail(id: string): Promise<TaskDetail> {
   });
   if (!task) throw new NotFoundError("Úkol nenalezen");
 
+  // Fetch all assignees from the join table
+  const assignments = await db.taskAssignment.findMany({
+    where: { taskId: id },
+    orderBy: { createdAt: "asc" },
+  });
+  const assigneeProfiles = assignments.length > 0
+    ? await db.profile.findMany({
+        where: { userId: { in: assignments.map((a) => a.userId) } },
+        select: { userId: true, firstName: true, lastName: true, avatarFileKey: true },
+      })
+    : [];
+  const profileMap = Object.fromEntries(assigneeProfiles.map((p) => [p.userId, p]));
+  const assignees: AssigneeInfo[] = await Promise.all(
+    assignments.map(async (a) => {
+      const p = profileMap[a.userId];
+      return {
+        userId: a.userId,
+        firstName: p?.firstName ?? "",
+        lastName: p?.lastName ?? "",
+        avatarUrl: await getAvatarUrl(p?.avatarFileKey ?? null, "task-detail"),
+      };
+    })
+  );
+
+  // Legacy single-assignee fallback (for tasks claimed before multi-assignee)
   let assigneeName: string | null = null;
   let assigneeAvatarUrl: string | null = null;
-  if (task.assignedTo) {
+  if (assignees.length === 1) {
+    assigneeName = assignees[0].firstName;
+    assigneeAvatarUrl = assignees[0].avatarUrl;
+  } else if (assignees.length === 0 && task.assignedTo) {
     const profile = await db.profile.findUnique({
       where: { userId: task.assignedTo },
       select: { firstName: true, avatarFileKey: true },
@@ -103,6 +139,7 @@ export async function getTaskDetail(id: string): Promise<TaskDetail> {
     ...taskBase,
     assigneeName,
     assigneeAvatarUrl,
+    assignees,
     startedAt: claimedEvent?.createdAt ?? null,
     finishedAt: completedEvent?.createdAt ?? null,
   };

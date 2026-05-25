@@ -157,10 +157,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
       isClaimed: currentUserClaimed,
-      hasAnyAssignee: task.assignedTo !== null,
+      hasAnyAssignee: task.assignees.length > 0 || task.assignedTo !== null,
       assignedTo: isStaff ? task.assignedTo : null,
       assigneeName: authed ? task.assigneeName : null,
       assigneeAvatarUrl: authed ? task.assigneeAvatarUrl : null,
+      assignees: authed
+        ? task.assignees.map((a) => ({ userId: isStaff ? a.userId : null, firstName: a.firstName, lastName: a.lastName, avatarUrl: a.avatarUrl }))
+        : [],
+      assigneeCount: task.assignees.length,
       startedAt: authed ? task.startedAt : null,
       finishedAt: authed ? task.finishedAt : null,
       photos: mediaUrls.photos,

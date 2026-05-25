@@ -17,6 +17,13 @@ interface TaskVideo {
   url: string;
 }
 
+interface TaskAssignee {
+  userId: string | null;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -29,6 +36,9 @@ interface Task {
   createdAt: string;
   assigneeName: string | null;
   assigneeAvatarUrl: string | null;
+  assignees: TaskAssignee[];
+  assigneeCount: number;
+  hasAnyAssignee: boolean;
   startedAt: string | null;
   finishedAt: string | null;
   photos: TaskPhoto[];
@@ -101,7 +111,7 @@ function TaskDetail() {
       if (taskData.error) setError(taskData.error.message);
       else {
         const t = taskData.task;
-        if (t) { t.photos = t.photos ?? []; t.videos = t.videos ?? []; }
+        if (t) { t.photos = t.photos ?? []; t.videos = t.videos ?? []; t.assignees = t.assignees ?? []; t.assigneeCount = t.assigneeCount ?? 0; }
         setTask(t ?? null);
         if (t) {
           setEditTitle(t.title);
@@ -330,15 +340,27 @@ function TaskDetail() {
                   Termín: {new Date(task.deadline).toLocaleDateString("cs-CZ")}
                 </p>
               )}
-              {task.assigneeName ? (
+              {task.assignees.length > 0 ? (
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-500">Řeší ({task.assignees.length}):</p>
+                  <div className="flex flex-col gap-1">
+                    {task.assignees.map((a, i) => (
+                      <div key={a.userId ?? i} className="flex items-center gap-2 text-sm">
+                        <UserAvatar avatarUrl={a.avatarUrl} firstName={a.firstName} lastName={a.lastName} size="xs" />
+                        <span className="font-medium text-gray-800">{[a.firstName, a.lastName].filter(Boolean).join(" ")}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : task.assigneeName ? (
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <span>Řeší:</span>
                   <UserAvatar avatarUrl={task.assigneeAvatarUrl} firstName={task.assigneeName.split(" ")[0] ?? ""} lastName={task.assigneeName.split(" ")[1] ?? ""} size="xs" />
                   <span className="font-medium text-gray-800">{task.assigneeName}</span>
                 </div>
-              ) : task.isClaimed && !authed ? (
+              ) : (task.hasAnyAssignee || task.assigneeCount > 0) && !authed ? (
                 <p className="text-sm text-gray-400">
-                  👤 <a href="/login" className="underline hover:text-blue-600">Přihlaste se pro zobrazení řešitele</a>
+                  👤 <a href="/login" className="underline hover:text-blue-600">Přihlaste se pro zobrazení řešitelů</a>
                 </p>
               ) : null}
               {task.startedAt && (

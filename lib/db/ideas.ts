@@ -107,7 +107,7 @@ export async function listIdeas(schoolId: string, params: PageParams = {}): Prom
   const cursor = params.cursor;
 
   const ideas = await db.idea.findMany({
-    where: { schoolId, status: "active" },
+    where: { schoolId, status: { notIn: ["deleted", "rejected"] } },
     orderBy: [{ votes: { _count: "desc" } }, { createdAt: "desc" }],
     take: limit + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
