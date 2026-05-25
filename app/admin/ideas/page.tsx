@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { IDEA_ADMIN_STATUSES, STATUS_LABEL, STATUS_COLOR } from "@/lib/statuses";
 
 interface AdminIdea {
   id: string;
@@ -14,23 +15,7 @@ interface AdminIdea {
   createdAt: string;
 }
 
-const STATUS_OPTIONS = ["submitted", "under_review", "approved", "rejected", "implemented"];
-
-const STATUS_LABEL: Record<string, string> = {
-  submitted: "Podáno",
-  under_review: "V přezkoumání",
-  approved: "Schváleno",
-  rejected: "Zamítnuto",
-  implemented: "Realizováno",
-};
-
-const STATUS_COLOR: Record<string, string> = {
-  submitted: "bg-blue-100 text-blue-700",
-  under_review: "bg-yellow-100 text-yellow-700",
-  approved: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
-  implemented: "bg-purple-100 text-purple-700",
-};
+const STATUS_OPTIONS = [...IDEA_ADMIN_STATUSES];
 
 export default function AdminIdeasPage() {
   const [ideas, setIdeas] = useState<AdminIdea[]>([]);

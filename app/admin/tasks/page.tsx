@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { TASK_STATUSES, STATUS_LABEL as SHARED_STATUS_LABEL, STATUS_COLOR } from "@/lib/statuses";
 
 interface Task {
   id: string;
@@ -32,14 +33,7 @@ interface Assignee {
   titleAfter: string | null;
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Koncept",
-  open: "Otevřený",
-  reserved: "Zaplánováno",
-  claimed: "Probíhá",
-  completed: "Dokončený",
-  verified: "Ověřený",
-};
+const STATUS_LABEL = SHARED_STATUS_LABEL;
 
 const PRIORITY_LABEL: Record<string, string> = {
   high: "vysoká",
@@ -47,7 +41,7 @@ const PRIORITY_LABEL: Record<string, string> = {
   low: "nízká",
 };
 
-const ALL_STATUSES = ["draft", "open", "reserved", "claimed", "completed", "verified"];
+const ALL_STATUSES = [...TASK_STATUSES];
 
 function canApprove(status: string) {
   return status === "draft" || status === "completed";

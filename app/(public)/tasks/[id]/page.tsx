@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { Suspense } from "react";
 import ReactMarkdown from "react-markdown";
 import { UserAvatar } from "@/components/UserAvatar";
+import { TASK_STATUSES, STATUS_LABEL as SHARED_STATUS_LABEL } from "@/lib/statuses";
 
 interface TaskPhoto {
   id: string;
@@ -53,14 +54,7 @@ interface UserOption {
   titleAfter: string | null;
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Koncept",
-  open: "Otevřený",
-  reserved: "Zaplánováno",
-  claimed: "Probíhá",
-  completed: "Dokončený — čeká na ověření",
-  verified: "Ověřený",
-};
+const STATUS_LABEL = SHARED_STATUS_LABEL;
 
 const PRIORITY_LABEL: Record<string, string> = {
   high: "vysoká",
@@ -68,7 +62,7 @@ const PRIORITY_LABEL: Record<string, string> = {
   low: "nízká",
 };
 
-const ALL_STATUSES = ["draft", "open", "reserved", "claimed", "completed", "verified"];
+const ALL_STATUSES = [...TASK_STATUSES];
 
 const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
 const COMMITTEE_ROLES = new Set(["committee", "admin"]);

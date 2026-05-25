@@ -28,7 +28,7 @@ export async function createFeedback(input: CreateFeedbackInput): Promise<Feedba
       text: input.text,
       voiceFileKey: input.voiceFileKey ?? null,
       voiceTranscript: input.voiceTranscript ?? null,
-      status: "new",
+      status: "submitted",
     },
   });
 }

@@ -54,7 +54,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
   const { id } = await params;
-  const ALLOWED_STATUSES = ["submitted", "under_review", "approved", "rejected", "implemented"];
+  const ALLOWED_STATUSES = ["submitted", "in_review", "approved", "rejected", "implemented"];
   try {
     const user = await getCurrentUser(requestId);
     if (!user.roles.some((r) => STAFF_ROLES.has(r))) {

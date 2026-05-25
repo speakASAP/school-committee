@@ -364,7 +364,7 @@ model FeedbackItem {
   text        String
   voiceFileKey  String?  @map("voice_file_key")
   voiceTranscript String? @map("voice_transcript")
-  status      String   @default("new")
+  status      String   @default("submitted")
   moderatedBy String?  @map("moderated_by") @db.Uuid
   assignedTo  String?  @map("assigned_to") @db.Uuid
   createdAt   DateTime @default(now()) @map("created_at")

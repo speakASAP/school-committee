@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
+import { STATUS_COLOR, STATUS_LABEL as SHARED_STATUS_LABEL } from "@/lib/statuses";
 interface Task {
   id: string;
   title: string;
@@ -28,23 +29,8 @@ const PRIORITY_LABEL: Record<string, string> = {
   low: "nízká",
 };
 
-const STATUS_BADGE: Record<string, string> = {
-  draft: "bg-gray-100 text-gray-500",
-  open: "bg-blue-100 text-blue-700",
-  reserved: "bg-yellow-100 text-yellow-700",
-  claimed: "bg-yellow-100 text-yellow-700",
-  completed: "bg-green-100 text-green-700",
-  verified: "bg-purple-100 text-purple-700",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  draft: "koncept",
-  open: "otevřený",
-  reserved: "zaplánováno",
-  claimed: "probíhá",
-  completed: "dokončený",
-  verified: "ověřený",
-};
+const STATUS_BADGE = STATUS_COLOR;
+const STATUS_LABEL = SHARED_STATUS_LABEL;
 
 const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
 

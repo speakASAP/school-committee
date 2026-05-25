@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { voiceRecordingService } from "@/app/(landing)/voiceRecording";
+import { STATUS_COLOR, STATUS_LABEL as SHARED_STATUS_LABEL } from "@/lib/statuses";
 
 const TYPES = ["suggestion", "complaint", "praise", "question"] as const;
 
@@ -38,19 +39,8 @@ interface SubmittedItem {
   createdAt: string;
 }
 
-const STATUS_BADGE: Record<string, string> = {
-  new: "bg-blue-100 text-blue-700",
-  in_review: "bg-yellow-100 text-yellow-700",
-  resolved: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  new: "nové",
-  in_review: "v řešení",
-  resolved: "vyřešeno",
-  rejected: "zamítnuto",
-};
+const STATUS_BADGE = STATUS_COLOR;
+const STATUS_LABEL = SHARED_STATUS_LABEL;
 
 function SubmitForm({ onSubmitted }: { onSubmitted: () => void }) {
   const [type, setType] = useState<typeof TYPES[number]>("suggestion");

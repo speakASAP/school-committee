@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { FEEDBACK_ADMIN_STATUSES, STATUS_LABEL, STATUS_COLOR } from "@/lib/statuses";
 
 interface FeedbackItem {
   id: string;
@@ -13,21 +14,7 @@ interface FeedbackItem {
   createdAt: string;
 }
 
-const MODERATION_STATUSES = ["in_review", "resolved", "archived"];
-
-const STATUS_LABEL: Record<string, string> = {
-  new: "Nové",
-  in_review: "V řešení",
-  resolved: "Vyřešeno",
-  archived: "Archivováno",
-};
-
-const STATUS_COLOR: Record<string, string> = {
-  new: "bg-blue-100 text-blue-700",
-  in_review: "bg-yellow-100 text-yellow-700",
-  resolved: "bg-green-100 text-green-700",
-  archived: "bg-gray-100 text-gray-500",
-};
+const MODERATION_STATUSES = [...FEEDBACK_ADMIN_STATUSES];
 
 const TYPE_LABEL: Record<string, string> = {
   suggestion: "Návrh",

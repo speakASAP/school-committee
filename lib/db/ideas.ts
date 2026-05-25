@@ -63,7 +63,7 @@ export async function createIdea(params: CreateIdeaParams): Promise<{ id: string
         isAnonymous,
         voiceFileKey,
         voiceTranscript,
-        status: "active",
+        status: "submitted",
         categories,
       },
     });

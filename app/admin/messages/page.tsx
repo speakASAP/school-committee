@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { STATUS_LABEL as SHARED_STATUS_LABEL, STATUS_COLOR as SHARED_STATUS_COLOR } from "@/lib/statuses";
 
 interface Reply {
   id: string;
@@ -48,27 +49,8 @@ const KIND_COLOR: Record<string, string> = {
   idea: "bg-purple-100 text-purple-700",
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  new: "Nové",
-  replied: "Odpovězeno",
-  in_review: "V řešení",
-  resolved: "Vyřešeno",
-  archived: "Archivováno",
-  submitted: "Podáno",
-  active: "Aktivní",
-  rejected: "Zamítnuto",
-};
-
-const STATUS_COLOR: Record<string, string> = {
-  new: "bg-red-100 text-red-700",
-  replied: "bg-green-100 text-green-700",
-  in_review: "bg-yellow-100 text-yellow-700",
-  resolved: "bg-gray-100 text-gray-500",
-  archived: "bg-gray-100 text-gray-400",
-  submitted: "bg-blue-100 text-blue-600",
-  active: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-600",
-};
+const STATUS_LABEL = SHARED_STATUS_LABEL;
+const STATUS_COLOR = SHARED_STATUS_COLOR;
 
 const FEEDBACK_TYPE: Record<string, string> = {
   suggestion: "Návrh", complaint: "Stížnost", praise: "Pochvala",
@@ -133,7 +115,7 @@ export default function AdminMessagesPage() {
           i.id === item.id
             ? {
                 ...i,
-                status: "replied",
+                status: "replied" as const,
                 replies: [
                   ...(i.replies ?? []),
                   { id: replyId, body: replyText.trim(), fromUserId: "", isFromCommittee: true, createdAt: new Date().toISOString() },
@@ -287,7 +269,7 @@ export default function AdminMessagesPage() {
                   {item.kind === "feedback" && (
                     <div className="flex gap-2 items-center flex-wrap">
                       <span className="text-xs text-gray-500">Stav:</span>
-                      {["in_review", "resolved", "archived"].map((s) => (
+                      {(["submitted", "in_review", "resolved", "archived"] as const).map((s) => (
                         <button
                           key={s}
                           onClick={() => updateFeedbackStatus(item.id, s)}

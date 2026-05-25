@@ -10,7 +10,7 @@ import { toErrorResponse, AppError } from "@/types/errors";
 const DEFAULT_SCHOOL_ID = process.env.DEFAULT_SCHOOL_ID ?? "";
 const DEFAULT_TENANT_ID = process.env.DEFAULT_TENANT_ID ?? DEFAULT_SCHOOL_ID;
 
-const ALLOWED_MODERATE_STATUSES = ["in_review", "resolved", "archived"];
+const ALLOWED_MODERATE_STATUSES = ["submitted", "in_review", "resolved", "archived"];
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));

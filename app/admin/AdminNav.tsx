@@ -9,7 +9,6 @@ const NAV_LINKS = [
   { href: "/admin/payments", label: "Platby" },
   { href: "/admin/feedback", label: "Zpětná vazba" },
   { href: "/admin/ideas", label: "Nápady" },
-  { href: "/admin/exports", label: "Export" },
 ];
 
 export default function AdminNav() {
