@@ -14,7 +14,7 @@ data:
   APP_BASE_URL: "https://strilkove.cz"
   AUTH_SERVICE_BASE_URL: "http://auth-microservice.statex-apps.svc.cluster.local:3370"
   AUTH_SERVICE_AUDIENCE: "school-committee"
-  DB_HOST: "192.168.88.53"
+  DB_HOST: "db-server-postgres.statex-apps.svc.cluster.local"
   DB_PORT: "5432"
   DB_USER: "dbadmin"
   DB_NAME: "school_committee_platform"
