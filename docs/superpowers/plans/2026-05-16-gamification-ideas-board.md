@@ -254,7 +254,7 @@ Expected: 20 lines `Upserted: <key>` then `Done.`
 npx prisma studio
 ```
 
-Open `achievements` table — verify 20 rows exist. (Or use `psql` / MCP postgres if available.)
+Verify the achievements data through the Kubernetes-backed application path.
 
 - [ ] **Step 4: Commit**
 
