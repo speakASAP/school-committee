@@ -460,12 +460,12 @@ model TaskVideo {
 
 ```bash
 cd /home/ssf/Documents/Github/school-committee
-DATABASE_URL="postgresql://dbadmin:$(kubectl get secret school-committee-secrets -n statex-apps -o jsonpath='{.data.DB_SERVICE_TOKEN}' | base64 -d)@192.168.88.53:5432/school_committee_platform" npx prisma migrate dev --name remove_single_photo_add_task_photos_videos
+DATABASE_URL="postgresql://dbadmin:$(kubectl get secret school-committee-secrets -n statex-apps -o jsonpath='{.data.DB_SERVICE_TOKEN}' | base64 -d)@db-server-postgres.statex-apps.svc.cluster.local:5432/school_committee_platform" npx prisma migrate dev --name remove_single_photo_add_task_photos_videos
 ```
 
 If running locally without K8s, use `.env` with `DATABASE_URL` set to:
 ```
-postgresql://dbadmin:<DB_SERVICE_TOKEN>@192.168.88.53:5432/school_committee_platform
+postgresql://dbadmin:<DB_SERVICE_TOKEN>@db-server-postgres.statex-apps.svc.cluster.local:5432/school_committee_platform
 ```
 
 Expected output: `✔ Generated Prisma Client` and migration applied.

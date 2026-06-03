@@ -35,7 +35,7 @@ Mobile-first web platform for Czech primary school parent committees. Parents ca
 | Service | Env var | Address | Purpose |
 |---------|---------|---------|---------|
 | Auth | `AUTH_SERVICE_BASE_URL` | `http://auth-microservice.statex-apps.svc.cluster.local:3370` | Identity, JWT, roles |
-| PostgreSQL | `DB_HOST` / `DB_SERVICE_TOKEN` | `192.168.88.53:5432` | Direct ORM connection (Prisma) |
+| PostgreSQL | `DB_HOST` / `DB_SERVICE_TOKEN` | `db-server-postgres.statex-apps.svc.cluster.local:5432` | Direct ORM connection (Prisma) |
 | Logging | `LOGGING_SERVICE_URL` | `http://logging-microservice.statex-apps.svc.cluster.local:3367` | Structured logs |
 | Notifications | `NOTIFICATION_SERVICE_BASE_URL` | `http://notifications-microservice.statex-apps.svc.cluster.local:3368` | Email alerts |
 | Payments | internal QR generator | — | Czech QR bank payment generation |
@@ -46,7 +46,7 @@ Mobile-first web platform for Czech primary school parent committees. Parents ca
 ## Architecture Constraints (from ADRs in docs/59-risks-and-decisions.md)
 
 - **ADR-001:** Never implement auth internally. Use auth-microservice.
-- **ADR-002:** Direct PostgreSQL via ORM (Prisma). Shared instance at `192.168.88.53:5432`.
+- **ADR-002:** Direct PostgreSQL via ORM (Prisma). Shared instance at `db-server-postgres.statex-apps.svc.cluster.local:5432`.
 - **ADR-003:** All secrets from Vault. Never `.env` in production.
 - **ADR-004:** QR bank payments for MVP. No Stripe.
 - **ADR-005:** No child accounts in MVP.
@@ -72,7 +72,7 @@ Direct PostgreSQL via Prisma. Construct `DATABASE_URL` at runtime — never hard
 const url = `postgresql://${DB_USER}:${DB_SERVICE_TOKEN}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
 ```
 
-ConfigMap supplies: `DB_HOST=192.168.88.53`, `DB_PORT=5432`, `DB_USER=dbadmin`, `DB_NAME=school_committee_platform`  
+ConfigMap supplies: `DB_HOST=db-server-postgres`, `DB_PORT=5432`, `DB_USER=dbadmin`, `DB_NAME=school_committee_platform`  
 Vault supplies: `DB_SERVICE_TOKEN` (password)
 
 ---
@@ -115,7 +115,7 @@ Roles managed via auth-microservice RBAC. Use Model B (platform-owned domain rol
 
 1. **Never store secrets in code or ConfigMap.** Vault only.
 2. **Never implement authentication.** Delegate entirely to auth-microservice.
-3. **ORM only for DB access.** Connect via Prisma to `192.168.88.53:5432`. No raw SQL except atomic transactions.
+3. **ORM only for DB access.** Connect via Prisma to `db-server-postgres.statex-apps.svc.cluster.local:5432`. No raw SQL except atomic transactions.
 4. **Never expose individual parent payment status publicly.** Aggregated reports only.
 5. **Never create child user accounts in MVP.**
 6. **QR payment QR codes must be server-generated.** No client-side generation of payment data.

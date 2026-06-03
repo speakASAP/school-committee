@@ -2603,7 +2603,7 @@ npm run dev
 ```bash
 npx prisma studio
 # or run directly:
-psql "postgresql://dbadmin:<password>@192.168.88.53:5432/school_committee_platform" \
+psql "postgresql://dbadmin:<password>@db-server-postgres.statex-apps.svc.cluster.local:5432/school_committee_platform" \
   -c "SELECT user_id, onboarding_status, approval_status FROM profiles ORDER BY created_at DESC LIMIT 5;"
 ```
 

@@ -6,7 +6,7 @@
 
 ## Context
 
-The platform connects directly to the shared Statex PostgreSQL instance at `192.168.88.53:5432` using an ORM (Prisma recommended — used widely in the ecosystem). This is the same pattern used by marathon, beauty, and other Statex apps. There is no intermediate DB microservice API.
+The platform connects directly to the shared Statex PostgreSQL instance at `db-server-postgres.statex-apps.svc.cluster.local:5432` using an ORM (Prisma recommended — used widely in the ecosystem). This is the same pattern used by marathon, beauty, and other Statex apps. There is no intermediate DB microservice API.
 
 Database credentials come from Vault via ESO: `DB_SERVICE_TOKEN` maps to the DB password, with `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME` set via ConfigMap.
 
@@ -39,7 +39,7 @@ Set up Prisma (or TypeORM) with schema, migrations, and typed repository helpers
 
 From **ConfigMap** (non-secret):
 ```
-DB_HOST=192.168.88.53
+DB_HOST=db-server-postgres
 DB_PORT=5432
 DB_USER=dbadmin
 DB_NAME=school_committee_platform

@@ -270,7 +270,7 @@ Expected: `deployment "warehouse-microservice" successfully rolled out`
 **Files:**
 - Modify: `statex/k8s/deployment.yaml`
 
-statex uses `DB_HOST=192.168.88.53` (host IP, not cluster service). Wait on the host IP directly.
+statex uses `DB_HOST=db-server-postgres` (Kubernetes service DNS, not cluster service). Wait on the Kubernetes service DNS directly.
 
 - [ ] **Step 1: Edit statex/k8s/deployment.yaml**
 
@@ -280,7 +280,7 @@ Add `initContainers` block inside `spec.template.spec`, before `containers:`:
       initContainers:
         - name: wait-postgres
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z 192.168.88.53 5432; do echo waiting for postgres; sleep 2; done']
+          command: ['sh', '-c', 'until nc -z db-server-postgres 5432; do echo waiting for postgres; sleep 2; done']
       containers:
         - name: app
           image: localhost:5000/statex:latest
@@ -309,7 +309,7 @@ Expected: `deployment "statex" successfully rolled out`
 **Files:**
 - Modify: `prompts-microservice/k8s/deployment.yaml`
 
-prompts-microservice uses `DB_HOST=192.168.88.53` (host IP) but auth and logging via cluster DNS.
+prompts-microservice uses `DB_HOST=db-server-postgres` (Kubernetes service DNS) but auth and logging via cluster DNS.
 
 - [ ] **Step 1: Edit prompts-microservice/k8s/deployment.yaml**
 
@@ -319,7 +319,7 @@ Add `initContainers` block inside `spec.template.spec`, before `containers:`:
       initContainers:
         - name: wait-postgres
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z 192.168.88.53 5432; do echo waiting for postgres; sleep 2; done']
+          command: ['sh', '-c', 'until nc -z db-server-postgres 5432; do echo waiting for postgres; sleep 2; done']
         - name: wait-auth
           image: busybox:1.36
           command: ['sh', '-c', 'until nc -z auth-microservice 3370; do echo waiting for auth; sleep 2; done']
@@ -354,7 +354,7 @@ Expected: `deployment "prompts-microservice" successfully rolled out`
 **Files:**
 - Modify: `speakasap/k8s/deployment.yaml`
 
-speakasap uses `DB_HOST=192.168.88.53` (host IP) and `AUTH_SERVICE_URL=http://192.168.88.53:3370`.
+speakasap uses `DB_HOST=db-server-postgres` and `AUTH_SERVICE_URL=http://auth-microservice:3370` via Kubernetes service DNS.
 
 - [ ] **Step 1: Edit speakasap/k8s/deployment.yaml**
 
@@ -364,10 +364,10 @@ Add `initContainers` block inside `spec.template.spec`, before `containers:`:
       initContainers:
         - name: wait-postgres
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z 192.168.88.53 5432; do echo waiting for postgres; sleep 2; done']
+          command: ['sh', '-c', 'until nc -z db-server-postgres 5432; do echo waiting for postgres; sleep 2; done']
         - name: wait-auth
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z 192.168.88.53 3370; do echo waiting for auth; sleep 2; done']
+          command: ['sh', '-c', 'until nc -z auth-microservice 3370; do echo waiting for auth; sleep 2; done']
       containers:
         - name: app
           image: localhost:5000/speakasap:latest

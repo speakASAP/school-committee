@@ -6,7 +6,7 @@
 
 **Architecture:** Extend the existing `Idea`/`IdeaVote` Prisma models; add `IdeaPhoto`, `IdeaVideo`, `IdeaComment`, `IdeaCommentLike`, `Achievement`, and `UserAchievement` tables. A synchronous badge-award engine (`lib/gamification/award-badges.ts`) is called at the end of every relevant mutation. New pages live under `app/(public)/ideas/` (public read) and `app/(app)/` (auth-only: Hall of Fame, profiles). Existing `/feedback` is untouched.
 
-**Tech Stack:** Next.js 14 App Router, TypeScript strict, Prisma ORM (PostgreSQL at 192.168.88.53:5432), Tailwind CSS, MinIO (S3-compatible) for media, existing `lib/auth/get-current-user.ts` for auth, existing `lib/db/audit.ts` for audit events.
+**Tech Stack:** Next.js 14 App Router, TypeScript strict, Prisma ORM (PostgreSQL at db-server-postgres.statex-apps.svc.cluster.local:5432), Tailwind CSS, MinIO (S3-compatible) for media, existing `lib/auth/get-current-user.ts` for auth, existing `lib/db/audit.ts` for audit events.
 
 ---
 
