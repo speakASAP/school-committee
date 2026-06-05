@@ -6,7 +6,7 @@
 
 ## Context
 
-The platform connects directly to the shared Statex PostgreSQL instance at `db-server-postgres.statex-apps.svc.cluster.local:5432` using an ORM (Prisma recommended — used widely in the ecosystem). This is the same pattern used by marathon, beauty, and other Statex apps. There is no intermediate DB microservice API.
+The platform connects directly to the shared PostgreSQL instance via Kubernetes service DNS (see [database-server/docs/ARCHITECTURE.md](../../database-server/docs/ARCHITECTURE.md)) using an ORM (Prisma recommended). There is no intermediate DB microservice API.
 
 Database credentials come from Vault via ESO: `DB_SERVICE_TOKEN` maps to the DB password, with `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME` set via ConfigMap.
 

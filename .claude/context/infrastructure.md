@@ -35,7 +35,7 @@ secret/prod/school-committee/storage
 
 ```
 auth-microservice:  http://auth-microservice.statex-apps.svc.cluster.local:3370
-DB service:         http://database-server.statex-apps.svc.cluster.local:5432
+DB service:         db-server-postgres:5432 (see database-server/docs/ARCHITECTURE.md)
 Logging:            http://logging-microservice.statex-apps.svc.cluster.local:3367
 Notifications:      http://notifications-microservice.statex-apps.svc.cluster.local:3368
 MinIO/Storage:      http://minio-microservice.statex-apps.svc.cluster.local:9000
