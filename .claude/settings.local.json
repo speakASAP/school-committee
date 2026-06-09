@@ -16,7 +16,10 @@
       "WebFetch(domain:strilkove.cz)",
       "mcp__ide__getDiagnostics",
       "mcp__plugin_playwright_playwright__browser_take_screenshot",
-      "mcp__plugin_playwright_playwright__browser_network_requests"
+      "mcp__plugin_playwright_playwright__browser_network_requests",
+      "mcp__plugin_playwright_playwright__browser_console_messages",
+      "Bash(psql \"postgresql://dbadmin@localhost:5432/school_committee_platform\" -c \"\\\\dt\")",
+      "Bash(systemctl status *)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -351,7 +351,9 @@ function FeedbackContent() {
               <a key={l.href} href={l.href} className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">{l.label}</a>
             ))}
           </div>
-          <p className="text-xs text-gray-400">© {new Date().getFullYear()} Školní výbor · strilkove.cz</p>
+          <p className="text-xs text-gray-400" suppressHydrationWarning>
+            © {new Date().getFullYear()} Školní výbor · strilkove.cz
+          </p>
         </div>
       </footer>
     </div>

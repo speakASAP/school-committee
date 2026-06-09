@@ -40,6 +40,7 @@ const PUBLIC_PREFIXES = [
   "/_next",
   "/favicon",
   "/logo.webp",
+  "/manifest.json",
 ];
 
 function isPublic(pathname: string): boolean {

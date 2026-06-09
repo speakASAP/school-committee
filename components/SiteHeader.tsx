@@ -35,14 +35,9 @@ interface UserProfile {
 }
 
 export default function SiteHeader({ authenticated }: Props) {
-  const [authed, setAuthed] = useState<boolean | null>(() => {
-    if (authenticated !== undefined) return authenticated;
-    if (typeof window !== "undefined") {
-      const cached = sessionStorage.getItem("authed");
-      if (cached !== null) return cached === "1";
-    }
-    return null;
-  });
+  const [authed, setAuthed] = useState<boolean | null>(
+    authenticated !== undefined ? authenticated : null,
+  );
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -51,6 +46,13 @@ export default function SiteHeader({ authenticated }: Props) {
 
   useEffect(() => {
     if (authenticated !== undefined) return;
+
+    const cached = sessionStorage.getItem("authed");
+    if (cached !== null) {
+      setAuthed(cached === "1");
+      return;
+    }
+
     fetch("/api/auth/me")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {

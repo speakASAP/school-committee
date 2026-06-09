@@ -27,6 +27,11 @@ describe("middleware", () => {
     expect(res.status).not.toBe(307);
   });
 
+  it("passes through manifest.json without cookie", () => {
+    const res = middleware(makeReq("/manifest.json"));
+    expect(res.status).not.toBe(307);
+  });
+
   it("redirects to /login when no cookie on protected path", () => {
     const res = middleware(makeReq("/admin/users"));
     expect(res.status).toBe(307);
