@@ -5,3 +5,15 @@ coverage
 .env
 .env.local
 .DS_Store
+k8s/secret.yaml
+secrets/
+keys/
+*.pem
+*.key
+*private*
+*backup*
+*bck*
+*.bak*
+
+# Claude Code local settings (may contain tokens)
+.claude/settings.local.json
