@@ -9,7 +9,10 @@
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "ips:doc-audit": "python3 scripts/ips_doc_audit.py --root .",
+    "ips:pre-coding": "python3 scripts/ips_pre_coding_gate.py --root .",
+    "ips:deployment-readiness": "python3 scripts/ips_deployment_readiness_gate.py --root ."
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",

@@ -1,0 +1,33 @@
+{
+  "created_at": "2026-06-13T19:05:32Z",
+  "files_required": [
+    "BUSINESS.md",
+    "GOALS.md",
+    "SYSTEM.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "TASKS.md",
+    "README.md",
+    "docs/33-openapi.yaml",
+    "docs/intent-preservation/README.md",
+    "docs/intent-preservation/constitution.md",
+    "docs/intent-preservation/project-invariants.md",
+    "docs/intent-preservation/agent-rules.md",
+    "docs/intent-preservation/documentation-completeness-standard.md",
+    "docs/intent-preservation/sensitive-data-policy.md",
+    "docs/intent-preservation/operational-gates.md",
+    "docs/intent-preservation/context-packages.md",
+    "docs/intent-preservation/tasks/TASK-IPS-001-standard-adoption.md",
+    "docs/intent-preservation/execution-plans/EP-IPS-001-standard-adoption.md",
+    "docs/intent-preservation/context-packages/CP-IPS-001-standard-adoption.md",
+    "docs/intent-preservation/goal-impact/GOAL-IMPACT-IPS-001-standard-adoption.md",
+    "docs/intent-preservation/validation/VAL-IPS-001-standard-adoption.md"
+  ],
+  "findings": [],
+  "findings_count": 0,
+  "gate": "doc_audit",
+  "next_step": "run_pre_coding_gate",
+  "root": "/home/ssf/Documents/Github/school-committee",
+  "schema_version": "1.0.0",
+  "status": "PASS"
+}

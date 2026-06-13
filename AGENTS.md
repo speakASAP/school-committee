@@ -61,3 +61,19 @@ Stop and report to human if:
 - A payment-related change is needed that is not in docs
 - A GDPR-impacting data model change is needed
 - Two tasks conflict
+
+## Intent Preservation System
+
+Company IPS is implemented in `docs/intent-preservation/`.
+
+Before coding:
+- Query docs RAG as documented above, or record why it is unavailable.
+- Read `.claude/checklists/before-coding.md`.
+- Confirm a task exists under `docs/intent-preservation/tasks/` with goal impact, invariant impact, sensitive-data classification, contract/schema impact, replay/determinism impact, execution plan, context package, and validation commands.
+- Run `npm run ips:pre-coding`.
+
+Before merge, release, deployment, or task closure:
+- Run `npm run ips:deployment-readiness`.
+- Store gate evidence under `reports/validation/`.
+
+Human-only files remain protected: `BUSINESS.md` and `GOALS.md`.

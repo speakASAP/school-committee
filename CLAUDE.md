@@ -176,3 +176,15 @@ POST to `LOGGING_SERVICE_URL/api/logs`:
 | Agent tasking guide | `docs/55-agent-tasking-guide.md` |
 | Backlog | `docs/56-implementation-backlog.md` |
 | Risks and ADRs | `docs/59-risks-and-decisions.md` |
+
+## Intent Preservation System
+
+This repository implements the company Intent Preservation System in `docs/intent-preservation/`.
+
+Required chain for future implementation work:
+
+```text
+Business intent -> Goal impact -> System constraints -> Task -> Execution plan -> Context package -> Code -> Validation report -> Readiness gate
+```
+
+Run `npm run ips:pre-coding` before implementation and `npm run ips:deployment-readiness` before merge, release, deployment, or closure. Do not edit `BUSINESS.md` or `GOALS.md`.
