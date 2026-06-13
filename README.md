@@ -12,6 +12,16 @@ All product, architecture, API, legal, security, UX, database, backlog and imple
 
 The repository is designed so that a coding agent can start implementation from the documents without requiring additional product clarification.
 
+
+
+## Auth and Local Authorization Contract
+
+School Committee delegates authentication to `auth-microservice`. The BFF validates Auth-issued access tokens through `POST /auth/validate` using `AUTH_SERVICE_BASE_URL`; Auth remains the authority for identity, login, JWT issuance, refresh, password reset, and global/application RBAC claims.
+
+School Committee owns school-domain authorization after identity validation. Local roles such as `parent`, `committee`, `teacher`, `school_staff`, and `admin` are stored in this service's `user_roles` table, scoped by tenant or school, and enforced by School Committee route guards. Profile approval state is stored in this service's `profiles.approval_status` workflow.
+
+Do not describe these local roles or approval states as Auth RBAC enforcement. Auth proves who the user is; School Committee decides whether that user is approved for a school and which local school actions they may perform.
+
 ## Setup
 
 ```bash
