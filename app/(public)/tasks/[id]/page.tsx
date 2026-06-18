@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { Suspense } from "react";
 import ReactMarkdown from "react-markdown";
 import { UserAvatar } from "@/components/UserAvatar";
+import { TaskCommentThread } from "@/components/tasks/TaskCommentThread";
 import { TASK_STATUSES, STATUS_LABEL as SHARED_STATUS_LABEL } from "@/lib/statuses";
 
 interface TaskPhoto {
@@ -519,6 +520,8 @@ function TaskDetail() {
                   </button>
                 </div>
               )}
+
+              <TaskCommentThread taskId={id} authed={authed} />
             </div>
           )}
         </div>
