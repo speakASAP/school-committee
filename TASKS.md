@@ -27,3 +27,7 @@ Backlog max 30 items. Each task needs a goal reference.
 ## Intent preservation requirement
 
 Future implementation tasks must have matching IPS artifacts under `docs/intent-preservation/`: task, goal impact record, execution plan, context package, and validation report. Run `npm run ips:pre-coding` before source edits and `npm run ips:deployment-readiness` before closure.
+
+## Project Completion Marker
+
+- 2026-06-21: Project marked completed/frozen after remote inventory. There are no active goals, active plans, open tasks, blockers, or pending human/AI actions. Do not ask for a new goal during routine status checks unless the owner explicitly creates one.

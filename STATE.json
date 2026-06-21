@@ -18,5 +18,12 @@
     "012-volunteer-task-showcase",
     "013-lead-confirmation-ux"
   ],
-  "notes": "Landing page live at /. Bilingual cs/en. Lead capture via leads-microservice (BFF proxy at /api/leads/submit). Time-or-money section with 6 volunteer task examples. Login button in nav. Authenticated users bypass to /dashboard via middleware. Channel-specific confirmation UX (email/WhatsApp/Telegram). Task 014 (confirmation sending) is planned for notifications-microservice — not implemented here. 187/187 tests pass."
+  "notes": "Landing page live at /. Bilingual cs/en. Lead capture via leads-microservice (BFF proxy at /api/leads/submit). Time-or-money section with 6 volunteer task examples. Login button in nav. Authenticated users bypass to /dashboard via middleware. Channel-specific confirmation UX (email/WhatsApp/Telegram). Task 014 (confirmation sending) is planned for notifications-microservice — not implemented here. 187/187 tests pass.",
+  "project_status": "completed_frozen",
+  "next_focus": "Project completed/frozen: no active goals, plans, tasks, blockers, or human/AI actions pending as of 2026-06-21.",
+  "open_task_ids": [],
+  "blockers": [],
+  "completed_at": "2026-06-21",
+  "frozen_at": "2026-06-21",
+  "updated_at": "2026-06-21"
 }
