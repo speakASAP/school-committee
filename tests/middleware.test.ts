@@ -3,9 +3,11 @@ import { NextRequest } from "next/server";
 
 import { proxy as middleware } from "@/proxy";
 
-function makeReq(path: string, cookie?: string) {
+function makeReq(path: string, cookies?: Record<string, string>) {
   const req = new NextRequest(`http://localhost${path}`);
-  if (cookie) req.cookies.set("scp_access", cookie);
+  for (const [name, value] of Object.entries(cookies ?? {})) {
+    req.cookies.set(name, value);
+  }
   return req;
 }
 
@@ -39,12 +41,22 @@ describe("middleware", () => {
   });
 
   it("redirects when cookie contains obviously expired token", () => {
-    const res = middleware(makeReq("/admin/users", EXPIRED_JWT));
+    const res = middleware(makeReq("/admin/users", { scp_access: EXPIRED_JWT }));
     expect(res.status).toBe(307);
   });
 
-  it("passes through when cookie contains non-expired token", () => {
-    const res = middleware(makeReq("/admin/users", VALID_JWT));
+  it("routes valid sessions without onboarding cookie through sync", () => {
+    const res = middleware(makeReq("/admin/users", { scp_access: VALID_JWT }));
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toContain("/api/auth/sync");
+    expect(res.headers.get("location")).toContain("next=%2Fadmin%2Fusers");
+  });
+
+  it("passes through when valid session has complete onboarding", () => {
+    const res = middleware(makeReq("/admin/users", {
+      scp_access: VALID_JWT,
+      scp_onboarding: "complete",
+    }));
     expect(res.status).not.toBe(307);
   });
 
