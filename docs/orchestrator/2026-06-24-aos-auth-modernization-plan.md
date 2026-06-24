@@ -104,7 +104,9 @@ WS-E deployed smoke checklist:
 
 ## Current Decision
 
-No School Committee code change is required in this pass. The current consumer implementation is compatible with the existing Auth routes and already tolerates flat and legacy-wrapped token responses. The only code-gated item is a potential hosted-auth `/login` redirect and `/auth/callback` adapter after WS-A publishes the exact hosted contract.
+Superseded by Wave 2 implementation commit `8e728b6` and `docs/orchestrator/2026-06-24-school-committee-hosted-auth-wave2-status.md`. WS-A has now published the hosted-auth consumer standard, and School Committee has been converted to a hosted Auth redirect/callback consumer while preserving BFF cookies, refresh, validation, onboarding, and local school-domain authorization.
+
+Remaining gate: WS-E/live integration validation must verify the production callback origin is allowed by Auth runtime config and run a safe hosted-login smoke. No further WS-D code patch is indicated by the current repo-level tests.
 
 ## Handoff To WS-A
 
@@ -152,3 +154,67 @@ npm test -- tests/auth/validate-token.test.ts tests/auth/require-role.test.ts
 ```
 
 Result: passed, 2 test files and 12 tests. The expected mocked network-error log from validate-token was emitted by the negative-path test.
+
+## Continuation Evidence - 2026-06-24
+
+Continuation check after WS-A contract publication and School Committee Wave 2 commit `8e728b6`:
+
+- Reviewed Auth contract docs: `auth-microservice/docs/HOSTED_AUTH_CONSUMER_STANDARD.md`, `auth-microservice/docs/UNIFIED_AUTH_CONTRACT.md`, and `auth-microservice/docs/orchestrator/2026-06-24-aos-auth-contract-handoff.md`.
+- Reviewed School Committee hosted-auth adapter paths: `app/(public)/login/page.tsx`, `app/auth/callback/page.tsx`, `lib/auth/hosted-auth.ts`, `tests/auth/hosted-auth.test.ts`, and `tests/middleware.test.ts`.
+- `npm test -- tests/auth/validate-token.test.ts tests/auth/require-role.test.ts tests/auth/hosted-auth.test.ts tests/middleware.test.ts`: passed, 4 files and 23 tests.
+- `npm run type-check`: passed.
+- `npm run build`: passed. Known dynamic server usage messages for admin routes appeared during static generation and Next classified those routes as dynamic; this matches Wave 2 status debt and did not fail the build.
+
+Decision: WS-D repo-level adapter work is complete for the published contract. Remaining next step is WS-E/live validation: verify Auth runtime redirect allowlist includes the School Committee production callback origin and run a safe hosted-login smoke without exposing tokens or user PII.
+
+## WS-E Live Validation Evidence - 2026-06-24
+
+Live validation after School Committee hosted-auth adapter and Auth redirect allowlist update:
+
+- Production origin discovered from live ingress and repo config: `https://strilkove.cz`; alternate host: `https://www.strilkove.cz`.
+- Initial Auth redirect validation failed for both `https://strilkove.cz/auth/callback` and `https://www.strilkove.cz/auth/callback` with `return_url is not allowed` because live Auth config only allowed `*.alfares.cz`.
+- Runtime Auth ConfigMap `auth-microservice-config` was patched non-secret key `AUTH_ALLOWED_REDIRECT_ORIGINS` to include `https://strilkove.cz` and `https://www.strilkove.cz`; `auth-microservice` was restarted and rolled out successfully.
+- Post-patch Auth redirect validation passed for both callback URLs: `valid: true`.
+- School Committee deploy script built and pushed `localhost:5000/school-committee:latest`, then stopped at the known `school-committee-secret` ExternalSecret/Vault readiness gate. No secret values were printed. Manual rollout restart was used to pick up the already-pushed image with the existing Kubernetes Secret.
+- School Committee rollout completed successfully: deployment desired/ready/updated/available all `1`.
+- Live health checks passed: `https://strilkove.cz/api/health/live` returned HTTP 200 and `https://auth.alfares.cz/health` returned HTTP 200.
+- Safe no-credential browser smoke passed: navigating to `https://strilkove.cz/login?next=%2Fdashboard` redirected to `https://auth.alfares.cz/login` with `client_id=school-committee`, `return_url=https://strilkove.cz/auth/callback`, a generated `state`, and no token query parameters.
+
+Remaining validation debt:
+
+- Full credential login/callback smoke with real token handoff was not run because no approved non-PII test account or synthetic token handoff was provided.
+- `vault-backend` / ExternalSecret readiness remains a deployment automation blocker; existing secrets allowed this rollout restart, but future deploy scripts will continue to stop at the readiness gate until Vault/ESO is repaired.
+
+## WS-E Credential Callback Smoke - 2026-06-24
+
+Approved live credential/session smoke was run with synthetic non-PII Auth accounts under `example.invalid`. Credentials, JWTs, refresh tokens, callback fragments, cookie values, and user identifiers were not printed.
+
+Evidence:
+
+- Auth synthetic registration returned HTTP 201.
+- Hosted Auth login form submitted through `POST https://auth.alfares.cz/auth/login` and returned HTTP 201.
+- Hosted login entry had `client_id=school-committee`, `return_url=https://strilkove.cz/auth/callback`, and generated `state`.
+- Auth callback handoff used URL fragment fields `access_token`, `refresh_token`, `expires_at`, `state`, and `auth_method=password`; no token query parameters were observed in the redacted navigation sequence.
+- School Committee callback stripped the fragment from browser history and routed to `https://strilkove.cz/onboarding/profile` for a new synthetic user.
+- Browser session contained `scp_access`, `scp_refresh`, and `scp_onboarding` cookies; all three were HTTP-only. Cookie values were not printed.
+
+Result: full hosted credential login -> Auth fragment callback -> School Committee BFF session cookie establishment smoke passed.
+
+Residual debt:
+
+- Synthetic Auth test accounts were created in production Auth for this approved smoke and were not removed because no safe user cleanup path was part of this task.
+- ExternalSecret/Vault readiness remains a deployment automation blocker independent of this auth flow.
+
+## WS-E Post-Vault Redeploy Smoke - 2026-06-24
+
+- Vault/ExternalSecret blocker cleared: `vault-backend` is `Ready=True` and the global ExternalSecret failure scan returned no failing rows.
+- School Committee redeploy completed after the Vault repair. Deploy evidence: image build/push succeeded, `school-committee-secret` ExternalSecret condition met, rollout completed, and `https://strilkove.cz/api/health/live` returned HTTP 200.
+- Auth and Auth web were redeployed and corrected to matching image tag `35e78ac-20260624140307`; both are ready `1/1`.
+- Hosted credential smoke was rerun with a synthetic non-PII `example.invalid` Auth account. Registration returned HTTP 201; hosted Auth login POST returned HTTP 201; callback routed to `/onboarding/profile`; callback fragment was stripped from browser history; no token query parameters were observed.
+- School Committee BFF session cookies `scp_access`, `scp_refresh`, and `scp_onboarding` were present, HTTP-only, Secure, SameSite=Lax, path `/`; cookie values were not printed.
+- Refresh smoke returned HTTP 200 with the session cookies; invalid refresh returned HTTP 401.
+- Auth `/auth/validate` accepted the synthetic access token and returned stable identity fields: id, email, userType, isActive=true, and roles array.
+- Magic-link request compatibility smoke through School Committee returned HTTP 200 for a synthetic `example.invalid` address.
+- Middleware redirect smoke for unauthenticated `/dashboard` returned HTTP 307 with `Location: /login?next=%2Fdashboard`.
+- Auth return URL validation passed for both `https://strilkove.cz/auth/callback` and `https://www.strilkove.cz/auth/callback`.
+- Residual debt: synthetic Auth smoke accounts remain in production Auth because no approved cleanup path is currently part of this task.
