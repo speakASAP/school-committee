@@ -24,11 +24,13 @@ export function buildHostedAuthLoginUrl(options: {
   state: string;
   loginUrl?: string;
   clientId?: string;
+  lang?: string;
 }): string {
   const url = new URL(options.loginUrl ?? HOSTED_AUTH_LOGIN_URL);
   url.searchParams.set("client_id", options.clientId ?? HOSTED_AUTH_CLIENT_ID);
   url.searchParams.set("return_url", new URL("/auth/callback", options.origin).toString());
   url.searchParams.set("state", options.state);
+  url.searchParams.set("lang", options.lang ?? "cs");
   return url.toString();
 }
 
