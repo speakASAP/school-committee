@@ -17,9 +17,30 @@ source "$(dirname "$PROJECT_ROOT")/shared/scripts/load-deploy-phase-timing.sh" "
 deploy_timing_init "school-committee"
 
 SERVICE_NAME="school-committee"
-IMAGE="localhost:5000/${SERVICE_NAME}:latest"
 NAMESPACE="statex-apps"
 EXTERNAL_SECRET_NAME="${SERVICE_NAME}-secret"
+# Tag describes the WORKING TREE that is actually built, not just git HEAD:
+# a tag derived from HEAD alone repeats itself when files changed without a
+# commit, which makes `kubectl set image` a no-op and silently keeps the old
+# image running.
+compute_default_tag() {
+  local head dirty root
+  root="${PROJECT_ROOT:-$(pwd)}"
+  head="$(git -C "$root" rev-parse --short HEAD 2>/dev/null || true)"
+  if [ -z "$head" ]; then
+    echo "build-$(date -u +%Y%m%d%H%M%S)"
+    return
+  fi
+  dirty="$(git -C "$root" status --porcelain 2>/dev/null || true)"
+  if [ -n "$dirty" ]; then
+    echo "${head}-wt$(date -u +%Y%m%d%H%M%S)"
+  else
+    echo "$head"
+  fi
+}
+IMAGE_TAG="${1:-$(compute_default_tag)}"
+IMAGE="localhost:5000/${SERVICE_NAME}:${IMAGE_TAG}"
+IMAGE_LATEST="localhost:5000/${SERVICE_NAME}:latest"
 
 wait_for_external_secret_ready() {
   echo -e "${YELLOW}→ Verifying ExternalSecret readiness...${NC}"
@@ -43,12 +64,13 @@ cd "$PROJECT_ROOT"
 
 deploy_timing_phase_start "Build image"
 echo -e "${YELLOW}→ Building Docker image...${NC}"
-docker build --no-cache -t "$IMAGE" .
+docker build --no-cache -t "$IMAGE" -t "$IMAGE_LATEST" .
 deploy_timing_phase_end "Build image"
 
 deploy_timing_phase_start "Push image"
 echo -e "${YELLOW}→ Pushing to local registry...${NC}"
 docker push "$IMAGE"
+docker push "$IMAGE_LATEST"
 deploy_timing_phase_end "Push image"
 
 deploy_timing_phase_start "Apply ClusterIssuer"
@@ -64,10 +86,14 @@ kubectl apply -f k8s/ -n "${NAMESPACE}"
 wait_for_external_secret_ready
 deploy_timing_phase_end "Apply K8s manifests"
 
-deploy_timing_phase_start "Rollout restart"
-echo -e "${YELLOW}→ Forcing pod restart to pick up new image...${NC}"
-kubectl rollout restart deployment/"$SERVICE_NAME" -n "${NAMESPACE}"
-deploy_timing_phase_end "Rollout restart"
+deploy_timing_phase_start "Set deployment image"
+echo -e "${YELLOW}→ Rolling out image: ${IMAGE}${NC}"
+CURRENT_IMAGE=$(kubectl get deployment/"$SERVICE_NAME" -n "${NAMESPACE}" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
+kubectl set image "deployment/${SERVICE_NAME}" app="$IMAGE" -n "${NAMESPACE}"
+if [ "$CURRENT_IMAGE" = "$IMAGE" ]; then
+  kubectl rollout restart deployment/"$SERVICE_NAME" -n "${NAMESPACE}"
+fi
+deploy_timing_phase_end "Set deployment image"
 
 deploy_timing_phase_start "Wait for rollout"
 echo -e "${YELLOW}→ Waiting for rollout...${NC}"
