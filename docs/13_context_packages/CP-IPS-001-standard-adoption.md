@@ -2,7 +2,7 @@
 
 ## Target task
 
-`docs/intent-preservation/tasks/TASK-IPS-001-standard-adoption.md`
+`docs/11_tasks/TASK-IPS-001-standard-adoption.md`
 
 ## Upstream traceability
 
@@ -10,7 +10,7 @@
 
 ## Included documents
 
-Root contracts, OpenAPI, and all files under `docs/intent-preservation/`.
+Root contracts, OpenAPI, and all files under the numbered `docs/NN_*` layers.
 
 ## Excluded documents
 

@@ -18,7 +18,7 @@ Backlog max 30 items. Each task needs a goal reference.
 | 012 | Volunteer task showcase | done | GOAL-001 | (included in 011) |
 | 013 | Lead confirmation UX | done | GOAL-001 | (included in 011) |
 | 014 | SMS / email-link / Telegram / WhatsApp confirmation sending | planned | GOAL-001 | (future notifications-microservice) |
-| 015 | Company Intent Preservation System adoption | done | GOAL-001, GOAL-002, GOAL-003 | `docs/intent-preservation/tasks/TASK-IPS-001-standard-adoption.md` |
+| 015 | Company Intent Preservation System adoption | done | GOAL-001, GOAL-002, GOAL-003 | `docs/11_tasks/TASK-IPS-001-standard-adoption.md` |
 
 ## Safe start order
 
@@ -26,7 +26,7 @@ Backlog max 30 items. Each task needs a goal reference.
 
 ## Intent preservation requirement
 
-Future implementation tasks must have matching IPS artifacts under `docs/intent-preservation/`: task, goal impact record, execution plan, context package, and validation report. Run `npm run ips:pre-coding` before source edits and `npm run ips:deployment-readiness` before closure.
+Future implementation tasks must have matching IPS artifacts under the numbered `docs/NN_*` layers: task, goal impact record, execution plan, context package, and validation report. Run `npm run ips:pre-coding` before source edits and `npm run ips:deployment-readiness` before closure.
 
 ## Project Completion Marker
 

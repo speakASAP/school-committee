@@ -8,7 +8,7 @@ created: 2026-06-13
 last_updated: 2026-06-13
 completeness_level: validated
 upstream:
-  - docs/intent-preservation/README.md
+  - docs/INTENT_PRESERVATION_README.md
 downstream:
   - scripts/ips_doc_audit.py
 related_adrs: []

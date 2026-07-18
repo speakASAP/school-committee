@@ -7,11 +7,11 @@ owner: TBD
 created: YYYY-MM-DD
 last_updated: YYYY-MM-DD
 completeness_level: skeletal
-source_task: docs/intent-preservation/tasks/TASK-XXX.md
+source_task: docs/11_tasks/TASK-XXX.md
 upstream:
-  - docs/intent-preservation/tasks/TASK-XXX.md
+  - docs/11_tasks/TASK-XXX.md
 downstream:
-  - docs/intent-preservation/context-packages/CP-TASK-XXX.md
+  - docs/13_context_packages/CP-TASK-XXX.md
 related_adrs: []
 ```
 

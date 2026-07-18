@@ -11,9 +11,9 @@ upstream:
   - BUSINESS.md
   - GOALS.md
 downstream:
-  - docs/intent-preservation/project-invariants.md
-  - docs/intent-preservation/agent-rules.md
-  - docs/intent-preservation/operational-gates.md
+  - docs/00_constitution/project-invariants.md
+  - docs/00_constitution/agent-rules.md
+  - docs/00_constitution/operational-gates.md
 related_adrs:
   - docs/59-risks-and-decisions.md
 ```
@@ -28,12 +28,12 @@ This directory implements the company Intent Preservation System (IPS) for `scho
 |---|---|
 | Protected business intent | `BUSINESS.md`, `GOALS.md` |
 | Runtime/system contract | `SYSTEM.md`, `CLAUDE.md`, `docs/33-openapi.yaml` |
-| Agent rules | `AGENTS.md`, `docs/intent-preservation/agent-rules.md` |
-| Task index | `TASKS.md`, `docs/intent-preservation/tasks/` |
-| Execution plans | `docs/intent-preservation/execution-plans/` |
-| Context packages | `docs/intent-preservation/context-packages/` |
-| Goal impact records | `docs/intent-preservation/goal-impact/` |
-| Validation reports | `docs/intent-preservation/validation/` |
+| Agent rules | `AGENTS.md`, `docs/00_constitution/agent-rules.md` |
+| Task index | `TASKS.md`, `docs/11_tasks/` |
+| Execution plans | `docs/21_execution_plans/` |
+| Context packages | `docs/13_context_packages/` |
+| Goal impact records | `docs/22_goal_impact/` |
+| Validation reports | `docs/12_validation/` |
 | Gate reports | `reports/validation/` |
 
 ## Required delivery chain

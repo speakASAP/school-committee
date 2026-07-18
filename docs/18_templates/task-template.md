@@ -10,11 +10,11 @@ completeness_level: skeletal
 upstream:
   - GOALS.md
 downstream:
-  - docs/intent-preservation/execution-plans/EP-TASK-XXX.md
+  - docs/21_execution_plans/EP-TASK-XXX.md
 related_adrs: []
-goal_impact: docs/intent-preservation/goal-impact/GOAL-IMPACT-TASK-XXX.md
-execution_plan: docs/intent-preservation/execution-plans/EP-TASK-XXX.md
-context_package: docs/intent-preservation/context-packages/CP-TASK-XXX.md
+goal_impact: docs/22_goal_impact/GOAL-IMPACT-TASK-XXX.md
+execution_plan: docs/21_execution_plans/EP-TASK-XXX.md
+context_package: docs/13_context_packages/CP-TASK-XXX.md
 ```
 
 ## Objective

@@ -22,7 +22,7 @@ def scan(root):
     return findings
 def run_gate(root: Path):
     root=root.resolve(); audit=doc_audit(root); findings=[]
-    required=["docs/intent-preservation/tasks/TASK-IPS-001-standard-adoption.md","docs/intent-preservation/execution-plans/EP-IPS-001-standard-adoption.md","docs/intent-preservation/context-packages/CP-IPS-001-standard-adoption.md","docs/intent-preservation/goal-impact/GOAL-IMPACT-IPS-001-standard-adoption.md","docs/intent-preservation/project-invariants.md",".claude/checklists/before-coding.md"]
+    required=["docs/11_tasks/TASK-IPS-001-standard-adoption.md","docs/21_execution_plans/EP-IPS-001-standard-adoption.md","docs/13_context_packages/CP-IPS-001-standard-adoption.md","docs/22_goal_impact/GOAL-IMPACT-IPS-001-standard-adoption.md","docs/00_constitution/project-invariants.md",".claude/checklists/before-coding.md"]
     for rel in required:
         if not (root/rel).is_file(): findings.append({"path":rel,"message":"required pre-coding artifact missing"})
     sensitive=scan(root)

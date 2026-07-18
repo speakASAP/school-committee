@@ -8,9 +8,9 @@ created: 2026-06-13
 last_updated: 2026-06-13
 completeness_level: validated
 upstream:
-  - docs/intent-preservation/README.md
+  - docs/INTENT_PRESERVATION_README.md
 downstream:
-  - docs/intent-preservation/context-packages/CP-IPS-001-standard-adoption.md
+  - docs/13_context_packages/CP-IPS-001-standard-adoption.md
 related_adrs: []
 ```
 
@@ -20,7 +20,7 @@ A context package identifies the minimum documents an implementation agent must 
 
 ## Naming
 
-Use `CP-<TASK-ID>.md` under `docs/intent-preservation/context-packages/`.
+Use `CP-<TASK-ID>.md` under `docs/13_context_packages/`.
 
 ## Required sections
 

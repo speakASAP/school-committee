@@ -63,7 +63,7 @@ This repository therefore documents:
 
 ## Intent Preservation
 
-The company Intent Preservation System is implemented in `docs/intent-preservation/`. Future implementation work must have task traceability, goal impact, invariant impact, sensitive-data classification, contract/schema impact, replay/determinism impact, an execution plan, a context package, validation evidence, and passing IPS gates.
+The company Intent Preservation System is implemented in the numbered `docs/NN_*` layers. Future implementation work must have task traceability, goal impact, invariant impact, sensitive-data classification, contract/schema impact, replay/determinism impact, an execution plan, a context package, validation evidence, and passing IPS gates.
 
 ```bash
 npm run ips:doc-audit

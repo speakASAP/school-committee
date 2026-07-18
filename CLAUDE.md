@@ -194,7 +194,7 @@ POST to `LOGGING_SERVICE_URL/api/logs`:
 
 ## Intent Preservation System
 
-This repository implements the company Intent Preservation System in `docs/intent-preservation/`.
+This repository implements the company Intent Preservation System in the numbered `docs/NN_*` layers.
 
 Required chain for future implementation work:
 

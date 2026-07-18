@@ -11,8 +11,8 @@ upstream:
   - BUSINESS.md
   - GOALS.md
 downstream:
-  - docs/intent-preservation/project-invariants.md
-  - docs/intent-preservation/agent-rules.md
+  - docs/00_constitution/project-invariants.md
+  - docs/00_constitution/agent-rules.md
 related_adrs:
   - docs/59-risks-and-decisions.md
 ```

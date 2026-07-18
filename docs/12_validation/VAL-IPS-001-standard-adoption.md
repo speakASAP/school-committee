@@ -8,7 +8,7 @@ created: 2026-06-13
 last_updated: 2026-06-13
 completeness_level: validated
 upstream:
-  - docs/intent-preservation/tasks/TASK-IPS-001-standard-adoption.md
+  - docs/11_tasks/TASK-IPS-001-standard-adoption.md
 downstream:
   - reports/validation/ips-doc-audit.json
   - reports/validation/ips-pre-coding-gate.json
@@ -34,7 +34,7 @@ Gate reports are generated under `reports/validation/` by the IPS commands.
 
 ## Invariant evidence
 
-`docs/intent-preservation/project-invariants.md` lists preserved auth, DB, Vault, QR payment, child-account, payment privacy, audit-event, request-id, BFF authz, GDPR, and child-safety invariants.
+`docs/00_constitution/project-invariants.md` lists preserved auth, DB, Vault, QR payment, child-account, payment privacy, audit-event, request-id, BFF authz, GDPR, and child-safety invariants.
 
 ## Sensitive-data scan evidence
 

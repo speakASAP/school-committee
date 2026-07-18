@@ -4,7 +4,7 @@
 id: GOAL-IMPACT-IPS-001
 artifact_type: task
 artifact_id: TASK-IPS-001
-artifact_path: docs/intent-preservation/tasks/TASK-IPS-001-standard-adoption.md
+artifact_path: docs/11_tasks/TASK-IPS-001-standard-adoption.md
 primary_goal: GOAL-001
 impact_level: enabling
 status: validated
@@ -18,7 +18,7 @@ IPS is an enabling control for MVP launch, first payment cycle, and public trans
 
 ## Evidence
 
-`GOALS.md`, `docs/intent-preservation/project-invariants.md`, and `docs/intent-preservation/operational-gates.md`.
+`GOALS.md`, `docs/00_constitution/project-invariants.md`, and `docs/00_constitution/operational-gates.md`.
 
 ## Validation
 

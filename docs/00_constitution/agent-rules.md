@@ -10,11 +10,11 @@ completeness_level: validated
 upstream:
   - AGENTS.md
   - CLAUDE.md
-  - docs/intent-preservation/constitution.md
-  - docs/intent-preservation/project-invariants.md
+  - docs/00_constitution/constitution.md
+  - docs/00_constitution/project-invariants.md
 downstream:
   - .claude/checklists/before-coding.md
-  - docs/intent-preservation/operational-gates.md
+  - docs/00_constitution/operational-gates.md
 related_adrs:
   - docs/59-risks-and-decisions.md
 ```

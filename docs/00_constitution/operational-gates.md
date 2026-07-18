@@ -8,9 +8,9 @@ created: 2026-06-13
 last_updated: 2026-06-13
 completeness_level: validated
 upstream:
-  - docs/intent-preservation/agent-rules.md
-  - docs/intent-preservation/documentation-completeness-standard.md
-  - docs/intent-preservation/sensitive-data-policy.md
+  - docs/00_constitution/agent-rules.md
+  - docs/23_documentation_contracts/documentation-completeness-standard.md
+  - docs/00_constitution/sensitive-data-policy.md
 downstream:
   - scripts/ips_pre_coding_gate.py
   - scripts/ips_doc_audit.py

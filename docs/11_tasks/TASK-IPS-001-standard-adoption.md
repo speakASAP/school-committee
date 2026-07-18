@@ -13,12 +13,12 @@ upstream:
   - AGENTS.md
   - CLAUDE.md
 downstream:
-  - docs/intent-preservation/execution-plans/EP-IPS-001-standard-adoption.md
+  - docs/21_execution_plans/EP-IPS-001-standard-adoption.md
 related_adrs:
   - docs/59-risks-and-decisions.md
-goal_impact: docs/intent-preservation/goal-impact/GOAL-IMPACT-IPS-001-standard-adoption.md
-execution_plan: docs/intent-preservation/execution-plans/EP-IPS-001-standard-adoption.md
-context_package: docs/intent-preservation/context-packages/CP-IPS-001-standard-adoption.md
+goal_impact: docs/22_goal_impact/GOAL-IMPACT-IPS-001-standard-adoption.md
+execution_plan: docs/21_execution_plans/EP-IPS-001-standard-adoption.md
+context_package: docs/13_context_packages/CP-IPS-001-standard-adoption.md
 ```
 
 ## Objective
@@ -35,7 +35,7 @@ Supports `GOAL-001`, `GOAL-002`, and `GOAL-003` by making future delivery tracea
 
 ## Project Invariant Impact
 
-Applies all invariants in `docs/intent-preservation/project-invariants.md`. No runtime invariant is changed by this documentation/tooling task.
+Applies all invariants in `docs/00_constitution/project-invariants.md`. No runtime invariant is changed by this documentation/tooling task.
 
 ## Sensitive-Data Classification
 
@@ -63,7 +63,7 @@ IPS structure exists, future coding is gated, IPS commands are available, and va
 
 ## Required Context
 
-Read `BUSINESS.md`, `GOALS.md`, `SYSTEM.md`, `AGENTS.md`, `CLAUDE.md`, `TASKS.md`, `docs/33-openapi.yaml`, and `docs/intent-preservation/`.
+Read `BUSINESS.md`, `GOALS.md`, `SYSTEM.md`, `AGENTS.md`, `CLAUDE.md`, `TASKS.md`, `docs/33-openapi.yaml`, and the numbered `docs/NN_*` layers.
 
 ## Validation Task
 
@@ -77,4 +77,4 @@ Run the IPS audit and gates. Record unavailable external context, if any, in val
 
 ## Execution Plan Requirement
 
-Execution plan: `docs/intent-preservation/execution-plans/EP-IPS-001-standard-adoption.md`.
+Execution plan: `docs/21_execution_plans/EP-IPS-001-standard-adoption.md`.

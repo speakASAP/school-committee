@@ -7,12 +7,12 @@ owner: ssfskype@gmail.com
 created: 2026-06-13
 last_updated: 2026-06-13
 completeness_level: validated
-source_task: docs/intent-preservation/tasks/TASK-IPS-001-standard-adoption.md
+source_task: docs/11_tasks/TASK-IPS-001-standard-adoption.md
 upstream:
-  - docs/intent-preservation/tasks/TASK-IPS-001-standard-adoption.md
+  - docs/11_tasks/TASK-IPS-001-standard-adoption.md
 downstream:
-  - docs/intent-preservation/context-packages/CP-IPS-001-standard-adoption.md
-  - docs/intent-preservation/validation/VAL-IPS-001-standard-adoption.md
+  - docs/13_context_packages/CP-IPS-001-standard-adoption.md
+  - docs/12_validation/VAL-IPS-001-standard-adoption.md
 related_adrs:
   - docs/59-risks-and-decisions.md
 ```
@@ -31,7 +31,7 @@ Supports `GOAL-001`, `GOAL-002`, and `GOAL-003` by making implementation evidenc
 
 ## Project Invariants
 
-All invariants in `docs/intent-preservation/project-invariants.md` apply. This task does not modify runtime code paths.
+All invariants in `docs/00_constitution/project-invariants.md` apply. This task does not modify runtime code paths.
 
 ## Sensitive-Data Handling
 
@@ -59,7 +59,7 @@ No runtime behavior, database schema, Kubernetes manifest, auth integration, pay
 
 ## Files to Create
 
-`docs/intent-preservation/**`, `scripts/ips_doc_audit.py`, `scripts/ips_pre_coding_gate.py`, `scripts/ips_deployment_readiness_gate.py`, `.claude/checklists/before-coding.md`.
+`docs/**`, `scripts/ips_doc_audit.py`, `scripts/ips_pre_coding_gate.py`, `scripts/ips_deployment_readiness_gate.py`, `.claude/checklists/before-coding.md`.
 
 ## Files to Modify
 
@@ -97,7 +97,7 @@ Remove the IPS-created docs, scripts, npm scripts, checklist, and entrypoint ref
 
 ## Agent Handoff Prompt
 
-Use `docs/intent-preservation/context-packages/CP-IPS-001-standard-adoption.md` and run the IPS gates before future coding.
+Use `docs/13_context_packages/CP-IPS-001-standard-adoption.md` and run the IPS gates before future coding.
 
 ## Completion Checklist
 

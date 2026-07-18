@@ -16,6 +16,6 @@
   "status": "pass",
   "unresolved_markers": [],
   "validation_reports": [
-    "docs/intent-preservation/validation/VAL-IPS-001-standard-adoption.md"
+    "docs/12_validation/VAL-IPS-001-standard-adoption.md"
   ]
 }

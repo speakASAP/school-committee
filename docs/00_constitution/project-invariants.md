@@ -13,8 +13,8 @@ upstream:
   - SYSTEM.md
   - CLAUDE.md
 downstream:
-  - docs/intent-preservation/agent-rules.md
-  - docs/intent-preservation/operational-gates.md
+  - docs/00_constitution/agent-rules.md
+  - docs/00_constitution/operational-gates.md
 related_adrs:
   - docs/59-risks-and-decisions.md
 ```
