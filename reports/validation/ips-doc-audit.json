@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-07-18T16:03:22Z",
+  "created_at": "2026-07-19T19:44:52Z",
   "files_required": [
     "BUSINESS.md",
     "GOALS.md",
@@ -23,11 +23,228 @@
     "docs/22_goal_impact/GOAL-IMPACT-IPS-001-standard-adoption.md",
     "docs/12_validation/VAL-IPS-001-standard-adoption.md"
   ],
-  "findings": [],
-  "findings_count": 0,
+  "findings": [
+    {
+      "message": "unresolved marker on line 29",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 45",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 65",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 67",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 94",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 164",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 180",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 214",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 239",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 276",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 282",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 283",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 348",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 349",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 386",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 387",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 388",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 389",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 390",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 391",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 392",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 393",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 394",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 395",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 396",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 397",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 398",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 399",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 459",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 472",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 475",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 476",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 477",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 478",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 481",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    },
+    {
+      "message": "unresolved marker on line 484",
+      "path": "docs/00_constitution/data-protection-record.md",
+      "section": null,
+      "severity": "high"
+    }
+  ],
+  "findings_count": 36,
   "gate": "doc_audit",
-  "next_step": "run_pre_coding_gate",
+  "next_step": "fix_documentation_findings",
   "root": "/home/ssf/Documents/Github/school-committee",
   "schema_version": "1.0.0",
-  "status": "PASS"
+  "status": "FAIL"
 }

@@ -181,6 +181,7 @@ OpenAPI spec survived under its original path.
 | OpenAPI spec | `docs/33-openapi.yaml` |
 | Constitution, invariants, agent rules | `docs/00_constitution/` |
 | Sensitive data policy | `docs/00_constitution/sensitive-data-policy.md` |
+| Data protection record (GDPR) | `docs/00_constitution/data-protection-record.md` |
 | Operational gates | `docs/00_constitution/operational-gates.md` |
 | Tasks | `docs/11_tasks/` |
 | Validation reports, validation debt | `docs/12_validation/` |
@@ -191,11 +192,21 @@ OpenAPI spec survived under its original path.
 | Goal impact | `docs/22_goal_impact/` |
 | Documentation contracts | `docs/23_documentation_contracts/` |
 
-**No data-protection document exists.** The public `/gdpr` page is user-facing
-copy, not an internal record of processing. The platform handles children's
-data and now also stores a cookie-consent decision in the browser
-(`alfares.consent`, strictly-necessary only, see `components/ConsentBanner.tsx`),
-so this gap is worth closing.
+**Data protection.** The internal record of processing lives at
+`docs/00_constitution/data-protection-record.md` — processing activities,
+lawful basis per purpose, processors, children's data, cookies, subject rights.
+The public `/gdpr` page (`app/(public)/gdpr/`) is parent-facing copy, not that
+record.
+
+The document is `status: draft` / `completeness_level: partial` on purpose: the
+controller's legal identity and every retention period are unresolved
+`[MISSING: ...]` markers awaiting owner answers, collected in its "Open
+questions for the owner" section. Its §9 lists ten points where the public
+`/gdpr` page and the code disagree — read that before editing either one, and
+do not reconcile them by changing the page alone.
+
+Because of those markers, `npm run ips:doc-audit` and the deployment-readiness
+gate will flag this file until the owner closes the gaps.
 
 ## Intent Preservation System
 
