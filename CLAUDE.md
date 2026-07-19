@@ -172,25 +172,30 @@ POST to `LOGGING_SERVICE_URL/api/logs`:
 
 ## Key Docs Quick Reference
 
+The numbered `docs/NN-*.md` files this table used to list do not exist — the
+repository moved to the Intent Preservation System layout below. Only the
+OpenAPI spec survived under its original path.
+
 | Topic | File |
 |-------|------|
-| MVP scope and cuts | `docs/02-mvp-scope.md` |
-| System architecture | `docs/10-system-architecture.md` |
-| Auth contract | `docs/14-auth-service-contract.md` |
-| Domain model / DB schema | `docs/30-domain-model.md` |
-| Payment architecture | `docs/17-payment-architecture-cz.md` |
-| K8s deployment | `docs/18-kubernetes-deployment.md` |
-| Vault secrets | `docs/19-vault-secrets.md` |
-| REST API contracts | `docs/32-api-rest-contracts.md` |
 | OpenAPI spec | `docs/33-openapi.yaml` |
-| Security model | `docs/40-security-model.md` |
-| GDPR | `docs/41-gdpr-and-data-protection.md` |
-| Child safety | `docs/42-child-safety-and-moderation.md` |
-| Coding standards | `docs/51-coding-standards.md` |
-| Testing strategy | `docs/52-testing-strategy.md` |
-| Agent tasking guide | `docs/55-agent-tasking-guide.md` |
-| Backlog | `docs/56-implementation-backlog.md` |
-| Risks and ADRs | `docs/59-risks-and-decisions.md` |
+| Constitution, invariants, agent rules | `docs/00_constitution/` |
+| Sensitive data policy | `docs/00_constitution/sensitive-data-policy.md` |
+| Operational gates | `docs/00_constitution/operational-gates.md` |
+| Tasks | `docs/11_tasks/` |
+| Validation reports, validation debt | `docs/12_validation/` |
+| Context packages | `docs/13_context_packages/` |
+| Audits | `docs/15_audits/` |
+| Templates | `docs/18_templates/` |
+| Execution plans | `docs/21_execution_plans/` |
+| Goal impact | `docs/22_goal_impact/` |
+| Documentation contracts | `docs/23_documentation_contracts/` |
+
+**No data-protection document exists.** The public `/gdpr` page is user-facing
+copy, not an internal record of processing. The platform handles children's
+data and now also stores a cookie-consent decision in the browser
+(`alfares.consent`, strictly-necessary only, see `components/ConsentBanner.tsx`),
+so this gap is worth closing.
 
 ## Intent Preservation System
 
