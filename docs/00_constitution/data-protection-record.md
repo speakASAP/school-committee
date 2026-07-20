@@ -42,27 +42,66 @@ This document contains no real parent, child, teacher or payment records, per
 
 ## 1. Controller
 
-`[MISSING: legal identity of the controller for strilkove.cz — registered name and IČ of the zapsaný spolek]`
+The controller for strilkove.cz is the **zapsaný spolek** (Czech civil
+association) that runs the parent committee — confirmed by the owner on
+2026-07-20.
 
-What is established:
+**Alfares s.r.o. is not the controller here and is not otherwise connected to
+the spolek.** The two are separate legal entities with separate operations.
+Alfares s.r.o. (IČ 27138038) is the controller for the other ecosystem sites;
+that relationship does not extend to this platform. Recording it here would
+misdirect every subject-access request.
 
-- `BUSINESS.md` → *Legal context*: the committee funds are owned by a
-  registered `zapsaný spolek` (Czech civil association), and there is no
-  personal bank account for committee funds. The spolek is therefore the
-  probable controller.
-- The public page names the controller as "Školní výbor ZŠ Střílky ·
-  strilkove.cz" (`app/(public)/gdpr/page.tsx`, contact section). That is a
-  description, not a legal entity with an IČ.
-- `components/ConsentBanner.tsx` states in its own comment that "the data
-  controller here is the school committee, not Alfares".
+Because the entities are separate, there is **no joint-controller arrangement**
+(Art. 26) — resolved, no longer an open question. It does mean that wherever
+the spolek's data is handled on infrastructure operated by anyone else, that
+operator is a processor and needs an Art. 28 agreement. See §5.
 
-What must not be assumed: **Alfares s.r.o. (IČ 27138038) is the controller for
-the other ecosystem sites, not automatically for this one.** Alfares operates
-the infrastructure this platform runs on and is, on the current evidence, a
-**processor** here (see §5). Recording Alfares as controller would misdirect
-every subject-access request.
+### Controller identification
 
-`[MISSING: whether a joint-controller arrangement (Art. 26) exists between the spolek and Alfares s.r.o., and if so its allocation of responsibilities]`
+Same parameter set the other ecosystem applications publish (cf.
+`statex/statex-website/frontend/src/content/pages/cs/legal/contact-information.md`).
+
+| Parameter | Value | Source |
+|---|---|---|
+| Organisation name (as used in-product) | Školní výbor Střílky | `tenants.name` |
+| School served | ZŠ Střílky | `schools.name` |
+| Contact e-mail (as configured) | `info@school-committee.alfares.cz` | `schools.contact_email` |
+| Právní forma | Zapsaný spolek | `BUSINESS.md` → Legal context |
+| Právní název (registered name) | `[MISSING: exact name as filed in the spolkový rejstřík — "Školní výbor Střílky" is the in-product label, not verified as the registered name]` | — |
+| IČ | `[MISSING: ...]` | — |
+| DIČ | `[MISSING: — or confirmation the spolek is not VAT-registered]` | — |
+| Sídlo (registered address) | `[MISSING: — `schools.address` exists as a field but is empty]` | — |
+| Spisová značka / rejstříkový soud | `[MISSING: ...]` | — |
+| Telefon | `[MISSING: ...]` | — |
+
+**Where these values are not stored.** The owner's recollection on 2026-07-20
+was that the registry parameters had been entered into this application. They
+have not been, on any of the paths checked: `school_settings` (holds one row,
+`auto_approve_users`), `schools` and `tenants` (names and contact e-mail only,
+`address` empty), the repository source, `.env`, the `k8s/` ConfigMaps, and
+Vault (`secret/prod/school-committee/*` holds only auth, db, notifications,
+payments, storage). What was entered is the pair of organisation *names* above.
+The registry identifiers do not exist anywhere in this platform.
+
+There is also nowhere designed to put them — no controller-identity fields in
+the schema or the admin settings UI. `school_settings` is a generic key/value
+table and could carry them without a migration.
+
+Once supplied, they belong in three places kept in step: this table, the
+contact section of `app/(public)/gdpr/page.tsx` (which currently says only
+"Školní výbor ZŠ Střílky · strilkove.cz" — a description, not a legal entity),
+and wherever the site footer identifies the operator.
+
+**One point worth the owner's attention:** the configured contact address sits
+on the `alfares.cz` domain. Given §1's finding that the spolek and Alfares
+s.r.o. are unrelated entities, a parent exercising a GDPR right currently
+writes to an address belonging to the processor rather than the controller.
+`[MISSING: a controller-owned contact address for subject requests]`
+
+`components/ConsentBanner.tsx` already states in its own comment that the
+controller is the school committee and not Alfares — consistent with the above,
+no change needed there.
 
 `[MISSING: DPO appointment — whether one is required and, if so, who]` — Art. 37
 is unlikely to compel appointment at this scale, but the decision is the
@@ -268,12 +307,30 @@ paths recorded there.
 | Internal QR generator | Czech QR payment strings | Amount, variable symbol, account details | In-process, no third party |
 | `leads.alfares.cz` | Enquiry intake | Whatever the enquiry form submits | Alfares-operated, external to this app |
 
-**Operator of all of the above:** the services run on the alfares Kubernetes
-host under Alfares s.r.o. operation. If the controller is the spolek (§1), then
-Alfares s.r.o. is a **processor** and an Art. 28 processing agreement is
-required.
+**Operator of all of the above:** every service in the table runs on the
+alfares Kubernetes host (`statex-apps` namespace), operated by Alfares s.r.o.
 
-`[MISSING: Art. 28 data-processing agreement between the spolek and Alfares s.r.o. — does one exist?]`
+This is a processing relationship, and §1 makes it a strict one rather than an
+internal arrangement. The controller is the spolek; Alfares s.r.o. is a
+**separate, unrelated legal entity** that stores and processes the spolek's
+personal data on its own infrastructure. That is the textbook definition of a
+processor under Art. 4(8), and it means:
+
+- an **Art. 28 processing agreement is required** — not advisable, required.
+  Without one, the spolek is disclosing parents' and children's personal data
+  to a third party with no legal instrument governing it;
+- the agreement must cover the whole table above, since all seven components
+  sit on the same host;
+- any sub-processor Alfares engages (hosting, SMTP relay) must be disclosed to
+  the spolek and permitted under that agreement.
+
+`[MISSING: Art. 28 data-processing agreement between the spolek and Alfares s.r.o. — does one exist? If not, this is the single largest compliance gap in this record.]`
+
+**Note on `leads.alfares.cz`.** Given that the entities are unrelated, this is
+not an internal hand-off: `app/api/leads/submit/route.ts` forwards the enquiry
+body verbatim to a service belonging to a different company. Whether that is a
+disclosure to a processor or to a separate controller changes what the enquirer
+must be told. See §3.13.
 
 **Sub-processors:**
 
@@ -290,6 +347,33 @@ required.
 
 ADR-005 / INV-005: **no child user accounts exist and none may be created.**
 Children are not users. Child-identifying data nonetheless exists.
+
+### Production state — verified, not inferred
+
+The owner's understanding on 2026-07-20 was that the platform holds no
+children's data. The production database contradicts this. Aggregate counts
+from `school_committee_platform.children`, queried 2026-07-20 (counts only — no
+records were read or reproduced, per
+`docs/00_constitution/sensitive-data-policy.md`):
+
+| Measure | Count |
+|---|---|
+| Child records | **25** |
+| With a non-blank `first_name` | **25** |
+| With a non-blank `last_name` | **25** |
+| With `birth_year` | 0 |
+| With free-text `notes` | 4 |
+| With `display_label` | **0** |
+
+So: 25 children are on file, every one of them by full name. `birth_year` is
+unused, which is good. `display_label` — the non-identifying alternative the
+public page promises — is used by nobody, because nothing in the product asks
+for it or falls back to it.
+
+This is live personal data about minors held by the spolek. It is in scope for
+every obligation in this record: lawful basis, retention, subject rights, and
+the Art. 28 agreement in §5. **Do not mark this section resolved on the belief
+that no children's data exists — it exists today.**
 
 ### What is stored
 
@@ -323,10 +407,14 @@ exposes no child data (§3.11).
 
 ### Three findings the owner should see
 
-1. **Names are mandatory, not optional.** `first_name` and `last_name` are
-   `NOT NULL`. `display_label` exists as a gentler alternative but nothing
-   requires its use and nothing prevents the real name being stored alongside
-   it. The public page tells parents the opposite (§9).
+1. **Names are mandatory, not optional — and all 25 records carry them.**
+   `first_name` and `last_name` are `NOT NULL`, so a parent registering a child
+   has no way to withhold the name. `display_label` exists as the gentler
+   alternative but is used **zero** times in production, because nothing asks
+   for it and nothing falls back to it. The public page tells parents the
+   opposite (§9 #1, #2). Closing this gap means a schema change (make the name
+   fields nullable), a UI change (offer `display_label` instead), and a
+   decision about the 25 rows already stored — not a documentation edit.
 2. **`parent_consent` defaults to `true`.** A child row created without any
    explicit parental act is recorded as consented. A default is not consent.
    Since the parent is the one entering the data, the practical risk is low,
@@ -490,13 +578,25 @@ the better commitment and the *code* should be brought up to it — particularly
 Answer these in one pass and this document can move to `approved` /
 `validated`.
 
+**Answered 2026-07-20 — no longer open**
+
+- The controller is the spolek, not Alfares s.r.o. The two entities are
+  unrelated, so there is no joint-controller arrangement. (§1, §5)
+
 **Blocking — legal identity**
 
-1. Who is the controller for strilkove.cz? Registered name and IČ of the
-   spolek. (§1)
-2. Is there an Art. 28 processing agreement with Alfares s.r.o.? (§5)
+1. The spolek's registry values, to fill the identification table in §1:
+   registered name, IČ, DIČ (or "not VAT-registered"), sídlo, spisová značka
+   and registering court, phone, and a controller-owned GDPR contact address.
+   These are **not** stored anywhere in this platform today (§1 lists the paths
+   checked), so they have to come from the owner. Knowing *who* the controller
+   is does not yet let a parent address a request to them.
+2. Is there an Art. 28 processing agreement with Alfares s.r.o.? Now the
+   largest gap in this record: two unrelated entities, one holding the other's
+   data about minors. (§5)
 3. Is a DPO required, and if so who? (§1)
-4. Is a DPIA needed for the children's data? (§6)
+4. Is a DPIA needed for the children's data? On the §6 evidence — 25 minors on
+   file by full name — this is worth taking seriously. (§6)
 5. Named contact and process for subject requests and for breach
    notification. (§10)
 
@@ -515,7 +615,10 @@ Answer these in one pass and this document can move to `approved` /
 9. Is publishing volunteer full names on the public transparency report
    intended, and were volunteers told? (§3.11)
 10. Should child names remain mandatory, or should `display_label` become the
-    primary identifier as the public page already promises? (§6, §9 #1)
+    primary identifier as the public page already promises? (§6, §9 #1) This
+    now needs a second answer alongside it: **what happens to the 25 existing
+    records** — leave, replace names with labels, or delete. A schema change
+    alone does not clear data already stored.
 11. Is a separate photo consent needed, as the public page states? (§9 #4)
 12. Should consent withdrawal exist as an action short of account deletion?
     (§9 #10)
