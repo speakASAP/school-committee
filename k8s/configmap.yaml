@@ -16,7 +16,7 @@ data:
   AUTH_SERVICE_AUDIENCE: "school-committee"
   DB_HOST: "db-server-postgres.statex-apps.svc.cluster.local"
   DB_PORT: "5432"
-  DB_USER: "dbadmin"
+  DB_USER: "school_committee_platform"
   DB_NAME: "school_committee_platform"
   LOGGING_SERVICE_URL: "http://logging-microservice.statex-apps.svc.cluster.local:3367"
   LOGGING_SERVICE_API_PATH: "/api/logs"
