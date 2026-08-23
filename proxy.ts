@@ -41,6 +41,14 @@ const PUBLIC_PREFIXES = [
   "/favicon",
   "/logo.webp",
   "/manifest.json",
+  // PWA assets must be reachable unauthenticated: a redirected service worker
+  // script fails registration, which silently disables app installability.
+  "/sw.js",
+  "/offline.html",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/icon-maskable-192.png",
+  "/icon-maskable-512.png",
 ];
 
 function isPublic(pathname: string): boolean {

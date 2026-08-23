@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import SiteHeader from "@/components/SiteHeader";
-import { InstallBanner } from "@/components/InstallBanner";
 
 type Lang = "cs" | "en";
 
@@ -225,7 +224,6 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
       <SiteHeader />
-      <InstallBanner />
 
       {/* HERO */}
       <section className="bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-16 text-center">

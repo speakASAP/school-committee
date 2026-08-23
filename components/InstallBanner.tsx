@@ -6,68 +6,115 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+type Platform = "ios" | "desktop" | "android";
+
+const DISMISS_KEY = "install-banner-dismissed";
+
+function detectPlatform(): Platform {
+  const ua = navigator.userAgent;
+  if (/iphone|ipad|ipod/i.test(ua)) return "ios";
+  if (/android/i.test(ua)) return "android";
+  return "desktop";
+}
+
+function isStandalone(): boolean {
+  if (window.matchMedia("(display-mode: standalone)").matches) return true;
+  // iOS Safari does not implement display-mode, it exposes navigator.standalone
+  return !!(navigator as Navigator & { standalone?: boolean }).standalone;
+}
+
+/** Manual install steps for browsers that never fire beforeinstallprompt. */
+function manualHint(platform: Platform): string {
+  if (platform === "ios") {
+    return "Klepněte na Sdílet a poté Přidat na plochu.";
+  }
+  if (platform === "desktop") {
+    return "V adresním řádku klepněte na ikonu instalace, nebo v menu prohlížeče zvolte „Instalovat aplikaci“.";
+  }
+  return "V menu prohlížeče zvolte „Přidat na plochu“.";
+}
+
 export function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showIosBanner, setShowIosBanner] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [platform, setPlatform] = useState<Platform | null>(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (isStandalone()) return;
 
-    // Check if already installed (standalone mode)
-    if (window.matchMedia("(display-mode: standalone)").matches) return;
-
-    // Check if previously dismissed
-    if (sessionStorage.getItem("install-banner-dismissed")) return;
-
-    // Detect iOS Safari
-    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isInStandaloneMode = "standalone" in navigator && (navigator as Navigator & { standalone?: boolean }).standalone;
-    if (isIos && !isInStandaloneMode) {
-      setShowIosBanner(true);
-      return;
+    let dismissed = false;
+    try {
+      dismissed = localStorage.getItem(DISMISS_KEY) === "1";
+    } catch (err) {
+      // Storage can throw in private mode / blocked-cookie contexts. Not fatal
+      // for this banner, but never silent.
+      console.warn("[pwa] could not read install-banner dismissal", { error: String(err) });
     }
+    if (dismissed) return;
 
-    // Android / Chrome: listen for beforeinstallprompt
+    const detected = detectPlatform();
+    setPlatform(detected);
+    setVisible(true);
+
+    // Chrome, Edge and Android fire this once the app meets install criteria
+    // (manifest + service worker + HTTPS). Capturing it lets us install with
+    // one click instead of showing manual steps.
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
     window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+
+    const installedHandler = () => setVisible(false);
+    window.addEventListener("appinstalled", installedHandler);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("appinstalled", installedHandler);
+    };
   }, []);
 
   const dismiss = () => {
-    sessionStorage.setItem("install-banner-dismissed", "1");
-    setDismissed(true);
+    try {
+      localStorage.setItem(DISMISS_KEY, "1");
+    } catch (err) {
+      console.warn("[pwa] could not persist install-banner dismissal", { error: String(err) });
+    }
+    setVisible(false);
     setDeferredPrompt(null);
-    setShowIosBanner(false);
   };
 
   const install = async () => {
     if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") setDeferredPrompt(null);
+    try {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") setDeferredPrompt(null);
+    } catch (err) {
+      console.error("[pwa] install prompt failed", {
+        platform,
+        error: err instanceof Error ? `${err.name}: ${err.message}` : String(err),
+      });
+      return;
+    }
     dismiss();
   };
 
-  if (dismissed || (!deferredPrompt && !showIosBanner)) return null;
+  if (!visible || !platform) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 bg-white border border-blue-200 rounded-2xl shadow-lg p-4 flex items-start gap-3 max-w-md mx-auto">
-      <div className="text-2xl shrink-0">📱</div>
+    <div className="fixed bottom-4 left-4 right-4 z-50 bg-white border border-blue-200 rounded-2xl shadow-lg p-4 flex items-start gap-3 max-w-md mx-auto sm:left-auto sm:right-4 sm:mx-0">
+      <div className="text-2xl shrink-0">{platform === "desktop" ? "💻" : "📱"}</div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-900">Nainstalujte si aplikaci</p>
-        {showIosBanner ? (
-          <p className="text-xs text-gray-500 mt-0.5">
-            Klepněte na <span className="font-semibold">Sdílet</span> a poté <span className="font-semibold">Přidat na plochu</span>.
-          </p>
-        ) : (
-          <p className="text-xs text-gray-500 mt-0.5">
-            Přidejte si Školní výbor na plochu telefonu pro rychlý přístup.
-          </p>
-        )}
+        <p className="text-xs text-gray-500 mt-0.5">
+          {deferredPrompt
+            ? platform === "desktop"
+              ? "Přidejte si Školní výbor na plochu počítače pro rychlý přístup."
+              : "Přidejte si Školní výbor na plochu telefonu pro rychlý přístup."
+            : manualHint(platform)}
+        </p>
       </div>
       <div className="flex flex-col gap-1 shrink-0">
         {deferredPrompt && (
