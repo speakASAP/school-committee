@@ -72,11 +72,7 @@ k8s/
 
 ```bash
 ./scripts/deploy.sh
-
-docker build -t localhost:5000/school-committee:latest .
-docker push localhost:5000/school-committee:latest
-kubectl apply -f k8s/ -n statex-apps
-kubectl rollout status deployment/school-committee -n statex-apps
+/home/ssf/Documents/Github/shared/scripts/wait-for-rollout.sh -n statex-apps school-committee
 ```
 
 ## Rollback
