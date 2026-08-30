@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "profile": "runtime-service",
+  "project": {
+    "name": "school-committee",
+    "repository": "https://github.com/speakASAP/school-committee.git"
+  },
+  "standard": {
+    "repository": "https://github.com/speakASAP/intent-preservation-system",
+    "revision": "3e36f64c11e31b878fd2fe09267426738b25ae7f"
+  },
+  "artifacts": {
+    "readme": "README.md",
+    "business": "BUSINESS.md",
+    "system": "SYSTEM.md",
+    "agents": "AGENTS.md",
+    "operations": "AGENT_OPERATIONS.md",
+    "claude": "CLAUDE.md",
+    "tasks": "TASKS.md",
+    "state": "STATE.json",
+    "constitution": "docs/00_constitution/CONSTITUTION.md",
+    "vision": "docs/01_vision/VISION.md",
+    "integrationContract": "docs/06_architecture/INTEGRATION_CONTRACT.md",
+    "projectInvariants": "docs/17_governance/PROJECT_INVARIANTS.md",
+    "validationDebt": "docs/orchestrator/VALIDATION_DEBT.md",
+    "bootstrapTask": "docs/11_tasks/TASK-001-bootstrap-service.md",
+    "bootstrapGoalImpact": "docs/22_goal_impact/GOAL-IMPACT-TASK-001.md",
+    "bootstrapExecutionPlan": "docs/21_execution_plans/EP-TASK-001-bootstrap-service.md",
+    "bootstrapValidation": "docs/12_validation/VAL-TASK-001-bootstrap-service.md"
+  },
+  "integrationReview": [
+    {
+      "capability": "auth",
+      "decision": "required",
+      "reason": "Authentication is delegated to auth-microservice; School Committee enforces school-scoped local roles.",
+      "contract": "Authentication is delegated to auth-microservice; School Committee enforces school-scoped local roles.",
+      "configuration": "AUTH_SERVICE_BASE_URL, audience, and Vault-provided client credentials.",
+      "failureMode": "Identity validation failure denies protected school actions.",
+      "validation": "Exercise token validation and local role guards."
+    },
+    {
+      "capability": "postgres",
+      "decision": "required",
+      "reason": "School-domain records use the declared school_committee_platform PostgreSQL database.",
+      "contract": "School-domain records use the declared school_committee_platform PostgreSQL database.",
+      "configuration": "DB_HOST, DB_PORT, DB_USER, DB_NAME, and Vault-provided DB credential.",
+      "failureMode": "Database unavailability makes data-backed actions unavailable.",
+      "validation": "Run data-access tests and readiness checks."
+    },
+    {
+      "capability": "redis",
+      "decision": "not-applicable",
+      "reason": "redis is not configured or referenced by the current school-committee runtime manifests or environment contract."
+    },
+    {
+      "capability": "logging",
+      "decision": "required",
+      "reason": "Structured operational logs are sent to logging-microservice.",
+      "contract": "Structured operational logs are sent to logging-microservice.",
+      "configuration": "LOGGING_SERVICE_URL and LOGGING_SERVICE_API_PATH.",
+      "failureMode": "Logging delivery failure must not expose sensitive content or corrupt requests.",
+      "validation": "Verify configured logging endpoint and health checks."
+    },
+    {
+      "capability": "notifications",
+      "decision": "required",
+      "reason": "Notification delivery is configured through notifications-microservice and SMTP settings.",
+      "contract": "Notification delivery is configured through notifications-microservice and SMTP settings.",
+      "configuration": "NOTIFICATION_SERVICE_BASE_URL and Vault-provided SMTP settings.",
+      "failureMode": "Notification failure leaves the primary action recorded and requires retry or operator follow-up.",
+      "validation": "Exercise notification paths with non-production data."
+    },
+    {
+      "capability": "ai",
+      "decision": "required",
+      "reason": "Voice transcription is configured through ai-microservice.",
+      "contract": "Voice transcription is configured through ai-microservice.",
+      "configuration": "AI_SERVICE_BASE_URL.",
+      "failureMode": "Transcription failure leaves voice-derived content unavailable without changing other records.",
+      "validation": "Exercise the configured transcription integration when implemented."
+    },
+    {
+      "capability": "payments",
+      "decision": "required",
+      "reason": "The platform generates Czech QR bank-payment information and verifies payment webhooks.",
+      "contract": "The platform generates Czech QR bank-payment information and verifies payment webhooks.",
+      "configuration": "Vault-provided payment account settings and PAYMENT_WEBHOOK_SECRET.",
+      "failureMode": "Payment verification failure prevents confirmation rather than inventing a paid state.",
+      "validation": "Test QR generation and webhook signature handling with test inputs."
+    },
+    {
+      "capability": "catalog",
+      "decision": "not-applicable",
+      "reason": "catalog is not configured or referenced by the current school-committee runtime manifests or environment contract."
+    },
+    {
+      "capability": "orders",
+      "decision": "not-applicable",
+      "reason": "orders is not configured or referenced by the current school-committee runtime manifests or environment contract."
+    },
+    {
+      "capability": "warehouse",
+      "decision": "not-applicable",
+      "reason": "warehouse is not configured or referenced by the current school-committee runtime manifests or environment contract."
+    },
+    {
+      "capability": "invoices",
+      "decision": "not-applicable",
+      "reason": "invoices is not configured or referenced by the current school-committee runtime manifests or environment contract."
+    },
+    {
+      "capability": "object-storage",
+      "decision": "required",
+      "reason": "Configured MinIO/S3 credentials support storage needs described by the application configuration.",
+      "contract": "Configured MinIO/S3 credentials support storage needs described by the application configuration.",
+      "configuration": "Vault-provided STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY, and STORAGE_BUCKET.",
+      "failureMode": "Object-storage failure leaves affected uploads unavailable without exposing credentials.",
+      "validation": "Exercise storage access with a non-production object."
+    },
+    {
+      "capability": "event-bus",
+      "decision": "not-applicable",
+      "reason": "event-bus is not configured or referenced by the current school-committee runtime manifests or environment contract."
+    },
+    {
+      "capability": "docs-rag",
+      "decision": "required",
+      "reason": "Repository documentation is discoverable through docs-rag-microservice under ecosystem policy.",
+      "contract": "Repository documentation is discoverable through docs-rag-microservice under ecosystem policy.",
+      "configuration": "Docs-RAG registration is managed by the ecosystem indexer, not application secrets.",
+      "failureMode": "RAG unavailability does not replace Git as documentation authority.",
+      "validation": "Confirm Git sources and use bounded retrieval when the service is healthy."
+    },
+    {
+      "capability": "monitoring",
+      "decision": "required",
+      "reason": "Kubernetes probes use the live and ready health endpoints.",
+      "contract": "Kubernetes probes use the live and ready health endpoints.",
+      "configuration": "Deployment probes target /api/health/live and /api/health/ready on port 4800.",
+      "failureMode": "An unhealthy instance is removed from ready traffic by Kubernetes.",
+      "validation": "Call both declared health endpoints and inspect probe configuration."
+    },
+    {
+      "capability": "backups",
+      "decision": "not-applicable",
+      "reason": "backups is not configured or referenced by the current school-committee runtime manifests or environment contract."
+    }
+  ]
+}

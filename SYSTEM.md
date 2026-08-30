@@ -89,3 +89,35 @@ cp .env.example .env.local
 npm install
 npm run dev
 ```
+
+## Purpose
+Provide the documented mobile-first parent-committee platform.
+
+## Responsibilities
+Provide contribution, volunteer-task, feedback, transparency, and school-scoped authorization flows.
+
+## Non-Responsibilities
+The service does not issue identities, operate a social feed, or host child accounts in the MVP.
+
+## Inputs
+Authenticated requests, PostgreSQL records, configured payment webhooks, and configured integration responses.
+
+## Outputs
+Web and BFF responses, QR payment information, stored school-domain records, and structured logs.
+
+## Dependencies
+Kubernetes configuration declares auth, PostgreSQL, logging, notifications, AI, and object-storage dependencies.
+
+## Upstream Traceability
+This system implements the approved business baseline and vision in `BUSINESS.md` and `docs/01_vision/VISION.md`.
+
+## Downstream Artifacts
+The integration contract and bootstrap task chain record runtime decisions and onboarding evidence.
+
+## Validation Criteria
+Run the declared tests and type check; verify the live and ready endpoints and integration configuration.
+
+## Open Questions
+Future notification sending is explicitly planned through notifications-microservice; no new scope is defined here.
+Status: reviewed
+completeness_level: complete

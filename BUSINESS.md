@@ -47,3 +47,30 @@ Simplify financial contributions, volunteer task coordination, and feedback coll
 ## Stakeholders
 
 - Owner: ssfskype@gmail.com
+
+## Problem
+Czech primary-school parent committees need a focused way to coordinate contributions, volunteer tasks, and feedback.
+
+## Target Users and Stakeholders
+Parents, committee representatives, teachers, school staff, and the named project owner are stakeholders.
+
+## Value Proposition
+The platform combines contribution, volunteering, feedback, and committee transparency in a mobile-first service.
+
+## Goals
+Prove the model with one real school committee before scaling.
+
+## Non-Goals
+The MVP has no social feeds, child accounts, public individual payment visibility, or school-provided parent import.
+
+## Success Metrics
+MVP evidence is one school using the platform, QR payment generation and manual confirmation, one volunteer cycle, and a live public transparency page.
+
+## Business Constraints
+Funds belong to a registered Czech civil association; GDPR applies and school data is not imported without parent consent.
+
+## Approval
+Status: approved
+Approved by: project owner
+Approval evidence: owner-confirmation: school-committee-onboarding-approved
+completeness_level: complete

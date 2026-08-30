@@ -87,3 +87,18 @@ Before merge, release, deployment, or task closure:
 - Store gate evidence under `reports/validation/`.
 
 Human-only files remain protected: `BUSINESS.md` and `GOALS.md`.
+
+## Required Reading
+Read `BUSINESS.md`, `SYSTEM.md`, `TASKS.md`, `STATE.json`, and the numbered IPS documents before work.
+
+## Authority
+Git-tracked project contracts are authoritative; protected intent requires owner approval.
+
+## Safety and Operations
+Do not expose secrets, bypass external identity validation, or change deployment policy without pre-existing authorization.
+
+## Project-Specific Rules
+Preserve GDPR constraints, school-scoped roles, payment verification, and the MVP exclusions.
+
+## Required Final Report
+Report changed files, validation evidence, validation debt, blockers, deviations, and the next concrete action.

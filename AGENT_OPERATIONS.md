@@ -64,3 +64,12 @@ Validation debt does not excuse current-task failures. If a failure touches curr
 Report files changed, documents created, validation evidence, validation debt used or added, blockers, deviations, and the next concrete action.
 
 Next step: Follow the repository-specific `AGENTS.md` and planning files for the current task.
+
+## Project-Specific Operations
+Treat auth-microservice as identity authority and keep school-local roles in this service; verify health probes after runtime changes.
+
+## Roles
+Use the readiness scanner, worker, worker monitor, and integration validator roles defined above.
+
+## Handoff
+Record the completed scope, validator evidence, debt status, blockers, and next action at each work boundary.

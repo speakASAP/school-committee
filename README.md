@@ -70,3 +70,27 @@ npm run ips:doc-audit
 npm run ips:pre-coding
 npm run ips:deployment-readiness
 ```
+
+## Status
+Status: completed-frozen; the documented platform has no active implementation task.
+
+## Documentation Authority
+Git-tracked project documents and runtime manifests are authoritative; `docs/` contains the implementation material.
+
+## Capabilities
+Parents can make QR bank-payment contributions, volunteer for tasks, and submit feedback; committee users receive transparency tools.
+
+## Interfaces
+The web/BFF uses auth-microservice, PostgreSQL, logging-microservice, notifications-microservice, ai-microservice, and configured object storage.
+
+## Development
+Use `npm test` and `npm run type-check` after installing dependencies.
+
+## Configuration
+Copy `.env.example` for local development; production configuration is supplied by ConfigMap and Vault through External Secrets.
+
+## Deployment
+Kubernetes manifests in `k8s/` define the statex-apps deployment for `strilkove.cz`.
+
+## Health and Observability
+Liveness is `/api/health/live`; readiness is `/api/health/ready`; logs are configured for logging-microservice.
