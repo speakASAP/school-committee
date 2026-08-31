@@ -12,5 +12,32 @@
   "blockers": [],
   "followUps": [
     "Owner must create a new approved goal before further implementation."
-  ]
+  ],
+  "schema_version": "1.0",
+  "repository": "school-committee",
+  "service": {
+    "name": "school-committee",
+    "kind": "service",
+    "lifecycle": "completed-frozen",
+    "deployment": "kubernetes"
+  },
+  "planning": {
+    "status": "ready",
+    "active_goal_ids": [],
+    "next_ready_goal_ids": [],
+    "blocked_goal_ids": [],
+    "active_workstream_ids": [],
+    "last_updated_at": "2026-08-30T00:00:00Z"
+  },
+  "delivery": {
+    "last_validation_id": null,
+    "last_validation_status": null,
+    "validation_debt_count": 0,
+    "last_deployment_commit": null
+  },
+  "collection": {
+    "profile": "service",
+    "artifact_index": "docs/registry/ARTIFACT_INDEX.json",
+    "status_source": "human-and-agent-maintained; legacy state retained during Wave contract adoption"
+  }
 }
