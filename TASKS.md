@@ -32,11 +32,17 @@ Future implementation tasks must have matching IPS artifacts under the numbered 
 
 - 2026-06-21: Project marked completed/frozen after remote inventory. There are no active goals, active plans, open tasks, blockers, or pending human/AI actions. Do not ask for a new goal during routine status checks unless the owner explicitly creates one.
 
-## ActiveNo active task; the project is completed/frozen.
+## Active
 
-## Ready NextNo work is ready until the owner creates a new goal.
+No active task; the project is completed/frozen.
 
-## BlockedNo current blocker is recorded.
+## Ready Next
+
+No work is ready until the owner creates a new goal.
+
+## Blocked
+
+No current blocker is recorded.
 
 ## Completed
 IPS adoption profile alignment is complete.
