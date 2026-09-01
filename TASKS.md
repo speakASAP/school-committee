@@ -1,4 +1,3 @@
-# TASKS.md — school-committee
 
 Backlog max 30 items. Each task needs a goal reference.
 
