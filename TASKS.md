@@ -39,6 +39,7 @@ No active task; the project is completed/frozen.
 ## Ready Next
 
 No work is ready until the owner creates a new goal.
+- Owner must create a new approved goal before further implementation.
 
 ## Blocked
 

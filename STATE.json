@@ -1,18 +1,4 @@
 {
-  "schemaVersion": 1,
-  "project": "school-committee",
-  "lifecycle": "completed-frozen",
-  "health": "ok",
-  "activeTask": "No active task; project marked completed/frozen.",
-  "lastUpdated": "2026-08-30",
-  "deployment": {
-    "status": "documented-kubernetes",
-    "target": "statex-apps / strilkove.cz"
-  },
-  "blockers": [],
-  "followUps": [
-    "Owner must create a new approved goal before further implementation."
-  ],
   "schema_version": "1.0",
   "repository": "school-committee",
   "service": {
