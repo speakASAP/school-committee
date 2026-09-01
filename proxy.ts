@@ -40,6 +40,9 @@ const PUBLIC_PREFIXES = [
   "/_next",
   "/favicon",
   "/logo.webp",
+  // Landing-page announcement imagery: served to logged-out visitors, and the
+  // next/image optimizer fetches it internally, so a redirect here breaks it.
+  "/news",
   "/manifest.json",
   // PWA assets must be reachable unauthenticated: a redirected service worker
   // script fails registration, which silently disables app installability.

@@ -1,9 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 
 type Lang = "cs" | "en";
+
+// Committee announcement promoted on the landing page: the "13 prvních let"
+// lecture cycle, published as a task at /tasks/<id>.
+const LECTURE_TASK_ID = "6592f9be-1cec-43f8-a51d-962e02d41d4c";
 
 const T = {
   cs: {
@@ -19,6 +25,13 @@ const T = {
       { label: "🔒 Bezpečně", href: "/gdpr" },
     ],
     ctaScroll: "Chci se zapojit →",
+    newsLabel: "📣 Novinky školního výboru",
+    newsTitle: "13 prvních let pro následujících 100 let",
+    newsSubtitle: "Cyklus 10 praktických přednášek pro rodiče",
+    newsDesc:
+      "Deset lekcí o každodenní realitě rodičovství — o hranicích, autoritě, samostatnosti dětí, digitálním světě i rovnováze mezi prací a rodinou. Ne teorie, ale praktický rámec ověřený v reálném rodinném životě.",
+    newsLink: "Zobrazit program cyklu →",
+    newsPhotoAlt: "Lektorka cyklu přednášek pro rodiče",
     howTitle: "Jak to funguje",
     step1Title: "Zaregistrujte se",
     step1Desc: "Zadejte svůj e-mail a klikněte na odkaz v e-mailu.",
@@ -80,6 +93,15 @@ const T = {
       { label: "🔒 Secure", href: "/gdpr" },
     ],
     ctaScroll: "I want to join →",
+    // Announcement copy stays Czech in every language variant — the committee
+    // publishes it in Czech only.
+    newsLabel: "📣 Novinky školního výboru",
+    newsTitle: "13 prvních let pro následujících 100 let",
+    newsSubtitle: "Cyklus 10 praktických přednášek pro rodiče",
+    newsDesc:
+      "Deset lekcí o každodenní realitě rodičovství — o hranicích, autoritě, samostatnosti dětí, digitálním světě i rovnováze mezi prací a rodinou. Ne teorie, ale praktický rámec ověřený v reálném rodinném životě.",
+    newsLink: "Zobrazit program cyklu →",
+    newsPhotoAlt: "Lektorka cyklu přednášek pro rodiče",
     howTitle: "How it works",
     step1Title: "Register",
     step1Desc: "Enter your email and click the link we send you.",
@@ -249,6 +271,54 @@ export default function LandingPage() {
           >
             {t.ctaScroll}
           </button>
+        </div>
+      </section>
+
+      {/* COMMITTEE NEWS */}
+      <section className="px-4 py-10 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <Link
+            href={`/tasks/${LECTURE_TASK_ID}`}
+            className="group block overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-sm hover:shadow-md hover:border-blue-400 transition-all"
+          >
+            <div className="relative">
+              <Image
+                src="/news/prednasky-lektorka.webp"
+                alt={t.newsPhotoAlt}
+                width={800}
+                height={450}
+                sizes="(max-width: 768px) 100vw, 768px"
+                priority
+                className="w-full aspect-[16/9] object-cover object-right"
+              />
+              {/* Left scrim: keeps the dark text legible over the pale backdrop
+                  on md+, where the copy sits on top of the photo. */}
+              <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-white via-white/90 to-transparent" />
+              <div className="hidden md:flex absolute inset-0 flex-col justify-center p-8 max-w-[62%]">
+                <p className="text-base font-semibold text-blue-600 mb-2">{t.newsLabel}</p>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2 leading-tight">
+                  {t.newsTitle}
+                </h2>
+                <p className="text-lg font-medium text-gray-700 mb-3">{t.newsSubtitle}</p>
+                <p className="text-base text-gray-700 mb-4 line-clamp-3">{t.newsDesc}</p>
+                <span className="text-base font-semibold text-blue-600 group-hover:text-blue-800 transition-colors">
+                  {t.newsLink}
+                </span>
+              </div>
+            </div>
+
+            {/* Mobile: copy below the photo — overlaid text is unreadable at
+                phone widths. */}
+            <div className="md:hidden p-5 bg-blue-50">
+              <p className="text-base font-semibold text-blue-600 mb-2">{t.newsLabel}</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
+                {t.newsTitle}
+              </h2>
+              <p className="text-base font-medium text-gray-600 mb-3">{t.newsSubtitle}</p>
+              <p className="text-base text-gray-700 mb-4">{t.newsDesc}</p>
+              <span className="text-base font-semibold text-blue-600">{t.newsLink}</span>
+            </div>
+          </Link>
         </div>
       </section>
 

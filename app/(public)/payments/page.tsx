@@ -92,13 +92,16 @@ function QrGenerator() {
         <p className="text-gray-600 text-sm">
           Kliknutím vygenerujete QR kód pro platbu 500 Kč. Platbu proveďte bankovní aplikací.
         </p>
+        <p className="text-sm font-medium text-blue-700">
+          Příspěvek je dobrovolný.
+        </p>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <button
           onClick={generateQr}
           disabled={loading}
           className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 py-3 text-sm font-semibold disabled:opacity-50 transition-colors"
         >
-          {loading ? "Generuji…" : "Vygenerovat QR kód pro 500 Kč"}
+          {loading ? "Generuji…" : "Zaplatit dobrovolně 500 Kč"}
         </button>
       </div>
     );
@@ -119,7 +122,10 @@ function QrGenerator() {
         <p className="text-sm text-gray-600">
           Částka: <strong className="text-gray-900">500 Kč</strong>
         </p>
-        <p className="text-xs text-gray-400 mt-3">
+        <p className="text-sm font-medium text-blue-700 mt-3">
+          Platba je dobrovolná — částku můžete v bankovní aplikaci upravit.
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
           Naskenujte bankovní aplikací (George, Smart Banka apod.)
         </p>
         {result && (
@@ -182,11 +188,12 @@ function PaymentsContent() {
             Finanční příspěvek
           </h1>
           <p className="text-gray-600 text-lg mb-6 max-w-xl mx-auto">
-            Příspěvek 500 Kč za pololetí pomáhá škole zajišťovat lepší vzdělání a zázemí pro vaše děti.
+            Dobrovolný příspěvek 500 Kč za pololetí pomáhá škole zajišťovat lepší vzdělání a zázemí pro vaše děti.
           </p>
           <a href="#pay" className="inline-block bg-white border border-gray-200 rounded-2xl px-8 py-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer">
             <p className="text-4xl font-extrabold text-blue-700">500 Kč</p>
             <p className="text-sm text-gray-500 mt-1">za pololetí</p>
+            <p className="text-sm font-medium text-blue-700 mt-2">Dobrovolný příspěvek</p>
           </a>
         </div>
       </section>
@@ -194,7 +201,10 @@ function PaymentsContent() {
       {/* WHY */}
       <section className="px-4 py-12 bg-white">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Proč přispívat?</h2>
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">Proč přispívat?</h2>
+          <p className="text-base text-gray-600 text-center mb-8 max-w-xl mx-auto">
+            Přispívání je dobrovolné — to, zda přispějete, určujete vždy sami. Nepřispění nemá žádný dopad na vaše dítě.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { icon: "🏫", title: "Lepší vybavení", desc: "Příspěvky jdou přímo na pomůcky, knihy a vybavení tříd.", href: "/report" },
@@ -269,7 +279,7 @@ function PaymentsContent() {
       <section id="pay" className="px-4 py-12 bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="max-w-lg mx-auto">
           <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-900 text-center mb-6">Zaplatit 500 Kč</h2>
+            <h2 className="text-xl font-bold text-gray-900 text-center mb-6">Zaplatit dobrovolně 500 Kč</h2>
             <Suspense fallback={<p className="text-sm text-gray-400 text-center">Načítám…</p>}>
               <AuthGate authed={authed} paymentStatus={paymentStatus} />
             </Suspense>
