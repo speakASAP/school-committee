@@ -20,33 +20,50 @@ Backlog max 30 items. Each task needs a goal reference.
 | 014 | SMS / email-link / Telegram / WhatsApp confirmation sending | planned | GOAL-001 | (future notifications-microservice) |
 | 015 | Company Intent Preservation System adoption | done | GOAL-001, GOAL-002, GOAL-003 | `docs/11_tasks/TASK-IPS-001-standard-adoption.md` |
 
-## Safe start order
 
-1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
-
-## Intent preservation requirement
-
-Future implementation tasks must have matching IPS artifacts under the numbered `docs/NN_*` layers: task, goal impact record, execution plan, context package, and validation report. Run `npm run ips:pre-coding` before source edits and `npm run ips:deployment-readiness` before closure.
-
-## Project Completion Marker
-
-- 2026-06-21: Project marked completed/frozen after remote inventory. There are no active goals, active plans, open tasks, blockers, or pending human/AI actions. Do not ask for a new goal during routine status checks unless the owner explicitly creates one.
+# Tasks: school-committee
 
 ## Active
 
+
 No active task; the project is completed/frozen.
 
-## Ready Next
+
+## Ready next
+
 
 No work is ready until the owner creates a new goal.
 - Owner must create a new approved goal before further implementation.
 
+
 ## Blocked
+
 
 No current blocker is recorded.
 
+
 ## Completed
+
 IPS adoption profile alignment is complete.
 
+
 ## Handoff
+
 Future work must begin from approved intent and a linked IPS task chain.
+
+## Safe start order
+
+
+1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
+
+
+## Intent preservation requirement
+
+
+Future implementation tasks must have matching IPS artifacts under the numbered `docs/NN_*` layers: task, goal impact record, execution plan, context package, and validation report. Run `npm run ips:pre-coding` before source edits and `npm run ips:deployment-readiness` before closure.
+
+
+## Project Completion Marker
+
+
+- 2026-06-21: Project marked completed/frozen after remote inventory. There are no active goals, active plans, open tasks, blockers, or pending human/AI actions. Do not ask for a new goal during routine status checks unless the owner explicitly creates one.
