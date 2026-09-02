@@ -1,8 +1,10 @@
 ---
 status: review
 owner: repository-owner
-last_updated: 2026-08-31
+last_updated: 2026-09-02
 ---
+
+<!-- [MISSING: the radiator task PATCH and live-page verification described in Task 6 were not independently evidenced. The comments DB/API/UI implementation is present and the focused Vitest route suite passed 10/10, so retain review for the unverified production data update.] -->
 
 # Task Comments Implementation Plan
 
