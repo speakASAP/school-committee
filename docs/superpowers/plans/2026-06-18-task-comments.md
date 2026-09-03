@@ -1,10 +1,16 @@
 ---
-status: review
+status: done
 owner: repository-owner
-last_updated: 2026-09-02
+last_updated: 2026-09-03
 ---
 
-<!-- [MISSING: the radiator task PATCH and live-page verification described in Task 6 were not independently evidenced. The comments DB/API/UI implementation is present and the focused Vitest route suite passed 10/10, so retain review for the unverified production data update.] -->
+<!-- Verification note (2026-09-03): Task 6 was verified end to end against
+production. Row 64b66a69-d8d8-4958-a9d4-097beb169cd5 in school_committee_platform
+carries deadline 2026-08-28 and the agreed description, and the live page at
+https://strilkove.cz/tasks/64b66a69-d8d8-4958-a9d4-097beb169cd5 renders the
+description, "Termin: 28. 8. 2026", and the comment thread heading
+"Dotazy a komentare (0)" with an auth-gated post prompt for anonymous visitors.
+The earlier [MISSING:] marker is resolved; status moved review -> done. -->
 
 # Task Comments Implementation Plan
 
@@ -35,7 +41,7 @@ last_updated: 2026-09-02
 **Files:**
 - Create: `lib/db/task-comments.ts`
 
-- [ ] **Step 1: Write the file**
+- [x] **Step 1: Write the file**
 
 ```typescript
 import { db } from "@/lib/db/client";
@@ -126,7 +132,7 @@ export async function createTaskComment(
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 ```bash
 npx tsc --noEmit 2>&1 | grep "task-comments"
@@ -141,7 +147,7 @@ Expected: no output (no errors in this file).
 **Files:**
 - Create: `app/api/tasks/[id]/comments/route.ts`
 
-- [ ] **Step 1: Write the file**
+- [x] **Step 1: Write the file**
 
 ```typescript
 import { NextRequest, NextResponse } from "next/server";
@@ -252,7 +258,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 ```bash
 npx tsc --noEmit 2>&1 | grep "comments"
@@ -267,7 +273,7 @@ Expected: no output.
 **Files:**
 - Create: `tests/tasks/comments-route.test.ts`
 
-- [ ] **Step 1: Write the tests**
+- [x] **Step 1: Write the tests**
 
 ```typescript
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -380,7 +386,7 @@ describe("POST /api/tasks/[id]/comments", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 ```bash
 npx vitest run tests/tasks/comments-route.test.ts 2>&1
@@ -395,7 +401,7 @@ Expected: all tests pass (5 pass, 0 fail).
 **Files:**
 - Create: `components/tasks/TaskCommentThread.tsx`
 
-- [ ] **Step 1: Write the component**
+- [x] **Step 1: Write the component**
 
 ```typescript
 "use client";
@@ -526,7 +532,7 @@ export function TaskCommentThread({ taskId, authed }: TaskCommentThreadProps) {
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 ```bash
 npx tsc --noEmit 2>&1 | grep "TaskCommentThread"
@@ -543,7 +549,7 @@ Expected: no output.
 
 The existing `TaskDetail` component already has `authed` state. Add the import and place `<TaskCommentThread>` at the bottom of the task card (after the closing `</div>` of the edit section, before the outer `</div>`).
 
-- [ ] **Step 1: Add the import**
+- [x] **Step 1: Add the import**
 
 In `app/(public)/tasks/[id]/page.tsx`, add to the existing imports at the top:
 
@@ -551,7 +557,7 @@ In `app/(public)/tasks/[id]/page.tsx`, add to the existing imports at the top:
 import { TaskCommentThread } from "@/components/tasks/TaskCommentThread";
 ```
 
-- [ ] **Step 2: Add the component inside the task card**
+- [x] **Step 2: Add the component inside the task card**
 
 Find this block (line ~521):
 
@@ -579,7 +585,7 @@ Replace it with:
 
 That is: add `<TaskCommentThread taskId={id} authed={authed} />` just before the closing `</div>` of the task card (the one with `className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-4"`).
 
-- [ ] **Step 3: Type-check the full project**
+- [x] **Step 3: Type-check the full project**
 
 ```bash
 npx tsc --noEmit 2>&1
@@ -587,7 +593,7 @@ npx tsc --noEmit 2>&1
 
 Expected: no errors.
 
-- [ ] **Step 4: Run all tests**
+- [x] **Step 4: Run all tests**
 
 ```bash
 npx vitest run 2>&1 | tail -20
@@ -601,7 +607,7 @@ Expected: all tests pass.
 
 The "Malování radiátoru" task exists in the production database. Update it with the date (2026-08-28) and the confirmed description.
 
-- [ ] **Step 1: Find the task ID**
+- [x] **Step 1: Find the task ID**
 
 ```bash
 kubectl -n statex-apps exec deployment/shared -- \
@@ -618,7 +624,7 @@ LIMIT 5;
 
 Note the task `id`.
 
-- [ ] **Step 2: Update via PATCH API (from production pod)**
+- [x] **Step 2: Update via PATCH API (from production pod)**
 
 Replace `<TASK_ID>` with the ID found above.
 
@@ -646,7 +652,7 @@ SET
 WHERE id = '<TASK_ID>';
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Open `https://strilkove.cz/tasks/<TASK_ID>` and confirm deadline and description show correctly.
 
