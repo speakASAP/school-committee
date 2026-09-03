@@ -4,11 +4,11 @@
   "service": {
     "name": "school-committee",
     "kind": "service",
-    "lifecycle": "completed-frozen",
+    "lifecycle": "frozen",
     "deployment": "kubernetes"
   },
   "planning": {
-    "status": "ready",
+    "status": "done",
     "active_goal_ids": [],
     "next_ready_goal_ids": [],
     "blocked_goal_ids": [],
