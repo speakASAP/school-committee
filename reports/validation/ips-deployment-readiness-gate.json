@@ -1,10 +1,10 @@
 {
-  "created_at": "2026-06-13T19:05:33Z",
+  "created_at": "2026-09-05T19:53:30Z",
   "gate": "deployment_readiness",
-  "next_step": "ready_for_deployment_review",
+  "next_step": "fix_deployment_readiness_findings",
   "pre_coding_gate": {
     "report_path": "reports/validation/ips-pre-coding-gate.json",
-    "status": "pass"
+    "status": "fail"
   },
   "protected_files": {
     "changed_files": [],
@@ -13,9 +13,216 @@
   },
   "root": "/home/ssf/Documents/Github/school-committee",
   "schema_version": "1.0.0",
-  "status": "pass",
-  "unresolved_markers": [],
+  "status": "fail",
+  "unresolved_markers": [
+    {
+      "line": 29,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "carries unresolved `[MISSING: ...]` and `[UNKNOWN: ...]` markers, which the IPS"
+    },
+    {
+      "line": 71,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| Pr\u00e1vn\u00ed n\u00e1zev (registered name) | `[MISSING: exact name as filed in the spolkov\u00fd rejst\u0159\u00edk \u2014 \"\u0160koln\u00ed v\u00fdbor St\u0159\u00edlky\" is the in-product label, not verified as the registered name]` | \u2014 |"
+    },
+    {
+      "line": 72,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| I\u010c | `[MISSING: ...]` | \u2014 |"
+    },
+    {
+      "line": 73,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| DI\u010c | `[MISSING: \u2014 or confirmation the spolek is not VAT-registered]` | \u2014 |"
+    },
+    {
+      "line": 74,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| S\u00eddlo (registered address) | `[MISSING: \u2014 `schools.address` exists as a field but is empty]` | \u2014 |"
+    },
+    {
+      "line": 75,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| Spisov\u00e1 zna\u010dka / rejst\u0159\u00edkov\u00fd soud | `[MISSING: ...]` | \u2014 |"
+    },
+    {
+      "line": 76,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| Telefon | `[MISSING: ...]` | \u2014 |"
+    },
+    {
+      "line": 100,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: a controller-owned contact address for subject requests]`"
+    },
+    {
+      "line": 106,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: DPO appointment \u2014 whether one is required and, if so, who]` \u2014 Art. 37"
+    },
+    {
+      "line": 133,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: owner/counsel confirmation of the lawful basis per row]`"
+    },
+    {
+      "line": 203,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[UNKNOWN: which component performs voice transcription for tasks and ideas, and whether audio leaves the alfares host \u2014 no transcription call was found in this repo's routes]`"
+    },
+    {
+      "line": 219,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: owner decision \u2014 either strip the author id on anonymous submission, or correct the wording shown to parents]`"
+    },
+    {
+      "line": 253,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: owner decision \u2014 is publishing volunteer full names on the public report intended, and were volunteers informed?]`"
+    },
+    {
+      "line": 278,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "- `[MISSING: controller/processor status for leads.alfares.cz in relation to strilkove.cz enquiries, and the retention applied there]`"
+    },
+    {
+      "line": 327,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: Art. 28 data-processing agreement between the spolek and Alfares s.r.o. \u2014 does one exist? If not, this is the single largest compliance gap in this record.]`"
+    },
+    {
+      "line": 339,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "ESP. `[UNKNOWN: the upstream relay/smarthost the local MTA forwards to \u2014 not readable from this environment. If it is an external provider (e.g. an SMTP relay service), that provider is a sub-processor and must be listed here.]`"
+    },
+    {
+      "line": 340,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "- **Hosting / datacentre.** `[MISSING: the hosting provider and physical location of the alfares server. The public page asserts \"encrypted servers in the EU\" \u2014 that claim is currently unverified in this repo.]`"
+    },
+    {
+      "line": 436,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: retention period for child records \u2014 see \u00a78]`"
+    },
+    {
+      "line": 437,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: whether a DPIA has been carried out. Processing children's data at scale is an Art. 35 trigger worth assessing even for one school.]`"
+    },
+    {
+      "line": 474,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `profiles` | `[MISSING: retention after membership ends]` |"
+    },
+    {
+      "line": 475,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `children` | `[MISSING: \u2014 likely tied to the child leaving the school]` |"
+    },
+    {
+      "line": 476,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `families`, `family_members` | `[MISSING: ...]` |"
+    },
+    {
+      "line": 477,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `payment_intents`, `payment_reconciliation_events` | `[MISSING: \u2014 constrained below by Czech accounting law, see note]` |"
+    },
+    {
+      "line": 478,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `expenses` and receipt files | `[MISSING: \u2014 same accounting constraint]` |"
+    },
+    {
+      "line": 479,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `tasks` and task media | `[MISSING: ...]` |"
+    },
+    {
+      "line": 480,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `feedback_items` | `[MISSING: ...]` |"
+    },
+    {
+      "line": 481,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `ideas`, votes, comments, media | `[MISSING: ...]` |"
+    },
+    {
+      "line": 482,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `messages` | `[MISSING: ...]` |"
+    },
+    {
+      "line": 483,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `events`, `event_registrations` | `[MISSING: ...]` |"
+    },
+    {
+      "line": 484,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `audit_logs` | `[MISSING: ...]` |"
+    },
+    {
+      "line": 485,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| Consent records (inside `audit_logs`) | `[MISSING: \u2014 must outlive the processing it authorises]` |"
+    },
+    {
+      "line": 486,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| MinIO objects | `[MISSING: \u2014 note that no deletion path to storage exists at all, \u00a74]` |"
+    },
+    {
+      "line": 487,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| `user_achievements` | `[MISSING: ...]` |"
+    },
+    {
+      "line": 547,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: owner decision per row above \u2014 retain under legal obligation, anonymise, or delete]`"
+    },
+    {
+      "line": 560,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| Access (Art. 15) | No export endpoint | `[MISSING: process \u2014 who assembles the export, from which tables, in what format]` |"
+    },
+    {
+      "line": 563,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| Restriction (Art. 18) | None | `[MISSING: process]` |"
+    },
+    {
+      "line": 564,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| Portability (Art. 20) | None | `[MISSING: process]` |"
+    },
+    {
+      "line": 565,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| Objection (Art. 21) | None | `[MISSING: process \u2014 relevant to the Art. 6(1)(f) activities in \u00a73]` |"
+    },
+    {
+      "line": 566,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "| Withdraw consent (Art. 7(3)) | None \u2014 see \u00a79 #10 | `[MISSING: mechanism]` |"
+    },
+    {
+      "line": 569,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "**Who responds:** `[MISSING: named contact and response process. This follows directly from \u00a71 \u2014 until the controller is identified, there is no one accountable for answering a subject-access request.]` The public page tells parents to"
+    },
+    {
+      "line": 572,
+      "path": "docs/00_constitution/data-protection-record.md",
+      "text": "`[MISSING: personal-data-breach notification process \u2014 who assesses, who notifies \u00daOO\u00da within 72 hours, and who informs affected parents]`"
+    }
+  ],
   "validation_reports": [
-    "docs/12_validation/VAL-IPS-001-standard-adoption.md"
+    "docs/12_validation/VAL-IPS-001-standard-adoption.md",
+    "docs/12_validation/VAL-TASK-001-bootstrap-service.md"
   ]
 }
