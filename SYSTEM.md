@@ -41,22 +41,6 @@
 
 Vault path prefix: `secret/prod/school-committee/`
 
-| K8s Secret key | Vault path | Description |
-|----------------|-----------|-------------|
-| `AUTH_SERVICE_CLIENT_SECRET` | `.../auth` | Auth service client secret |
-| `DB_SERVICE_TOKEN` | `.../db` | PostgreSQL password (used as DB password in DATABASE_URL) |
-| `PAYMENT_WEBHOOK_SECRET` | `.../payments` | Payment webhook verification |
-| `PAYMENT_ACCOUNT_IBAN` | `.../payments` | School committee IBAN |
-| `PAYMENT_ACCOUNT_NUMBER` | `.../payments` | Czech account number |
-| `PAYMENT_BANK_CODE` | `.../payments` | Bank code (e.g. 0800) |
-| `SMTP_HOST` | `.../notifications` | Mail server host |
-| `SMTP_USER` | `.../notifications` | Mail server user |
-| `SMTP_PASSWORD` | `.../notifications` | Mail server password |
-| `EMAIL_FROM` | `.../notifications` | Sender address |
-| `STORAGE_ACCESS_KEY` | `.../storage` | MinIO/S3 access key |
-| `STORAGE_SECRET_KEY` | `.../storage` | MinIO/S3 secret key |
-| `STORAGE_BUCKET` | `.../storage` | Storage bucket name |
-
 ## K8s Manifests
 
 ```

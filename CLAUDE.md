@@ -10,7 +10,6 @@ Shared rules live here:
 
 Read those first, then follow the repository-specific notes below and the current planning/status files.
 
-
 ## Repository-Specific Notes
 
 # CLAUDE.md — school-committee
@@ -59,15 +58,6 @@ Mobile-first web platform for Czech primary school parent committees. Parents ca
 
 ## Infrastructure Integrations
 
-| Service | Env var | Address | Purpose |
-|---------|---------|---------|---------|
-| Auth | `AUTH_SERVICE_BASE_URL` | `http://auth-microservice.statex-apps.svc.cluster.local:3370` | Identity, JWT, roles |
-| PostgreSQL | `DB_HOST` / `DB_SERVICE_TOKEN` | `db-server-postgres.statex-apps.svc.cluster.local:5432` | Direct ORM connection (Prisma) |
-| Logging | `LOGGING_SERVICE_URL` | `http://logging-microservice.statex-apps.svc.cluster.local:3367` | Structured logs |
-| Notifications | `NOTIFICATION_SERVICE_BASE_URL` | `http://notifications-microservice.statex-apps.svc.cluster.local:3368` | Email alerts |
-| Payments | internal QR generator | — | Czech QR bank payment generation |
-| Storage | MinIO | `http://minio-microservice.statex-apps.svc.cluster.local:9000` | Task photos, receipts |
-
 ---
 
 ## Architecture Constraints (from ADRs in docs/59-risks-and-decisions.md)
@@ -83,24 +73,9 @@ Mobile-first web platform for Czech primary school parent committees. Parents ca
 
 ## Vault Secret Paths
 
-```
-secret/prod/school-committee/auth         → AUTH_SERVICE_CLIENT_SECRET
-secret/prod/school-committee/db           → DB_SERVICE_TOKEN  (= DB password)
-secret/prod/school-committee/payments     → PAYMENT_WEBHOOK_SECRET, PAYMENT_ACCOUNT_IBAN, PAYMENT_ACCOUNT_NUMBER, PAYMENT_BANK_CODE
-secret/prod/school-committee/notifications → SMTP_HOST, SMTP_USER, SMTP_PASSWORD, EMAIL_FROM
-secret/prod/school-committee/storage      → STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY, STORAGE_BUCKET
-```
-
 ## Database Connection
 
 Direct PostgreSQL via Prisma. Construct `DATABASE_URL` at runtime — never hardcode:
-
-```ts
-const url = `postgresql://${DB_USER}:${DB_SERVICE_TOKEN}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
-```
-
-ConfigMap supplies: `DB_HOST=db-server-postgres`, `DB_PORT=5432`, `DB_USER=dbadmin`, `DB_NAME=school_committee_platform`  
-Vault supplies: `DB_SERVICE_TOKEN` (password)
 
 ---
 
