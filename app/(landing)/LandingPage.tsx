@@ -7,7 +7,7 @@ import SiteHeader from "@/components/SiteHeader";
 
 type Lang = "cs" | "en";
 
-// Committee announcement promoted on the landing page: the "13 prvních let"
+// Committee announcement promoted on the landing page: the "13 prvních let dítěte"
 // lecture cycle, published as a task at /tasks/<id>.
 const LECTURE_TASK_ID = "6592f9be-1cec-43f8-a51d-962e02d41d4c";
 
@@ -26,7 +26,7 @@ const T = {
     ],
     ctaScroll: "Chci se zapojit →",
     newsLabel: "📣 Novinky školního výboru",
-    newsTitle: "13 prvních let pro následujících 100 let",
+    newsTitle: "13 prvních let dítěte pro následujících 100 let rodu",
     newsSubtitle: "Cyklus 10 praktických přednášek pro rodiče",
     newsDesc:
       "Deset lekcí o každodenní realitě rodičovství — o hranicích, autoritě, samostatnosti dětí, digitálním světě i rovnováze mezi prací a rodinou. Ne teorie, ale praktický rámec ověřený v reálném rodinném životě.",
@@ -96,7 +96,7 @@ const T = {
     // Announcement copy stays Czech in every language variant — the committee
     // publishes it in Czech only.
     newsLabel: "📣 Novinky školního výboru",
-    newsTitle: "13 prvních let pro následujících 100 let",
+    newsTitle: "13 prvních let dítěte pro následujících 100 let rodu",
     newsSubtitle: "Cyklus 10 praktických přednášek pro rodiče",
     newsDesc:
       "Deset lekcí o každodenní realitě rodičovství — o hranicích, autoritě, samostatnosti dětí, digitálním světě i rovnováze mezi prací a rodinou. Ne teorie, ale praktický rámec ověřený v reálném rodinném životě.",
@@ -153,7 +153,7 @@ const T = {
   },
 } as const;
 
-export default function LandingPage() {
+export default function LandingPage({ authenticated }: { authenticated?: boolean }) {
   const [lang, setLang] = useState<Lang>("cs");
   const t = T[lang];
   const formRef = useRef<HTMLDivElement>(null);
@@ -245,7 +245,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
-      <SiteHeader />
+      <SiteHeader authenticated={authenticated} />
 
       {/* HERO */}
       <section className="bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-16 text-center">

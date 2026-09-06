@@ -47,6 +47,9 @@ export default function AuthCallbackPage() {
       } else {
         router.replace(normalizeAppPath(nextPath));
       }
+      // Layouts cached before the session cookie existed still render the
+      // signed-out header, so discard that payload after logging in.
+      router.refresh();
     }
 
     fetch("/api/auth/session", {

@@ -44,26 +44,30 @@ export default function SiteHeader({ authenticated }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Auth state normally arrives from the server layout, which reads the session
+  // cookie. The fetch is only a fallback for callers that render the header
+  // without the prop. Deliberately uncached: a sessionStorage cache here
+  // survived login and logout, so the header advertised the wrong state for the
+  // rest of the tab session.
   useEffect(() => {
-    if (authenticated !== undefined) return;
-
-    const cached = sessionStorage.getItem("authed");
-    if (cached !== null) {
-      setAuthed(cached === "1");
+    if (authenticated !== undefined) {
+      setAuthed(authenticated);
       return;
     }
 
+    let cancelled = false;
     fetch("/api/auth/me")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        const val = !!d?.user;
-        setAuthed(val);
-        sessionStorage.setItem("authed", val ? "1" : "0");
+        if (!cancelled) setAuthed(!!d?.user);
       })
       .catch(() => {
-        setAuthed(false);
-        sessionStorage.setItem("authed", "0");
+        if (!cancelled) setAuthed(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [authenticated]);
 
   useEffect(() => {
@@ -98,7 +102,12 @@ export default function SiteHeader({ authenticated }: Props) {
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
+    setAuthed(false);
+    setUserProfile(null);
     router.replace("/login");
+    // Server layouts derived the header from the now-cleared cookie, so drop
+    // the cached RSC payload rather than leaving a signed-in header behind.
+    router.refresh();
   }
 
   const nav = authed ? AUTH_NAV : PUBLIC_NAV;

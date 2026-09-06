@@ -1,10 +1,15 @@
 import type { ReactNode } from "react";
 import SiteHeader from "@/components/SiteHeader";
+import { getAccessToken } from "@/lib/auth/session";
 
-export default function PublicLayout({ children }: { children: ReactNode }) {
+// Public routes render for signed-in visitors too, so the header's auth state
+// comes from the session cookie rather than a client-side guess.
+export default async function PublicLayout({ children }: { children: ReactNode }) {
+  const authenticated = Boolean(await getAccessToken());
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <SiteHeader />
+      <SiteHeader authenticated={authenticated} />
       <main className="flex-1">{children}</main>
       <footer className="border-t border-gray-100 px-4 py-8 bg-white">
         <div className="max-w-3xl mx-auto flex flex-col items-center gap-4">

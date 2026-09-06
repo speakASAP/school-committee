@@ -25,7 +25,8 @@
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('mcpServers',{}\\), indent=2\\)\\)\")",
       "Read(//home/ssf/Documents/Github/.claude/**)",
       "Bash(rtk read *)",
-      "mcp__postgres__postgres_query"
+      "mcp__postgres__postgres_query",
+      "mcp__postgres__postgres_list_databases"
     ]
   },
   "enableAllProjectMcpServers": true,
