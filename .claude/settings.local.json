@@ -26,7 +26,9 @@
       "Read(//home/ssf/Documents/Github/.claude/**)",
       "Bash(rtk read *)",
       "mcp__postgres__postgres_query",
-      "mcp__postgres__postgres_list_databases"
+      "mcp__postgres__postgres_list_databases",
+      "Bash(systemctl --user *)",
+      "Bash(journalctl --user *)"
     ]
   },
   "enableAllProjectMcpServers": true,
