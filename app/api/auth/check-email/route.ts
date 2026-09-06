@@ -4,6 +4,14 @@ import { logger } from "@/lib/logger";
 
 const AUTH_SERVICE_BASE_URL = process.env.AUTH_SERVICE_BASE_URL ?? "";
 const AUTH_SERVICE_CLIENT_SECRET = process.env.AUTH_SERVICE_CLIENT_SECRET ?? "";
+/**
+ * Per-pair Auth-issued RS256 credential for
+ * `svc-school-committee--auth-microservice`, holding
+ * `internal:auth-microservice:email-check`. This is the credential the
+ * service identity standard requires; AUTH_SERVICE_CLIENT_SECRET is the shared
+ * static token it replaces and is sent only while auth still accepts it.
+ */
+const AUTH_SERVICE_TOKEN = process.env.AUTH_SERVICE_TOKEN ?? "";
 const ROUTE = "/api/auth/check-email";
 
 export async function GET(req: NextRequest) {
@@ -30,6 +38,13 @@ export async function GET(req: NextRequest) {
       `${AUTH_SERVICE_BASE_URL}/auth/internal/check-email?email=${encodeURIComponent(email)}`,
       {
         headers: {
+          // Auth tries the bearer first and identifies this caller as its own
+          // principal. The two legacy headers below are the migration window
+          // only, and are dropped once auth sets
+          // ALLOW_INTERNAL_STATIC_TOKEN=false.
+          ...(AUTH_SERVICE_TOKEN
+            ? { Authorization: `Bearer ${AUTH_SERVICE_TOKEN}` }
+            : {}),
           "x-internal-service-token": AUTH_SERVICE_CLIENT_SECRET,
           "x-service-name": "school-committee",
         },
