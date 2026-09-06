@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import { getProfile } from "@/lib/db/profiles";
 import { writeAuditEvent } from "@/lib/db/audit";
 import { getAvatarUrl } from "@/lib/storage/media-urls";
+import { formatName } from "@/lib/format-name";
 import { toErrorResponse, AppError, NotFoundError } from "@/types/errors";
 
 const ROUTE = "/api/profile";
@@ -155,7 +156,7 @@ export async function PATCH(req: NextRequest) {
             body: JSON.stringify({
               type: "new_user_pending_approval",
               recipientRole: "school_staff",
-              payload: { userId: user.id, name: `${profile.firstName} ${profile.lastName}`, email: user.email },
+              payload: { userId: user.id, name: formatName(profile), email: user.email },
             }),
           });
         } catch { /* non-fatal */ }

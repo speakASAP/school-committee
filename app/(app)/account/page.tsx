@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { UserAvatar } from "@/components/UserAvatar";
+import { formatName } from "@/lib/format-name";
 
 interface ClassOption {
   id: string;
@@ -616,7 +617,7 @@ export default function AccountPage() {
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <dt className="text-gray-500">Jméno</dt>
               <dd className="font-medium text-gray-900">
-                {[profile.titleBefore, profile.firstName, profile.lastName, profile.titleAfter].filter(Boolean).join(" ")}
+                {formatName(profile)}
               </dd>
               <dt className="text-gray-500">E-mail</dt>
               <dd className="font-medium text-gray-900">{me?.email ?? "—"}</dd>

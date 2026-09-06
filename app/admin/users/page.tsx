@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { formatName } from "@/lib/format-name";
 
 const ROLES = ["parent", "committee", "teacher", "school_staff", "admin"] as const;
 
@@ -150,7 +151,7 @@ export default function UsersPage() {
   }
 
   const filtered = users.filter((u) => {
-    const name = `${u.firstName} ${u.lastName}`.toLowerCase();
+    const name = formatName(u).toLowerCase();
     const email = (u.email ?? "").toLowerCase();
     const q = search.toLowerCase();
     if (search && !name.includes(q) && !email.includes(q)) return false;
@@ -239,7 +240,7 @@ export default function UsersPage() {
                 >
                   <td className="px-4 py-3">
                     <div className="font-medium text-gray-900">
-                      {[user.titleBefore, user.firstName, user.lastName, user.titleAfter].filter(Boolean).join(" ")}
+                      {formatName(user)}
                     </div>
                     {user.email && (
                       <div className="text-xs text-gray-500 mt-0.5">{user.email}</div>
@@ -326,7 +327,7 @@ export default function UsersPage() {
             <p className="text-sm text-gray-600">
               This will remove{" "}
               <strong>
-                {confirmDelete.firstName} {confirmDelete.lastName}
+                {formatName(confirmDelete)}
               </strong>{" "}
               from the school committee platform and revoke all their roles. Their login account will not be deleted.
             </p>

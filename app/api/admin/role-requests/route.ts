@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const userIds = requests.map((r) => r.userId);
     const profiles = await db.profile.findMany({
       where: { userId: { in: userIds } },
-      select: { userId: true, firstName: true, lastName: true },
+      select: { userId: true, firstName: true, lastName: true, titleBefore: true, titleAfter: true },
     });
     const profileMap = new Map(profiles.map((p) => [p.userId, p]));
 
@@ -34,6 +34,8 @@ export async function GET(req: NextRequest) {
       ...r,
       firstName: profileMap.get(r.userId)?.firstName ?? "",
       lastName: profileMap.get(r.userId)?.lastName ?? "",
+      titleBefore: profileMap.get(r.userId)?.titleBefore ?? null,
+      titleAfter: profileMap.get(r.userId)?.titleAfter ?? null,
     }));
 
     return NextResponse.json({ requests: enriched }, { status: 200 });

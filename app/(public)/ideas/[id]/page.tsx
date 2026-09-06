@@ -4,6 +4,7 @@ import Link from "next/link";
 import { VoteButton } from "@/components/ideas/VoteButton";
 import { CommentThread } from "@/components/ideas/CommentThread";
 import { UserAvatar } from "@/components/UserAvatar";
+import { formatName } from "@/lib/format-name";
 
 interface Idea {
   id: string;
@@ -28,7 +29,7 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [authorName, setAuthorName] = useState<string | null>(null);
+  const [author, setAuthor] = useState<{ titleBefore: string | null; titleAfter: string | null; firstName: string; lastName: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,8 +52,8 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
     if (!isAuthenticated || !idea || idea.isAnonymous || !idea.authorId) return;
     fetch(`/api/profile/${idea.authorId}`)
       .then((r) => r.ok ? r.json() : null)
-      .then((d: { firstName: string; lastName: string } | null) => {
-        if (d?.firstName != null) setAuthorName(`${d.firstName} ${d.lastName}`);
+      .then((d: { titleBefore: string | null; titleAfter: string | null; firstName: string; lastName: string } | null) => {
+        if (d?.firstName != null) setAuthor(d);
       })
       .catch(() => {});
   }, [isAuthenticated, idea]);
@@ -60,6 +61,7 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
   if (loading) return <main className="max-w-2xl mx-auto px-4 py-8"><p className="text-gray-400">Načítám...</p></main>;
   if (error || !idea) return <main className="max-w-2xl mx-auto px-4 py-8"><p className="text-red-600">{error ?? "Chyba"}</p></main>;
 
+  const authorName = author ? formatName(author) : null;
   const displayAuthor = !isAuthenticated ? "Anonymní" : (idea.isAnonymous ? "Anonymní" : (authorName ?? "..."));
   const isOwnIdea = isAuthenticated && idea.authorId === currentUserId;
 
@@ -69,8 +71,8 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
 
       <h1 className="text-2xl font-bold text-gray-900 mb-2">{idea.title}</h1>
       <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
-        {!idea.isAnonymous && isAuthenticated && authorName && (
-          <UserAvatar avatarUrl={idea.authorAvatarUrl} firstName={authorName.split(" ")[0] ?? ""} lastName={authorName.split(" ")[1] ?? ""} size="xs" />
+        {!idea.isAnonymous && isAuthenticated && author && (
+          <UserAvatar avatarUrl={idea.authorAvatarUrl} firstName={author.firstName} lastName={author.lastName} size="xs" />
         )}
         <span>{displayAuthor} · {new Date(idea.createdAt).toLocaleDateString("cs-CZ")}</span>
       </div>

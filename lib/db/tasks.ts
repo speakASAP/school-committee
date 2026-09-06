@@ -4,6 +4,7 @@ import { AppError, NotFoundError } from "@/types/errors";
 import { writeAuditEvent, type AuditEventInput } from "@/lib/db/audit";
 import { buildPage, resolveLimit, type PageParams, type PageResult } from "@/lib/db/pagination";
 import { getAvatarUrl } from "@/lib/storage/media-urls";
+import { formatName } from "@/lib/format-name";
 
 export interface ListTasksParams extends PageParams {
   schoolId: string;
@@ -16,6 +17,8 @@ export interface ListTasksParams extends PageParams {
 export interface TaskWithAssignee extends Task {
   assigneeName: string | null;
   assigneeAvatarUrl: string | null;
+  assigneeFirstName: string | null;
+  assigneeLastName: string | null;
 }
 
 const STAFF_ROLES = new Set(['committee', 'teacher', 'school_staff', 'admin']);
@@ -41,17 +44,21 @@ export async function listTasks(params: ListTasksParams): Promise<PageResult<Tas
     rows.map(async (task) => {
       let assigneeName: string | null = null;
       let assigneeAvatarUrl: string | null = null;
+      let assigneeFirstName: string | null = null;
+      let assigneeLastName: string | null = null;
       if (task.assignedTo) {
         const profile = await db.profile.findUnique({
           where: { userId: task.assignedTo },
-          select: { firstName: true, avatarFileKey: true },
+          select: { firstName: true, lastName: true, titleBefore: true, titleAfter: true, avatarFileKey: true },
         });
         if (profile) {
-          assigneeName = profile.firstName;
+          assigneeName = formatName(profile);
+          assigneeFirstName = profile.firstName;
+          assigneeLastName = profile.lastName;
           assigneeAvatarUrl = await getAvatarUrl(profile.avatarFileKey ?? null, "tasks-list");
         }
       }
-      return { ...task, assigneeName, assigneeAvatarUrl };
+      return { ...task, assigneeName, assigneeAvatarUrl, assigneeFirstName, assigneeLastName };
     })
   );
 
@@ -68,6 +75,8 @@ export interface AssigneeInfo {
   userId: string;
   firstName: string;
   lastName: string;
+  titleBefore: string | null;
+  titleAfter: string | null;
   avatarUrl: string | null;
 }
 
@@ -94,7 +103,7 @@ export async function getTaskDetail(id: string): Promise<TaskDetail> {
   const assigneeProfiles = assignments.length > 0
     ? await db.profile.findMany({
         where: { userId: { in: assignments.map((a) => a.userId) } },
-        select: { userId: true, firstName: true, lastName: true, avatarFileKey: true },
+        select: { userId: true, firstName: true, lastName: true, titleBefore: true, titleAfter: true, avatarFileKey: true },
       })
     : [];
   const profileMap = Object.fromEntries(assigneeProfiles.map((p) => [p.userId, p]));
@@ -105,6 +114,8 @@ export async function getTaskDetail(id: string): Promise<TaskDetail> {
         userId: a.userId,
         firstName: p?.firstName ?? "",
         lastName: p?.lastName ?? "",
+        titleBefore: p?.titleBefore ?? null,
+        titleAfter: p?.titleAfter ?? null,
         avatarUrl: await getAvatarUrl(p?.avatarFileKey ?? null, "task-detail"),
       };
     })
@@ -114,15 +125,15 @@ export async function getTaskDetail(id: string): Promise<TaskDetail> {
   let assigneeName: string | null = null;
   let assigneeAvatarUrl: string | null = null;
   if (assignees.length === 1) {
-    assigneeName = assignees[0].firstName;
+    assigneeName = formatName(assignees[0]);
     assigneeAvatarUrl = assignees[0].avatarUrl;
   } else if (assignees.length === 0 && task.assignedTo) {
     const profile = await db.profile.findUnique({
       where: { userId: task.assignedTo },
-      select: { firstName: true, avatarFileKey: true },
+      select: { firstName: true, lastName: true, titleBefore: true, titleAfter: true, avatarFileKey: true },
     });
     if (profile) {
-      assigneeName = profile.firstName;
+      assigneeName = formatName(profile);
       assigneeAvatarUrl = await getAvatarUrl(profile.avatarFileKey ?? null, "task-detail");
     }
   }

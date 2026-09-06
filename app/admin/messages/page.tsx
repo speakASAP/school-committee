@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { STATUS_LABEL as SHARED_STATUS_LABEL, STATUS_COLOR as SHARED_STATUS_COLOR } from "@/lib/statuses";
+import { formatName as formatPersonName } from "@/lib/format-name";
 
 interface Reply {
   id: string;
@@ -59,7 +60,7 @@ const FEEDBACK_TYPE: Record<string, string> = {
 
 function formatName(u: UserProfile | null, isAnonymous?: boolean): string {
   if (isAnonymous || !u) return "Anonymní";
-  return [u.titleBefore, u.firstName, u.lastName, u.titleAfter].filter(Boolean).join(" ");
+  return formatPersonName(u);
 }
 
 export default function AdminMessagesPage() {

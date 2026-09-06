@@ -8,6 +8,8 @@ interface TaskComment {
   body: string;
   createdAt: string;
   authorFirstName: string;
+  authorLastName: string;
+  authorName: string;
   authorAvatarUrl: string | null;
 }
 
@@ -86,12 +88,12 @@ export function TaskCommentThread({ taskId, authed }: TaskCommentThreadProps) {
               <UserAvatar
                 avatarUrl={c.authorAvatarUrl}
                 firstName={c.authorFirstName}
-                lastName=""
+                lastName={c.authorLastName ?? ""}
                 size="xs"
               />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-gray-700 mb-0.5">
-                  {c.authorFirstName}
+                  {c.authorName || c.authorFirstName}
                 </p>
                 <p className="text-sm text-gray-800 break-words">{c.body}</p>
                 <p className="text-xs text-gray-400 mt-1">

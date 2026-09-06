@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { TASK_STATUSES, STATUS_LABEL as SHARED_STATUS_LABEL, STATUS_COLOR } from "@/lib/statuses";
+import { formatName } from "@/lib/format-name";
 
 interface Task {
   id: string;
@@ -51,10 +52,6 @@ function approveLabel(status: string) {
   if (status === "draft") return "Publikovat";
   if (status === "completed") return "Ověřit";
   return "";
-}
-
-function formatUserName(u: { titleBefore: string | null; firstName: string; lastName: string; titleAfter: string | null }) {
-  return [u.titleBefore, u.firstName, u.lastName, u.titleAfter].filter(Boolean).join(" ");
 }
 
 export default function AdminTasksPage() {
@@ -462,7 +459,7 @@ export default function AdminTasksPage() {
                               {assignees.map((a) => (
                                 <tr key={a.userId}>
                                   <td className="py-1.5 pr-3 font-medium text-gray-900">
-                                    {formatUserName(a)}
+                                    {formatName(a)}
                                   </td>
                                   <td className="py-1.5 pr-3 text-gray-500">
                                     {new Date(a.acceptedAt).toLocaleDateString("cs-CZ")}
@@ -515,7 +512,7 @@ export default function AdminTasksPage() {
                                 .filter((u) => !assignedUserIds.has(u.userId))
                                 .map((u) => (
                                   <option key={u.userId} value={u.userId}>
-                                    {formatUserName(u)}
+                                    {formatName(u)}
                                   </option>
                                 ))}
                             </select>

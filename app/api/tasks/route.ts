@@ -42,6 +42,8 @@ export async function GET(req: NextRequest) {
       isClaimed: task.assignedTo !== null,
       assigneeName: authed ? task.assigneeName : null,
       assigneeAvatarUrl: authed ? task.assigneeAvatarUrl : null,
+      assigneeFirstName: authed ? task.assigneeFirstName : null,
+      assigneeLastName: authed ? task.assigneeLastName : null,
     }));
 
     return NextResponse.json({ items: safeItems, nextCursor: result.nextCursor }, { status: 200 });

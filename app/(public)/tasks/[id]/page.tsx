@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import { UserAvatar } from "@/components/UserAvatar";
 import { TaskCommentThread } from "@/components/tasks/TaskCommentThread";
 import { TASK_STATUSES, STATUS_LABEL as SHARED_STATUS_LABEL } from "@/lib/statuses";
+import { formatName } from "@/lib/format-name";
 
 interface TaskPhoto {
   id: string;
@@ -23,6 +24,8 @@ interface TaskAssignee {
   userId: string | null;
   firstName: string;
   lastName: string;
+  titleBefore: string | null;
+  titleAfter: string | null;
   avatarUrl: string | null;
 }
 
@@ -67,10 +70,6 @@ const ALL_STATUSES = [...TASK_STATUSES];
 
 const STAFF_ROLES = new Set(["committee", "teacher", "school_staff", "admin"]);
 const COMMITTEE_ROLES = new Set(["committee", "admin"]);
-
-function formatUserName(u: UserOption) {
-  return [u.titleBefore, u.firstName, u.lastName, u.titleAfter].filter(Boolean).join(" ");
-}
 
 function TaskDetail() {
   const { id } = useParams<{ id: string }>();
@@ -206,7 +205,7 @@ function TaskDetail() {
         return;
       }
       const assigneeUser = editAssignedTo ? users.find((u) => u.userId === editAssignedTo) : null;
-      const assigneeName = assigneeUser ? assigneeUser.firstName : null;
+      const assigneeName = assigneeUser ? formatName(assigneeUser) : null;
       setTask((t) => t
         ? {
             ...t,
@@ -342,7 +341,7 @@ function TaskDetail() {
                     {task.assignees.map((a, i) => (
                       <div key={a.userId ?? i} className="flex items-center gap-2 text-sm">
                         <UserAvatar avatarUrl={a.avatarUrl} firstName={a.firstName} lastName={a.lastName} size="xs" />
-                        <span className="font-medium text-gray-800">{[a.firstName, a.lastName].filter(Boolean).join(" ")}</span>
+                        <span className="font-medium text-gray-800">{formatName(a)}</span>
                       </div>
                     ))}
                   </div>
@@ -350,7 +349,7 @@ function TaskDetail() {
               ) : task.assigneeName ? (
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <span>Řeší:</span>
-                  <UserAvatar avatarUrl={task.assigneeAvatarUrl} firstName={task.assigneeName.split(" ")[0] ?? ""} lastName={task.assigneeName.split(" ")[1] ?? ""} size="xs" />
+                  <UserAvatar avatarUrl={task.assigneeAvatarUrl} firstName={task.assigneeName} lastName="" size="xs" />
                   <span className="font-medium text-gray-800">{task.assigneeName}</span>
                 </div>
               ) : (task.hasAnyAssignee || task.assigneeCount > 0) && !authed ? (
@@ -505,7 +504,7 @@ function TaskDetail() {
                         <option value="">— nikdo —</option>
                         {users.map((u) => (
                           <option key={u.userId} value={u.userId}>
-                            {formatUserName(u)}
+                            {formatName(u)}
                           </option>
                         ))}
                       </select>

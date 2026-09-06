@@ -6,7 +6,8 @@ export function formatName(p: {
 }): string {
   const parts: string[] = [];
   if (p.titleBefore?.trim()) parts.push(p.titleBefore.trim());
-  parts.push(p.firstName, p.lastName);
+  if (p.firstName?.trim()) parts.push(p.firstName.trim());
+  if (p.lastName?.trim()) parts.push(p.lastName.trim());
   if (p.titleAfter?.trim()) parts.push(p.titleAfter.trim());
   return parts.join(" ");
 }

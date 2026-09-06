@@ -3,6 +3,7 @@ import { db } from "@/lib/db/client";
 import { logger } from "@/lib/logger";
 import { toErrorResponse, AppError } from "@/types/errors";
 import { getOrCreateRequestId } from "@/lib/request-id";
+import { formatName } from "@/lib/format-name";
 
 const ROUTE = "/api/public/report";
 
@@ -44,14 +45,13 @@ export async function GET(req: NextRequest) {
     const allTasks = await Promise.all(
       allTaskRows.map(async (task) => {
         let responsibleName: string | null = null;
-        const actorId = task.assignedTo ?? task.createdBy;
-        if (actorId) {
+        if (task.assignedTo) {
           const profile = await db.profile.findUnique({
-            where: { userId: actorId },
-            select: { firstName: true, lastName: true },
+            where: { userId: task.assignedTo },
+            select: { firstName: true, lastName: true, titleBefore: true, titleAfter: true },
           });
           if (profile) {
-            responsibleName = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || profile.firstName;
+            responsibleName = formatName(profile);
           }
         }
         const finishedEvent = task.statusEvents.find(

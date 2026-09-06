@@ -2,6 +2,7 @@
 import { useState, useEffect, use } from "react";
 import { AchievementList } from "@/components/gamification/AchievementList";
 import { UserAvatar } from "@/components/UserAvatar";
+import { formatName } from "@/lib/format-name";
 
 interface ProfileData {
   userId: string;
@@ -54,7 +55,7 @@ export default function ProfilePage({ params }: { params: Promise<{ userId: stri
           <UserAvatar avatarUrl={profile.avatarUrl} firstName={profile.firstName} lastName={profile.lastName} size="lg" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {[profile.titleBefore, profile.firstName, profile.lastName, profile.titleAfter].filter(Boolean).join(" ")}
+              {formatName(profile)}
             </h1>
             <p className="text-sm text-gray-400 mt-0.5">
               Člen od {new Date(profile.joinedAt).toLocaleDateString("cs-CZ")}

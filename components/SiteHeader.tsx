@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { UserAvatar } from "@/components/UserAvatar";
 
@@ -41,7 +41,6 @@ export default function SiteHeader({ authenticated }: Props) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
   const pathname = usePathname();
 
   // Auth state normally arrives from the server layout, which reads the session
@@ -104,10 +103,9 @@ export default function SiteHeader({ authenticated }: Props) {
     await fetch("/api/auth/logout", { method: "POST" });
     setAuthed(false);
     setUserProfile(null);
-    router.replace("/login");
-    // Server layouts derived the header from the now-cleared cookie, so drop
-    // the cached RSC payload rather than leaving a signed-in header behind.
-    router.refresh();
+    // Full navigation to the public landing page. /login immediately redirects
+    // to hosted Auth, which is the login path, not logout.
+    window.location.assign("/");
   }
 
   const nav = authed ? AUTH_NAV : PUBLIC_NAV;

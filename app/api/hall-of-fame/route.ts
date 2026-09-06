@@ -14,7 +14,12 @@ type HofRow = { userId: string; score: bigint; achievementKeys: string[] };
 export async function GET(req: NextRequest) {
   const requestId = getOrCreateRequestId(req.headers.get("x-request-id"));
   try {
-    await getCurrentUser(requestId); // auth required
+    const currentUser = await getCurrentUser(requestId); // auth required
+
+    const currentProfile = await db.profile.findUnique({
+      where: { userId: currentUser.id },
+      select: { hallOfFameOptOut: true },
+    });
 
     // Aggregate scores in the database — top 20 only
     const top20Raw = await db.$queryRaw<HofRow[]>(Prisma.sql`
@@ -55,8 +60,13 @@ export async function GET(req: NextRequest) {
       };
     }));
 
-    const response = NextResponse.json({ items: result }, { status: 200 });
-    response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+    const response = NextResponse.json({
+      items: result,
+      currentUserId: currentUser.id,
+      currentUserOptOut: currentProfile?.hallOfFameOptOut ?? false,
+    }, { status: 200 });
+    // Response is per-user (carries the viewer's own opt-out state) — must not be shared by a CDN
+    response.headers.set("Cache-Control", "private, no-store");
     return response;
   } catch (err) {
     if (err instanceof AppError) {

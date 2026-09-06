@@ -162,7 +162,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       assigneeName: authed ? task.assigneeName : null,
       assigneeAvatarUrl: authed ? task.assigneeAvatarUrl : null,
       assignees: authed
-        ? task.assignees.map((a) => ({ userId: isStaff ? a.userId : null, firstName: a.firstName, lastName: a.lastName, avatarUrl: a.avatarUrl }))
+        ? task.assignees.map((a) => ({
+            userId: isStaff ? a.userId : null,
+            firstName: a.firstName,
+            lastName: a.lastName,
+            titleBefore: a.titleBefore,
+            titleAfter: a.titleAfter,
+            avatarUrl: a.avatarUrl,
+          }))
         : [],
       assigneeCount: task.assignees.length,
       startedAt: authed ? task.startedAt : null,

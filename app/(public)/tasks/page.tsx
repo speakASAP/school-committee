@@ -15,6 +15,8 @@ interface Task {
   isClaimed: boolean;
   assigneeName: string | null;
   assigneeAvatarUrl: string | null;
+  assigneeFirstName: string | null;
+  assigneeLastName: string | null;
 }
 
 const PRIORITY_BADGE: Record<string, string> = {
@@ -156,7 +158,7 @@ function TaskList() {
                       <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{task.description}</p>
                       {task.assigneeName && (
                         <div className="flex items-center gap-1.5 mt-1">
-                          <UserAvatar avatarUrl={task.assigneeAvatarUrl} firstName={task.assigneeName.split(" ")[0] ?? ""} lastName={task.assigneeName.split(" ")[1] ?? ""} size="xs" />
+                          <UserAvatar avatarUrl={task.assigneeAvatarUrl} firstName={task.assigneeFirstName ?? task.assigneeName} lastName={task.assigneeLastName ?? ""} size="xs" />
                           <p className="text-xs text-blue-600">{task.assigneeName}</p>
                         </div>
                       )}

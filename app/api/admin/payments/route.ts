@@ -4,6 +4,7 @@ import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 import { db } from "@/lib/db/client";
 import { toErrorResponse, AppError } from "@/types/errors";
+import { formatName } from "@/lib/format-name";
 
 const ROUTE = "/api/admin/payments";
 
@@ -48,7 +49,7 @@ export async function GET(req: NextRequest) {
       userIds.length > 0
         ? db.profile.findMany({
             where: { userId: { in: userIds } },
-            select: { userId: true, firstName: true, lastName: true },
+            select: { userId: true, firstName: true, lastName: true, titleBefore: true, titleAfter: true },
           })
         : Promise.resolve([]),
       userIds.length > 0
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
         : Promise.resolve([]),
     ]);
 
-    const profileMap = new Map(profiles.map((p) => [p.userId, { name: `${p.firstName} ${p.lastName}`, lastName: p.lastName }]));
+    const profileMap = new Map(profiles.map((p) => [p.userId, { name: formatName(p), lastName: p.lastName }]));
     const childrenMap = new Map<string, string[]>();
     for (const c of children) {
       const list = childrenMap.get(c.parentUserId) ?? [];
