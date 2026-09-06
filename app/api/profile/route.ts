@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
         rejectionReason: profile.rejectionReason ?? null,
         schoolId: profile.schoolId,
         tenantId: profile.tenantId,
+        hallOfFameOptOut: profile.hallOfFameOptOut,
         avatarUrl,
       },
       children: children.map((c) => ({
@@ -87,6 +88,7 @@ export async function PATCH(req: NextRequest) {
       phone?: string;
       language?: string;
       participationType?: string;
+      hallOfFameOptOut?: boolean;
     };
 
     if (body.firstName !== undefined && !body.firstName.trim()) {
@@ -100,6 +102,9 @@ export async function PATCH(req: NextRequest) {
     }
     if (body.participationType !== undefined && !["financial", "labor", "mixed"].includes(body.participationType)) {
       throw new AppError("VALIDATION_ERROR", "Typ účasti musí být finanční, pracovní nebo kombinovaný", 400);
+    }
+    if (body.hallOfFameOptOut !== undefined && typeof body.hallOfFameOptOut !== "boolean") {
+      throw new AppError("VALIDATION_ERROR", "Neplatná hodnota pro Síň slávy", 400);
     }
     if (body.bio !== undefined && body.bio.length > 1000) {
       throw new AppError("VALIDATION_ERROR", "Bio nesmí překročit 1000 znaků", 400);
@@ -123,6 +128,7 @@ export async function PATCH(req: NextRequest) {
         ...(body.phone !== undefined ? { phone: body.phone?.trim() || null } : {}),
         ...(body.language ? { language: body.language } : {}),
         ...(body.participationType ? { participationType: body.participationType } : {}),
+        ...(body.hallOfFameOptOut !== undefined ? { hallOfFameOptOut: body.hallOfFameOptOut } : {}),
         ...approvalReset,
       },
     });
@@ -168,6 +174,7 @@ export async function PATCH(req: NextRequest) {
         phone: profile.phone ?? null,
         language: profile.language,
         participationType: profile.participationType,
+        hallOfFameOptOut: profile.hallOfFameOptOut,
         approvalStatus: profile.approvalStatus,
         rejectionReason: profile.rejectionReason ?? null,
       },

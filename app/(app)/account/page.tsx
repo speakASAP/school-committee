@@ -30,6 +30,7 @@ interface Profile {
   phone: string | null;
   language: string;
   participationType: string;
+  hallOfFameOptOut: boolean;
   approvalStatus: string;
   rejectionReason: string | null;
   schoolId: string;
@@ -80,7 +81,7 @@ export default function AccountPage() {
 
   // Profile edit state
   const [editingProfile, setEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({ titleBefore: "", titleAfter: "", firstName: "", lastName: "", bio: "", phone: "", language: "cs", participationType: "financial" });
+  const [profileForm, setProfileForm] = useState({ titleBefore: "", titleAfter: "", firstName: "", lastName: "", bio: "", phone: "", language: "cs", participationType: "financial", hallOfFameOptOut: false });
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState(false);
@@ -226,6 +227,7 @@ export default function AccountPage() {
           phone: profileData.profile.phone ?? "",
           language: profileData.profile.language,
           participationType: profileData.profile.participationType,
+          hallOfFameOptOut: profileData.profile.hallOfFameOptOut ?? false,
         });
 
         // Fetch classes for children editing
@@ -578,6 +580,20 @@ export default function AccountPage() {
                 ))}
               </select>
             </div>
+            <div className="pt-1">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-400"
+                  checked={profileForm.hallOfFameOptOut}
+                  onChange={(e) => setProfileForm((f) => ({ ...f, hallOfFameOptOut: e.target.checked }))}
+                />
+                <span className="text-sm text-gray-700">
+                  Nezobrazovat mě v Síni slávy
+                  <span className="block text-xs text-gray-400">Váš profil zůstane dostupný, jen se neobjeví v žebříčku.</span>
+                </span>
+              </label>
+            </div>
             {profileError && <p className="text-red-600 text-sm">{profileError}</p>}
             <div className="flex gap-2 pt-1">
               <button
@@ -610,6 +626,8 @@ export default function AccountPage() {
               <dd className="font-medium text-gray-900">{LANGUAGE_LABELS[profile.language] ?? profile.language}</dd>
               <dt className="text-gray-500">Způsob účasti</dt>
               <dd className="font-medium text-gray-900">{PARTICIPATION_LABELS[profile.participationType] ?? profile.participationType}</dd>
+              <dt className="text-gray-500">Síň slávy</dt>
+              <dd className="font-medium text-gray-900">{profile.hallOfFameOptOut ? "Skrytý" : "Zobrazen"}</dd>
               {profile.bio && (
                 <>
                   <dt className="text-gray-500">O mně</dt>

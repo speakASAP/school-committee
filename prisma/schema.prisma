@@ -83,6 +83,7 @@ model Profile {
   approvedAt         DateTime? @map("approved_at")
   rejectionReason    String?   @map("rejection_reason")
   avatarFileKey      String?   @map("avatar_file_key")
+  hallOfFameOptOut   Boolean   @default(false) @map("hall_of_fame_opt_out")
   isActive           Boolean   @default(true) @map("is_active")
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at")

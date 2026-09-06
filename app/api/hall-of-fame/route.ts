@@ -24,6 +24,8 @@ export async function GET(req: NextRequest) {
         array_agg(ua.achievement_key) AS "achievementKeys"
       FROM user_achievements ua
       JOIN achievements a ON a.key = ua.achievement_key
+      JOIN profiles p ON p.user_id = ua.user_id
+      WHERE p.hall_of_fame_opt_out = false
       GROUP BY ua.user_id
       ORDER BY score DESC
       LIMIT 20
