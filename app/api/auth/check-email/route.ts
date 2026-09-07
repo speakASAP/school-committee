@@ -3,13 +3,11 @@ import { getOrCreateRequestId } from "@/lib/request-id";
 import { logger } from "@/lib/logger";
 
 const AUTH_SERVICE_BASE_URL = process.env.AUTH_SERVICE_BASE_URL ?? "";
-const AUTH_SERVICE_CLIENT_SECRET = process.env.AUTH_SERVICE_CLIENT_SECRET ?? "";
 /**
  * Per-pair Auth-issued RS256 credential for
  * `svc-school-committee--auth-microservice`, holding
- * `internal:auth-microservice:email-check`. This is the credential the
- * service identity standard requires; AUTH_SERVICE_CLIENT_SECRET is the shared
- * static token it replaces and is sent only while auth still accepts it.
+ * `internal:auth-microservice:email-check`.
+ * See auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md.
  */
 const AUTH_SERVICE_TOKEN = process.env.AUTH_SERVICE_TOKEN ?? "";
 const ROUTE = "/api/auth/check-email";
@@ -22,13 +20,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ exists: false }, { status: 200 });
   }
 
-  if (!AUTH_SERVICE_BASE_URL || !AUTH_SERVICE_CLIENT_SECRET) {
-    logger.error("check-email: AUTH_SERVICE_BASE_URL or AUTH_SERVICE_CLIENT_SECRET is not configured", {
+  if (!AUTH_SERVICE_BASE_URL || !AUTH_SERVICE_TOKEN) {
+    logger.error("check-email: AUTH_SERVICE_BASE_URL or AUTH_SERVICE_TOKEN is not configured", {
       request_id: requestId,
       route: ROUTE,
       error_code: "MISCONFIGURATION",
       has_base_url: !!AUTH_SERVICE_BASE_URL,
-      has_client_secret: !!AUTH_SERVICE_CLIENT_SECRET,
+      has_service_token: !!AUTH_SERVICE_TOKEN,
     });
     return NextResponse.json({ exists: false }, { status: 200 });
   }
@@ -38,15 +36,7 @@ export async function GET(req: NextRequest) {
       `${AUTH_SERVICE_BASE_URL}/auth/internal/check-email?email=${encodeURIComponent(email)}`,
       {
         headers: {
-          // Auth tries the bearer first and identifies this caller as its own
-          // principal. The two legacy headers below are the migration window
-          // only, and are dropped once auth sets
-          // ALLOW_INTERNAL_STATIC_TOKEN=false.
-          ...(AUTH_SERVICE_TOKEN
-            ? { Authorization: `Bearer ${AUTH_SERVICE_TOKEN}` }
-            : {}),
-          "x-internal-service-token": AUTH_SERVICE_CLIENT_SECRET,
-          "x-service-name": "school-committee",
+          Authorization: `Bearer ${AUTH_SERVICE_TOKEN}`,
         },
         cache: "no-store",
       },
