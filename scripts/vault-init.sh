@@ -19,7 +19,8 @@ vault status > /dev/null
 
 # Auth service secrets
 vault kv put secret/prod/school-committee/auth \
-  AUTH_SERVICE_CLIENT_SECRET="<REPLACE_ME_AUTH_SERVICE_CLIENT_SECRET>"
+  AUTH_SERVICE_CLIENT_SECRET="<REPLACE_ME_AUTH_SERVICE_CLIENT_SECRET>" \
+  AUTH_SERVICE_TOKEN="<REPLACE_ME_AUTH_SERVICE_TOKEN_RS256>"
 
 # Database secrets (DB_SERVICE_TOKEN = PostgreSQL password for dbadmin)
 vault kv put secret/prod/school-committee/db \

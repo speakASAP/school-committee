@@ -26,10 +26,11 @@ describe("k8s/external-secret.yaml", () => {
     expect(targetSection).toContain("name: school-committee-secret");
   });
 
-  it("contains all 13 secret keys", () => {
+  it("contains required secret keys", () => {
     const content = readFile("k8s/external-secret.yaml");
     const expectedKeys = [
       "AUTH_SERVICE_CLIENT_SECRET",
+      "AUTH_SERVICE_TOKEN",
       "DB_SERVICE_TOKEN",
       "PAYMENT_WEBHOOK_SECRET",
       "PAYMENT_ACCOUNT_IBAN",
@@ -46,6 +47,7 @@ describe("k8s/external-secret.yaml", () => {
     for (const key of expectedKeys) {
       expect(content, `Missing key: ${key}`).toContain(key);
     }
+    expect(content).not.toContain("AUTH_INTERNAL_SERVICE_TOKEN");
   });
 });
 

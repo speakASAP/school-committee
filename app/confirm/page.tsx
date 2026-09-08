@@ -7,8 +7,13 @@ const AUTH_SERVICE_BASE_URL =
   process.env.AUTH_SERVICE_BASE_URL ?? "";
 const APP_BASE_URL =
   process.env.APP_BASE_URL ?? "https://strilkove.cz";
-const AUTH_INTERNAL_SERVICE_TOKEN =
-  process.env.AUTH_INTERNAL_SERVICE_TOKEN ?? "";
+/**
+ * Per-pair Auth-issued RS256 credential for
+ * `svc-school-committee--auth-microservice`. Confirm uses
+ * `internal:auth-microservice:magic-link` (also holds email-check for
+ * /api/auth/check-email). See SERVICE_IDENTITY_CONSUMER_STANDARD.md.
+ */
+const AUTH_SERVICE_TOKEN = (process.env.AUTH_SERVICE_TOKEN ?? "").trim();
 const DEFAULT_TENANT_ID =
   process.env.DEFAULT_TENANT_ID ?? "";
 const DEFAULT_SCHOOL_ID =
@@ -32,14 +37,22 @@ async function confirmLead(token: string): Promise<{ email: string | null } | nu
 }
 
 async function getMagicLinkResult(email: string): Promise<{ verifyUrl: string; userId: string } | null> {
-  if (!AUTH_SERVICE_BASE_URL || !AUTH_INTERNAL_SERVICE_TOKEN) return null;
+  if (!AUTH_SERVICE_BASE_URL) {
+    throw new Error(
+      "AUTH_SERVICE_BASE_URL required for internal magic-link mint",
+    );
+  }
+  if (!AUTH_SERVICE_TOKEN) {
+    throw new Error(
+      "AUTH_SERVICE_TOKEN (Auth-minted RS256) required for internal magic-link mint",
+    );
+  }
   try {
     const res = await fetch(`${AUTH_SERVICE_BASE_URL}/auth/internal/magic-link/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-internal-service-token": AUTH_INTERNAL_SERVICE_TOKEN,
-        "x-service-name": "school-committee",
+        Authorization: `Bearer ${AUTH_SERVICE_TOKEN}`,
       },
       body: JSON.stringify({
         email,
@@ -51,7 +64,13 @@ async function getMagicLinkResult(email: string): Promise<{ verifyUrl: string; u
     const data = (await res.json()) as { verifyUrl?: string; userId?: string };
     if (!data.verifyUrl || !data.userId) return null;
     return { verifyUrl: data.verifyUrl, userId: data.userId };
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("AUTH_SERVICE_TOKEN")) {
+      throw err;
+    }
+    if (err instanceof Error && err.message.includes("AUTH_SERVICE_BASE_URL")) {
+      throw err;
+    }
     return null;
   }
 }

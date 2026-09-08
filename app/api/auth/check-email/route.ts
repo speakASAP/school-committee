@@ -6,7 +6,7 @@ const AUTH_SERVICE_BASE_URL = process.env.AUTH_SERVICE_BASE_URL ?? "";
 /**
  * Per-pair Auth-issued RS256 credential for
  * `svc-school-committee--auth-microservice`, holding
- * `internal:auth-microservice:email-check`.
+ * `internal:auth-microservice:email-check` (and magic-link for confirm).
  * See auth-microservice/docs/SERVICE_IDENTITY_CONSUMER_STANDARD.md.
  */
 const AUTH_SERVICE_TOKEN = process.env.AUTH_SERVICE_TOKEN ?? "";
